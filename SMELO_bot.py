@@ -195,32 +195,45 @@ def run_schedule():
 
 # === ОБРАБОТЧИК WEBHOOK ===
 async def handle(request):
-    if request.match_info.get('token') == BOT_TOKEN:
+    if request.headers.get('content-type') == 'application/json':
         data = await request.json()
         update = telebot.types.Update.de_json(data)
         bot.process_new_updates([update])
-        return web.Response()
+        return web.Response(status=200)
     else:
         return web.Response(status=403)
 
 # === ЗАПУСК ПРИЛОЖЕНИЯ ===
-async def on_startup():
-    await bot.set_webhook(url=f"https://{os.getenv('RENDER_EXTERNAL_HOSTNAME')}{webhook_path}")
+async def on_startup(app):
+    # Устанавливаем вебхук
+    webhook_url = f"https://{os.getenv('RENDER_EXTERNAL_HOSTNAME')}/webhook"
+    bot.remove_webhook()
+    time.sleep(1)
+    bot.set_webhook(url=webhook_url)
 
 # === ЗАПУСК БОТА ===
 if __name__ == "__main__":
     import threading
+    
+    # Запускаем планировщик в отдельном потоке
     threading.Thread(target=run_schedule, daemon=True).start()
-    print("🌙 Sailor Moon Bot запущен! ✨")
-
-    port = int(os.getenv("PORT", "8000"))
-    webhook_path = f"/webhook/{BOT_TOKEN}"
-
+    
+    # Создаем приложение
     app = web.Application()
-    app.router.add_post(webhook_path, handle)
-
-    loop = asyncio.get_event_loop()
-    loop.create_task(on_startup())
-
-    logging.info("🚀 Бот запущен на порту %s, webhook путь %s", port, webhook_path)
+    
+    # Добавляем обработчики
+    app.router.add_post('/webhook', handle)
+    
+    # Добавляем обработчик для корневого пути (чтобы избежать 404)
+    async def root_handler(request):
+        return web.Response(text="🌙 Sailor Moon Bot is running! ✨")
+    
+    app.router.add_get('/', root_handler)
+    
+    # Запускаем приложение
+    port = int(os.getenv("PORT", "8000"))
+    
+    print(f"🌙 Sailor Moon Bot запущен на порту {port}! ✨")
+    print(f"🌐 Webhook URL: https://{os.getenv('RENDER_EXTERNAL_HOSTNAME', 'localhost')}/webhook")
+    
     web.run_app(app, host="0.0.0.0", port=port)
