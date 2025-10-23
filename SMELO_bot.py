@@ -5,9 +5,8 @@ import random
 import time
 import schedule
 import os
-import asyncio
-import logging
-from aiohttp import web
+import threading
+from flask import Flask, request
 from telebot import types
 
 # === НАСТРОЙКИ ===
@@ -15,6 +14,7 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
 
 bot = telebot.TeleBot(BOT_TOKEN)
+app = Flask(__name__)
 
 # === КАРТИНКИ ===
 CHARACTER_IMAGES = {
@@ -80,14 +80,29 @@ def send_daily_quotes():
             bot.send_photo(chat_id, random.choice(CHARACTER_IMAGES[char_key]),
                            caption=f"🌙 Лунная цитата дня:\n\n{quote}",
                            parse_mode='Markdown')
-        except:
-            pass
+        except Exception as e:
+            print(f"Ошибка отправки цитаты: {e}")
 
 # === /SUBSCRIBE НА ЦИТАТЫ ===
 @bot.message_handler(commands=['subscribe'])
 def subscribe(message):
     subscribed_users.add(message.chat.id)
     bot.send_message(message.chat.id, "🌙 Ты подписан(а) на ежедневные лунные цитаты!")
+
+# === /UNSUBSCRIBE ОТ ЦИТАТ ===
+@bot.message_handler(commands=['unsubscribe'])
+def unsubscribe(message):
+    if message.chat.id in subscribed_users:
+        subscribed_users.remove(message.chat.id)
+    bot.send_message(message.chat.id, "🌙 Ты отписан(а) от ежедневных лунных цитат!")
+
+# === /STATUS ПРОВЕРКА СТАТУСА ===
+@bot.message_handler(commands=['status'])
+def status(message):
+    if message.chat.id in subscribed_users:
+        bot.send_message(message.chat.id, "🌙 Ты подписан(а) на ежедневные цитаты!")
+    else:
+        bot.send_message(message.chat.id, "🌙 Ты не подписан(а) на ежедневные цитаты. Используй /subscribe")
 
 # === ЗАПРОС К DEEPSEEK ===
 def ask_deepseek(character_key, problem_text, username):
@@ -157,11 +172,15 @@ def choose_character(call):
     name = CHARACTERS[char_key]["name"]
     bot.answer_callback_query(call.id, f"✨ {name} теперь с тобой!")
     bot.send_photo(call.message.chat.id, random.choice(CHARACTER_IMAGES[char_key]),
-                   caption=f"💫 {name} готов(а) выслушать. Расскажи, что тебя беспокоит 🌙",
+                   caption=f"💫 {name} готов(а) выслушать. Расскажи, что тебя беспокоит 🌙\n\nТакже ты можешь:\n/subscribe - подписаться на цитаты\n/unsubscribe - отписаться\n/status - проверить статус",
                    parse_mode='Markdown')
 
 @bot.message_handler(content_types=['text'])
 def get_problem(message):
+    # Пропускаем команды
+    if message.text.startswith('/'):
+        return
+        
     state = user_states.get(message.chat.id)
     if not state or not state.get("character"):
         bot.send_message(message.chat.id, "🌙 Начни с команды /start ✨")
@@ -172,8 +191,10 @@ def get_problem(message):
 
     thinking = bot.send_message(message.chat.id, "🌕 Советчица обдумывает ответ... 💫")
     advice = ask_deepseek(char_key, message.text.strip(), username)
-    try: bot.delete_message(message.chat.id, thinking.message_id)
-    except: pass
+    try: 
+        bot.delete_message(message.chat.id, thinking.message_id)
+    except: 
+        pass
 
     bot.send_message(message.chat.id, f"{advice}\n\n💖 *С любовью, {CHARACTERS[char_key]['name']}!*", parse_mode='Markdown')
 
@@ -188,52 +209,62 @@ def restart(call):
 
 # === ПЛАНИРОВЩИК ЕЖЕДНЕВНЫХ ЦИТАТ ===
 def run_schedule():
-    schedule.every().day.at("10:00").do(send_daily_quotes)
     while True:
-        schedule.run_pending()
-        time.sleep(1)
+        try:
+            schedule.run_pending()
+        except Exception as e:
+            print(f"Ошибка в планировщике: {e}")
+        time.sleep(60)  # Проверяем каждую минуту
 
-# === ОБРАБОТЧИК WEBHOOK ===
-async def handle(request):
+# === ВЕБХУК ОБРАБОТЧИК ===
+@app.route('/webhook', methods=['POST'])
+def webhook():
     if request.headers.get('content-type') == 'application/json':
-        data = await request.json()
-        update = telebot.types.Update.de_json(data)
+        json_string = request.get_data().decode('utf-8')
+        update = telebot.types.Update.de_json(json_string)
         bot.process_new_updates([update])
-        return web.Response(status=200)
+        return 'OK', 200
     else:
-        return web.Response(status=403)
+        return 'Invalid content type', 403
 
-# === ЗАПУСК ПРИЛОЖЕНИЯ ===
-async def on_startup(app):
-    # Устанавливаем вебхук
+@app.route('/')
+def index():
+    return '🌙 Sailor Moon Bot is running! ✨'
+
+# === УСТАНОВКА ВЕБХУКА ===
+def set_webhook():
     webhook_url = f"https://{os.getenv('RENDER_EXTERNAL_HOSTNAME')}/webhook"
-    bot.remove_webhook()
-    time.sleep(1)
-    bot.set_webhook(url=webhook_url)
+    try:
+        bot.remove_webhook()
+        time.sleep(1)
+        result = bot.set_webhook(url=webhook_url)
+        print(f"🌐 Webhook установлен: {webhook_url}")
+        print(f"📞 Результат установки: {result}")
+    except Exception as e:
+        print(f"❌ Ошибка установки webhook: {e}")
+
+# === ЗАПУСК ПЛАНИРОВЩИКА ===
+def start_scheduler():
+    # Настраиваем расписание
+    schedule.every().day.at("10:00").do(send_daily_quotes)
+    print("⏰ Планировщик цитат настроен на 10:00 ежедневно")
+    # Запускаем планировщик
+    run_schedule()
 
 # === ЗАПУСК БОТА ===
 if __name__ == "__main__":
-    import threading
+    print("🌙 Sailor Moon Bot запускается... ✨")
     
     # Запускаем планировщик в отдельном потоке
-    threading.Thread(target=run_schedule, daemon=True).start()
+    scheduler_thread = threading.Thread(target=start_scheduler, daemon=True)
+    scheduler_thread.start()
     
-    # Создаем приложение
-    app = web.Application()
+    # Устанавливаем вебхук
+    set_webhook()
     
-    # Добавляем обработчики
-    app.router.add_post('/webhook', handle)
+    print("🌙 Sailor Moon Bot запущен! ✨")
+    print("⏰ Планировщик цитат активен")
     
-    # Добавляем обработчик для корневого пути (чтобы избежать 404)
-    async def root_handler(request):
-        return web.Response(text="🌙 Sailor Moon Bot is running! ✨")
-    
-    app.router.add_get('/', root_handler)
-    
-    # Запускаем приложение
-    port = int(os.getenv("PORT", "8000"))
-    
-    print(f"🌙 Sailor Moon Bot запущен на порту {port}! ✨")
-    print(f"🌐 Webhook URL: https://{os.getenv('RENDER_EXTERNAL_HOSTNAME', 'localhost')}/webhook")
-    
-    web.run_app(app, host="0.0.0.0", port=port)
+    # Запускаем Flask приложение
+    port = int(os.getenv("PORT", 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
