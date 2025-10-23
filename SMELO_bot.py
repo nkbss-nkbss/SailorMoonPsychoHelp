@@ -5,6 +5,7 @@ import random
 import time
 import schedule
 import os
+from aiohttp import web
 from telebot import types
 
 # === НАСТРОЙКИ ===
