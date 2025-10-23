@@ -199,4 +199,15 @@ if __name__ == "__main__":
     import threading
     threading.Thread(target=run_schedule, daemon=True).start()
     print("🌙 Sailor Moon Bot запущен! ✨")
-    bot.infinity_polling()
+
+    port = int(os.getenv("PORT", "8000"))
+    webhook_path = f"/webhook/{BOT_TOKEN}"
+
+    app = web.Application()
+    app.router.add_post(webhook_path, handle)
+
+    loop = asyncio.get_event_loop()
+    loop.create_task(on_startup())
+
+    logging.info("🚀 Бот запущен на порту %s, webhook путь %s", port, webhook_path)
+    web.run_app(app, host="0.0.0.0", port=port)
