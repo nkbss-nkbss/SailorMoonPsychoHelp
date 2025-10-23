@@ -4,11 +4,12 @@ import json
 import random
 import time
 import schedule
+import os
 from telebot import types
 
 # === НАСТРОЙКИ ===
-BOT_TOKEN = "7957217094:AAFbSO90_tyiXxUqEOC30Yw-BBKWSr63QXQ"
-DEEPSEEK_API_KEY = "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"
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
 
 
 bot = telebot.TeleBot(BOT_TOKEN)
