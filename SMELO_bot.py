@@ -129,40 +129,6 @@ DAILY_QUOTES = [
     "Мы можем прожить нашу жизнь крошечными и беспомощными существами. Но нам дан шанс прожить ее настолько хорошо, насколько мы захотим."
 ]
 
-# === ФУНКЦИЯ ОТПРАВКИ ЦИТАТЫ ===
-def send_daily_quotes():
-    for chat_id in subscribed_users:
-        state = user_states.get(chat_id, {})
-        char_key = state.get("character", "usagi")
-        quote = random.choice(DAILY_QUOTES)
-        try:
-            bot.send_photo(chat_id, random.choice(CHARACTER_IMAGES[char_key]),
-                           caption=f"🌙 Лунная цитата дня:\n\n{quote}",
-                           parse_mode='Markdown')
-        except Exception as e:
-            print(f"Ошибка отправки цитаты: {e}")
-
-# === /SUBSCRIBE НА ЦИТАТЫ ===
-@bot.message_handler(commands=['subscribe'])
-def subscribe(message):
-    subscribed_users.add(message.chat.id)
-    bot.send_message(message.chat.id, "🌙 Ты подписан(а) на ежедневные лунные цитаты!")
-
-# === /UNSUBSCRIBE ОТ ЦИТАТ ===
-@bot.message_handler(commands=['unsubscribe'])
-def unsubscribe(message):
-    if message.chat.id in subscribed_users:
-        subscribed_users.remove(message.chat.id)
-    bot.send_message(message.chat.id, "🌙 Ты отписан(а) от ежедневных лунных цитат!")
-
-# === /STATUS ПРОВЕРКА СТАТУСА ===
-@bot.message_handler(commands=['status'])
-def status(message):
-    if message.chat.id in subscribed_users:
-        bot.send_message(message.chat.id, "🌙 Ты подписан(а) на ежедневные цитаты!")
-    else:
-        bot.send_message(message.chat.id, "🌙 Ты не подписан(а) на ежедневные цитаты. Используй /subscribe")
-
 # === ЗАПРОС К DEEPSEEK ===
 def ask_deepseek(character_key, problem_text, username):
     url = "https://openrouter.ai/api/v1/chat/completions"
@@ -327,22 +293,10 @@ def set_webhook():
     except Exception as e:
         print(f"❌ Ошибка установки webhook: {e}")
 
-# === ЗАПУСК ПЛАНИРОВЩИКА ===
-def start_scheduler():
-    # Настраиваем расписание
-    schedule.every().day.at("10:00").do(send_daily_quotes)
-    print("⏰ Планировщик цитат настроен на 10:00 ежедневно")
-    # Запускаем планировщик
-    run_schedule()
-
 # === ЗАПУСК БОТА ===
 if __name__ == "__main__":
     print("🌙 Sailor Moon Bot запускается... ✨")
-    
-    # Запускаем планировщик в отдельном потоке
-    scheduler_thread = threading.Thread(target=start_scheduler, daemon=True)
-    scheduler_thread.start()
-    
+
     # Устанавливаем вебхук
     set_webhook()
     
