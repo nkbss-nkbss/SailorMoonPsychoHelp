@@ -149,12 +149,37 @@ def ask_deepseek(character_key, problem_text, username):
 # === /START И ДАЛЕЕ ===
 @bot.message_handler(commands=['start'])
 def start(message):
-    bot.send_message(message.chat.id, "🌙 Привет, во имя Луны! 💫 Как тебя зовут?", parse_mode='Markdown')
+    # Сбрасываем состояние пользователя
     user_states[message.chat.id] = {"name": None, "character": None}
+    bot.send_message(message.chat.id, "🌙 Привет, во имя Луны! 💫 Как тебя зовут?", parse_mode='Markdown')
     bot.register_next_step_handler(message, get_name)
 
+@bot.message_handler(commands=['cancel'])
+def cancel(message):
+    user_states[message.chat.id] = {"name": None, "character": None}
+    bot.send_message(message.chat.id, "🌙 Текущее действие отменено! Используй /start чтобы начать заново ✨")
+
 def get_name(message):
+    # Проверяем, не является ли сообщение командой
+    if message.text.startswith('/'):
+        bot.send_message(message.chat.id, "🌙 Пожалуйста, введи своё имя, а не команду! 💫")
+        bot.register_next_step_handler(message, get_name)
+        return
+        
     name = message.text.strip()
+    
+    # Проверяем длину имени
+    if len(name) < 2:
+        bot.send_message(message.chat.id, "🌙 Имя должно содержать хотя бы 2 символа! Попробуй еще раз 💫")
+        bot.register_next_step_handler(message, get_name)
+        return
+        
+    # Проверяем, не слишком ли длинное имя
+    if len(name) > 50:
+        bot.send_message(message.chat.id, "🌙 Имя слишком длинное! Попробуй еще раз 💫")
+        bot.register_next_step_handler(message, get_name)
+        return
+
     user_states[message.chat.id]["name"] = name
 
     text = f"💖 Рада знакомству, {name}! 🌙\nТеперь выбери, кто из Сейлор Воинов будет твоим советчиком:"
