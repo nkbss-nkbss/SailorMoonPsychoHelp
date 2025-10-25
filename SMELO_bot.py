@@ -1,13 +1,18 @@
-import telebot
-import requests
-import json
-import random
-import time
-import schedule
 import os
-import threading
+import random
+import requests
 from flask import Flask, request, jsonify
+from flask_cors import CORS
+import telebot
 from telebot import types
+
+# === НАСТРОЙКИ ===
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
+
+bot = telebot.TeleBot(BOT_TOKEN)
+app = Flask(__name__)
+CORS(app)  # Разрешаем запросы с фронтенда
 
 # === НАСТРОЙКИ ===
 BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -89,25 +94,6 @@ CHARACTER_STICKERS = {
     "mamoru": "CAACAgIAAxkBAAEPopVo_KSdSLEey8Oo1_q1VX23n9ftLwACpwADN5jEIFH4hlI7G6UCNgQ"
 }
 
-# === ХРАНЕНИЕ СОСТОЯНИЙ И ПОДПИСКИ НА ЦИТАТЫ ===
-user_states = {}       
-subscribed_users = set()
-
-# === ЛУННЫЕ ЦИТАТЫ ===
-DAILY_QUOTES = [
-    "🌙 Даже если ночь темна — Луна всегда рядом, чтобы осветить путь! ✨",
-    "💫 Верь в себя, ведь твоя сила — в твоём сердце!",
-    "🎀 Сегодня твоя улыбка — самая сильная магия! 🌟",
-    "🌸 Помни: каждый маленький шаг ведёт к большой победе!",
-    "✨ Лунная энергия помогает тебе идти вперёд, даже если трудно.",
-    "Ты - звезда, которая будет сиять вечно.",
-    "Рядом со смертью всегда живёт надежда и возрождение.",
-    "Во всю вечность ты будешь самой прекрасной, самой сияющей звездой.",
-    "Даже с крупицей храбрости человек может стать воином, с каплей любви каждый может стать Мессией...как бы ты не устал, как бы тебе не было одиноко, не забывай, есть люди, которым ты не безразличен...",
-    "У каждого есть неприятные воспоминания.Бывает так одиноко, что хочется уйти из жизни. И все-таки жизнь прекрасна. И не забудь про человеческую доброту.",
-    "Мы можем прожить нашу жизнь крошечными и беспомощными существами. Но нам дан шанс прожить ее настолько хорошо, насколько мы захотим."
-]
-
 # === ЗАПРОС К DEEPSEEK ===
 def ask_deepseek(character_key, problem_text, username):
     url = "https://openrouter.ai/api/v1/chat/completions"
@@ -150,6 +136,39 @@ def ask_deepseek(character_key, problem_text, username):
         print("Ошибка запроса:", e)
         return random.choice(BACKUP_RESPONSES)
 
+# === Endpoint для мини-приложения ===
+@app.route('/ask', methods=['POST'])
+def ask_endpoint():
+    try:
+        payload = request.get_json(force=True)
+    except Exception:
+        return jsonify({"ok": False, "error": "invalid json"}), 400
+
+    chat_id = payload.get("chat_id")
+    username = payload.get("username", "друг")
+    character = payload.get("character", "usagi")
+    problem = payload.get("problem", "").strip()
+
+    if not problem:
+        return jsonify({"ok": False, "error": "empty problem"}), 400
+
+    advice = ask_deepseek(character, problem, username)
+
+    if chat_id:
+        try:
+            bot.send_message(chat_id, f"{advice}\n\n💖 *С любовью, {CHARACTERS[character]['name']}!*", parse_mode='Markdown')
+            try:
+                bot.send_photo(chat_id, random.choice(CHARACTER_IMAGES.get(character, CHARACTER_IMAGES["usagi"])),
+                               caption="✨ Лунная магия всегда с тобой! 🌙")
+            except: pass
+            sticker_id = CHARACTER_STICKERS.get(character)
+            if sticker_id:
+                try: bot.send_sticker(chat_id, sticker_id)
+                except: pass
+        except: pass
+
+    return jsonify({"ok": True, "advice": advice})
+
 # === /START И ДАЛЕЕ ===
 @bot.message_handler(commands=['start'])
 def start(message):
@@ -157,34 +176,86 @@ def start(message):
     bot.send_message(message.chat.id, "🌙 Привет, во имя Луны! 💫 Как тебя зовут?", parse_mode='Markdown')
     bot.register_next_step_handler(message, get_name)
 
+# === /START И ДАЛЕЕ ===
+@bot.message_handler(commands=['start'])
+def start(message):
+    bot.send_message(message.chat.id, "🌙 Привет, во имя Луны! 💫 Как тебя зовут?", parse_mode='Markdown')
+    user_states[message.chat.id] = {"name": None, "character": None}
+    bot.register_next_step_handler(message, get_name)
+
+def get_name(message):
+    name = message.text.strip()
+    user_states[message.chat.id]["name"] = name
+
+    text = f"💖 Рада знакомству, {name}! 🌙\nТеперь выбери, кто из Сейлор Воинов будет твоим советчиком:"
+    markup = types.InlineKeyboardMarkup()
+    for key, data in CHARACTERS.items():
+        markup.add(types.InlineKeyboardButton(data["name"], callback_data=f"char_{key}"))
+
+    bot.send_photo(message.chat.id, random.choice(CHARACTER_IMAGES["usagi"]),
+                   caption=text, parse_mode='Markdown', reply_markup=markup)
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith("char_"))
+def choose_character(call):
+    char_key = call.data.split("_")[1]
+    user_states[call.message.chat.id]["character"] = char_key
+    name = CHARACTERS[char_key]["name"]
+    bot.answer_callback_query(call.id, f"✨ {name} теперь с тобой!")
+    bot.send_photo(call.message.chat.id, random.choice(CHARACTER_IMAGES[char_key]),
+                   caption=f"💫 {name} готов(а) выслушать. Расскажи, что тебя беспокоит 🌙",
+                   parse_mode='Markdown')
+
+@bot.message_handler(content_types=['text'])
+def get_problem(message):
+    state = user_states.get(message.chat.id)
+    if not state or not state.get("character"):
+        bot.send_message(message.chat.id, "🌙 Начни с команды /start ✨")
+        return
+
+    username = state["name"]
+    char_key = state["character"]
+
+    thinking = bot.send_message(message.chat.id, "🌕 Советчица обдумывает ответ... 💫")
+    advice = ask_deepseek(char_key, message.text.strip(), username)
+    try: bot.delete_message(message.chat.id, thinking.message_id)
+    except: pass
+
+    bot.send_message(message.chat.id, f"{advice}\n\n💖 *С любовью, {CHARACTERS[char_key]['name']}!*", parse_mode='Markdown')
+
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton("🔄 Сменить персонажа", callback_data="restart"))
+    bot.send_photo(message.chat.id, random.choice(CHARACTER_IMAGES[char_key]),
+                   caption="✨ Лунная магия всегда с тобой! 🌙", parse_mode='Markdown', reply_markup=markup)
+
+@bot.callback_query_handler(func=lambda call: call.data == "restart")
+def restart(call):
+    start(call.message)
+
 @bot.message_handler(commands=['app'])
 def open_app(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    web_app = types.WebAppInfo("https://sailor-moon-psycho-help.vercel.app")
+    web_app = types.WebAppInfo("sailor-moon-psycho-help.vercel.app")
     btn = types.KeyboardButton("🌙 Открыть мини-приложение", web_app=web_app)
     markup.add(btn)
     bot.send_message(message.chat.id, "✨ Открой мини-приложение!", reply_markup=markup)
 
-# остальные хендлеры без изменений...
+# === Webhook для Telegram ===
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    if request.headers.get('content-type') == 'application/json':
+        json_string = request.get_data().decode('utf-8')
+        update = telebot.types.Update.de_json(json_string)
+        bot.process_new_updates([update])
+        return 'OK', 200
+    return 'Invalid content type', 403
 
-# === УСТАНОВКА ВЕБХУКА ===
-def set_webhook():
-    if not VERCEL_URL:
-        print("❌ VERCEL_URL не задан!")
-        return
-    webhook_url = f"https://{VERCEL_URL}/webhook"
-    try:
-        bot.remove_webhook()
-        time.sleep(1)
-        result = bot.set_webhook(url=webhook_url)
-        print(f"🌐 Webhook установлен: {webhook_url}")
-        print(f"📞 Результат установки: {result}")
-    except Exception as e:
-        print(f"❌ Ошибка установки webhook: {e}")
+# === Корень просто отвечает текстом ===
+@app.route('/')
+def index():
+    return '🌙 Sailor Moon Bot is running! ✨'
 
 # === ЗАПУСК БОТА ===
 if __name__ == "__main__":
     print("🌙 Sailor Moon Bot запускается... ✨")
     set_webhook()
     port = int(os.getenv("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
