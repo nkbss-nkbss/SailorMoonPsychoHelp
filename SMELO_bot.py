@@ -110,6 +110,20 @@ CHARACTERS = {
     }
 }
 
+# === СТИКЕРЫ ДЛЯ КАЖДОГО ПЕРСОНАЖА ===
+CHARACTER_STICKERS = {
+    "usagi": "CAACAgIAAxkBAAEPooVo_KNPTrpVImozKdSEw9rSD9NZxQAChhoAAsQ22EnZzSvBsEjFZDYE",  # ID стикера Усаги
+    "ami": "CAACAgIAAxkBAAEPopFo_KRiBoD5dUfBMm7rtErKgLGZ0wACngADN5jEIB4OmmSZpE00NgQ",    # ID стикера Ами
+    "rei": "CAACAgIAAxkBAAEPoo1o_KPTHIZVPwOs1vkOTuQJTmYetgACMx8AAu9w6UuuiKcmjWNw2jYE",    # ID стикера Рей
+    "minako": "CAACAgIAAxkBAAEPooto_KORvv10EdoEzi1uNMcqegchCQACvCMAAr5-KUknt6grcOYilTYE", # ID стикера Минако
+    "makoto": "CAACAgIAAxkBAAEPoo9o_KPja-e0kE_e9_ibODkE4NySDwACkzoAAgtc6UsxmNMKWoU6GTYE", # ID стикера Макото
+    "haruka": "CAACAgIAAxkBAAEPoodo_KNxN61iSpiuZoaXc8ygqDZq-QACCyAAApiFIUkhlPLmy0oXOTYE", # ID стикера Харуки
+    "michiru": "CAACAgIAAxkBAAEPoolo_KNzhTSwsnmgbdzFAnJ6cYFEawACjB8AAnOlIEk8LIzvUJuujTYE", # ID стикера Мичиру
+    "chibiusa": "CAACAgIAAxkBAAEPopNo_KSJVPP9EdUj8VGajW_1px32cQACYgADN5jEIEpItyEPBSRwNgQ", # ID стикера Чибиусы
+    "mamoru": "CAACAgIAAxkBAAEPopVo_KSdSLEey8Oo1_q1VX23n9ftLwACpwADN5jEIFH4hlI7G6UCNgQ"  # ID стикера Мамору
+}
+
+
 # === ХРАНЕНИЕ СОСТОЯНИЙ И ПОДПИСКИ НА ЦИТАТЫ ===
 user_states = {}       # {chat_id: {"name": ..., "character": ...}}
 subscribed_users = set()
@@ -143,7 +157,7 @@ def ask_deepseek(character_key, problem_text, username):
 
     system_prompt = (
         f"{character['style']} Не используй местоимения 'он', 'она', 'его', 'её'. "
-        f"Пиши глаголы, отталкиваясь от имени, иначе - в форме с '(а)' — например: сделал(а), пошёл(а), подумал(а). "
+        f"Пиши глаголы, отталкиваясь от имени пользователя, иначе - в форме с '(а)' — например: сделал(а), пошёл(а), подумал(а). "
         f"Ответ должен быть добрым, художественным и поддерживающим. "
         f"Сначала короткое приветствие по имени пользователя ({username}), затем ответ. "
         f"Максимальная длина — 120 слов."
@@ -222,7 +236,7 @@ def choose_character(call):
     name = CHARACTERS[char_key]["name"]
     bot.answer_callback_query(call.id, f"✨ {name} теперь с тобой!")
     bot.send_photo(call.message.chat.id, random.choice(CHARACTER_IMAGES[char_key]),
-                   caption=f"💫 {name} готов(а) выслушать. Расскажи, что тебя беспокоит 🌙\n\nТакже ты можешь:\n/subscribe - подписаться на цитаты\n/unsubscribe - отписаться\n/status - проверить статус",
+                   caption=f"💫 {name} готов(а) выслушать. Расскажи, что тебя беспокоит 🌙",
                    parse_mode='Markdown')
 
 @bot.message_handler(content_types=['text'])
@@ -239,7 +253,7 @@ def get_problem(message):
     username = state["name"]
     char_key = state["character"]
 
-    thinking = bot.send_message(message.chat.id, "🌕 Советчица обдумывает ответ... 💫")
+    thinking = bot.send_message(message.chat.id, "🌕 Обдумываю ответ... 💫")
     advice = ask_deepseek(char_key, message.text.strip(), username)
     try: 
         bot.delete_message(message.chat.id, thinking.message_id)
@@ -253,9 +267,23 @@ def get_problem(message):
     bot.send_photo(message.chat.id, random.choice(CHARACTER_IMAGES[char_key]),
                    caption="✨ Лунная магия всегда с тобой! 🌙", parse_mode='Markdown', reply_markup=markup)
 
+    # Затем отправляем стикер этого персонажа
+    if char_key in CHARACTER_STICKERS and CHARACTER_STICKERS[char_key]:
+        try:
+            bot.send_sticker(message.chat.id, CHARACTER_STICKERS[char_key])
+        except Exception as e:
+            print(f"Ошибка отправки стикера: {e}")
+
+    
 @bot.callback_query_handler(func=lambda call: call.data == "restart")
 def restart(call):
     start(call.message)
+
+# Временная команда для получения ID стикеров
+@bot.message_handler(content_types=['sticker'])
+def get_sticker_id(message):
+    sticker_id = message.sticker.file_id
+    bot.send_message(message.chat.id, f"📋 ID этого стикера:\n`{sticker_id}`", parse_mode='Markdown')
 
 # === ПЛАНИРОВЩИК ЕЖЕДНЕВНЫХ ЦИТАТ ===
 def run_schedule():
