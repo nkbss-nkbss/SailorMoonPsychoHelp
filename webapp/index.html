@@ -1,0 +1,62 @@
+<!-- index.html -->
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sailor Moon — Mini App</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🌙 Sailor Moon — Лунная поддержка</h1>
+      <p class="subtitle">Имя → Персонаж → Проблема → Совет</p>
+    </header>
+
+    <main>
+      <section id="step-name" class="card active">
+        <h2>Как тебя зовут?</h2>
+        <input id="input-name" placeholder="Введи имя" maxlength="50" />
+        <div class="row">
+          <button id="btn-name-next" class="btn">Дальше →</button>
+        </div>
+      </section>
+
+      <section id="step-character" class="card">
+        <h2>Выбери персонажа</h2>
+        <div id="characters" class="cards-grid"></div>
+        <div class="row">
+          <button id="btn-char-back" class="btn outline">← Назад</button>
+          <button id="btn-char-next" class="btn">Дальше →</button>
+        </div>
+      </section>
+
+      <section id="step-problem" class="card">
+        <h2>Расскажи, что случилось</h2>
+        <textarea id="input-problem" rows="6" placeholder="Опиши проблему..."></textarea>
+        <div class="row">
+          <button id="btn-problem-back" class="btn outline">← Назад</button>
+          <button id="btn-problem-send" class="btn primary">Получить совет ✨</button>
+        </div>
+      </section>
+
+      <section id="step-result" class="card">
+        <h2>Совет</h2>
+        <div id="result-box" class="result"></div>
+        <div class="row">
+          <button id="btn-result-again" class="btn outline">Задать ещё вопрос</button>
+          <button id="btn-result-close" class="btn">Закрыть</button>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <small>Mini App • Sailor Moon style ✨</small>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
