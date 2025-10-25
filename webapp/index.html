@@ -57,6 +57,85 @@
     </footer>
   </div>
 
-  <script src="app.js"></script>
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+
+    let state = { name: '', character: '', problem: '' };
+    const characters = [
+      "usagi","ami","rei","minako","makoto",
+      "hotaru","setsuna","haruka","michiru","chibiusa","mamoru"
+    ];
+
+    const $ = (id) => document.getElementById(id);
+
+    // Step navigation
+    const showStep = (step) => {
+      document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+      $(step).classList.add('active');
+    };
+
+    // Step 1 → Step 2
+    $('btn-name-next').onclick = () => {
+      const name = $('input-name').value.trim();
+      if(name.length < 2){ alert('Имя должно быть минимум 2 символа'); return; }
+      state.name = name;
+      showStep('step-character');
+    };
+
+    // Step 2 → Step 3
+    $('btn-char-next').onclick = () => {
+      if(!state.character){ alert('Выбери персонажа'); return; }
+      showStep('step-problem');
+    };
+    $('btn-char-back').onclick = () => showStep('step-name');
+
+    // Step 3 → Step 4 (send request)
+    $('btn-problem-send').onclick = async () => {
+      const problem = $('input-problem').value.trim();
+      if(!problem){ alert('Опиши проблему'); return; }
+      state.problem = problem;
+      showStep('step-result');
+      $('result-box').innerText = '🌕 Обдумываю ответ... 💫';
+
+      try {
+        const resp = await fetch('/ask', {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify(state)
+        });
+        const data = await resp.json();
+        if(data.ok){
+          $('result-box').innerText = data.advice;
+        } else {
+          $('result-box').innerText = '❌ Ошибка: ' + data.error;
+        }
+      } catch(e){
+        $('result-box').innerText = '❌ Ошибка соединения';
+      }
+    };
+    $('btn-problem-back').onclick = () => showStep('step-character');
+
+    // Step 4 → restart
+    $('btn-result-again').onclick = () => {
+      $('input-problem').value = '';
+      showStep('step-problem');
+    };
+    $('btn-result-close').onclick = () => tg.close();
+    
+    // Render character buttons
+    const charsDiv = $('characters');
+    characters.forEach(c => {
+      const btn = document.createElement('button');
+      btn.className = 'btn outline';
+      btn.innerText = c;
+      btn.onclick = () => {
+        state.character = c;
+        Array.from(charsDiv.children).forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+      };
+      charsDiv.appendChild(btn);
+    });
+  </script>
 </body>
 </html>
