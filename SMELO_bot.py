@@ -9,18 +9,14 @@ from telebot import types
 # === НАСТРОЙКИ ===
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
+VERCEL_URL = os.getenv("VERCEL_URL")  # добавлено для Vercel
 
 bot = telebot.TeleBot(BOT_TOKEN)
 app = Flask(__name__)
 CORS(app)  # Разрешаем запросы с фронтенда
 
-# === НАСТРОЙКИ ===
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
-VERCEL_URL = os.getenv("VERCEL_URL")  # добавлено для Vercel
-
-bot = telebot.TeleBot(BOT_TOKEN)
-app = Flask(__name__)
+# === ХРАНЕНИЕ СОСТОЯНИЙ ПОЛЬЗОВАТЕЛЕЙ ===
+user_states = {}
 
 # === КАРТИНКИ ===
 CHARACTER_IMAGES = {
@@ -93,6 +89,20 @@ CHARACTER_STICKERS = {
     "chibiusa": "CAACAgIAAxkBAAEPopNo_KSJVPP9EdUj8VGajW_1px32cQACYgADN5jEIEpItyEPBSRwNgQ",
     "mamoru": "CAACAgIAAxkBAAEPopVo_KSdSLEey8Oo1_q1VX23n9ftLwACpwADN5jEIFH4hlI7G6UCNgQ"
 }
+
+# === ФУНКЦИЯ ДЛЯ НАСТРОЙКИ WEBHOOK ===
+def set_webhook():
+    """Устанавливает вебхук для Telegram бота"""
+    if VERCEL_URL:
+        webhook_url = f"{VERCEL_URL}/webhook"
+        try:
+            bot.remove_webhook()
+            bot.set_webhook(url=webhook_url)
+            print(f"🌙 Webhook установлен: {webhook_url}")
+        except Exception as e:
+            print(f"❌ Ошибка установки webhook: {e}")
+    else:
+        print("⚠️ VERCEL_URL не установлен, webhook не настроен")
 
 # === ЗАПРОС К DEEPSEEK ===
 def ask_deepseek(character_key, problem_text, username):
@@ -174,13 +184,6 @@ def ask_endpoint():
 def start(message):
     user_states[message.chat.id] = {"name": None, "character": None}
     bot.send_message(message.chat.id, "🌙 Привет, во имя Луны! 💫 Как тебя зовут?", parse_mode='Markdown')
-    bot.register_next_step_handler(message, get_name)
-
-# === /START И ДАЛЕЕ ===
-@bot.message_handler(commands=['start'])
-def start(message):
-    bot.send_message(message.chat.id, "🌙 Привет, во имя Луны! 💫 Как тебя зовут?", parse_mode='Markdown')
-    user_states[message.chat.id] = {"name": None, "character": None}
     bot.register_next_step_handler(message, get_name)
 
 def get_name(message):
