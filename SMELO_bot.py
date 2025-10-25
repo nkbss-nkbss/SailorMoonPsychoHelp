@@ -317,16 +317,6 @@ def webhook():
 def index():
     return '🌙 Sailor Moon Bot is running! ✨'
 
-# Telegram webhook ingestion (Render will POST updates here)
-@app.route('/webhook', methods=['POST'])
-def webhook():
-    if request.headers.get('content-type') == 'application/json':
-        json_string = request.get_data().decode('utf-8')
-        update = telebot.types.Update.de_json(json_string)
-        bot.process_new_updates([update])
-        return "OK", 200
-    return "Invalid content type", 403
-
 # Endpoint для мини-аппа: сделать запрос в DeepSeek и отправить ответ в чат
 @app.route('/ask', methods=['POST'])
 def ask_endpoint():
