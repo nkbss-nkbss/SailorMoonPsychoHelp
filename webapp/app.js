@@ -30,6 +30,7 @@ const CHARACTERS = {
   "mamoru": { label: "Мамору", img: "https://i.pinimg.com/736x/62/c0/97/62c0978a24a049425d9895a159ca3104.jpg" }
 };
 
+
 function show(step) {
   document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
   document.getElementById(step).classList.add('active');
@@ -128,3 +129,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   } catch(e){/* ignore */}
 });
+
