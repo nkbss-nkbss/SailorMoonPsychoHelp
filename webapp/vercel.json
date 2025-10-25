@@ -1,0 +1,17 @@
+{
+  "builds": [
+    {
+      "src": "SMELO_bot.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "webapp/**/*",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    { "src": "/ask", "dest": "SMELO_bot.py" },
+    { "src": "/webhook", "dest": "SMELO_bot.py" },
+    { "src": "/", "dest": "webapp/index.html" }
+  ]
+}
