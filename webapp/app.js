@@ -84,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Постим на backend /ask
     try {
       // Для Vercel заменяем backend на текущий домен
-      const backend = `${window.location.origin}`;
+      const backend = '';
       const resp = await fetch(`${backend}/ask`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -129,4 +129,5 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   } catch(e){/* ignore */}
 });
+
 
