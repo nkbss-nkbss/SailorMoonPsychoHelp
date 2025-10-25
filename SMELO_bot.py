@@ -6,7 +6,7 @@ import time
 import schedule
 import os
 import threading
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from telebot import types
 
 # === НАСТРОЙКИ ===
@@ -193,6 +193,14 @@ def start(message):
     bot.send_message(message.chat.id, "🌙 Привет, во имя Луны! 💫 Как тебя зовут?", parse_mode='Markdown')
     bot.register_next_step_handler(message, get_name)
 
+@bot.message_handler(commands=['app'])
+def open_app(message):
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    web_app = types.WebAppInfo("sailor-moon-psycho-help.vercel.app")
+    btn = types.KeyboardButton("🌙 Открыть мини-приложение", web_app=web_app)
+    markup.add(btn)
+    bot.send_message(message.chat.id, "✨ Открой мини-приложение!", reply_markup=markup)
+
 @bot.message_handler(commands=['cancel'])
 def cancel(message):
     user_states[message.chat.id] = {"name": None, "character": None}
@@ -308,6 +316,70 @@ def webhook():
 @app.route('/')
 def index():
     return '🌙 Sailor Moon Bot is running! ✨'
+
+# Telegram webhook ingestion (Render will POST updates here)
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    if request.headers.get('content-type') == 'application/json':
+        json_string = request.get_data().decode('utf-8')
+        update = telebot.types.Update.de_json(json_string)
+        bot.process_new_updates([update])
+        return "OK", 200
+    return "Invalid content type", 403
+
+# Endpoint для мини-аппа: сделать запрос в DeepSeek и отправить ответ в чат
+@app.route('/ask', methods=['POST'])
+def ask_endpoint():
+    """
+    Ожидает JSON:
+    {
+      "chat_id": 123456789,          # optional but recommended (from WebApp.initDataUnsafe.user.id)
+      "username": "Аня",
+      "character": "usagi",
+      "problem": "Мне грустно..."
+    }
+    """
+    try:
+        payload = request.get_json(force=True)
+    except Exception:
+        return jsonify({"ok": False, "error": "invalid json"}), 400
+
+    chat_id = payload.get("chat_id")
+    username = payload.get("username", "друг")
+    character = payload.get("character", "usagi")
+    problem = payload.get("problem", "").strip()
+
+    if not problem:
+        return jsonify({"ok": False, "error": "empty problem"}), 400
+
+    # Получаем ответ от DeepSeek
+    advice = ask_deepseek(character, problem, username)
+
+    # Отправляем ответ в Telegram (если есть chat_id)
+    if chat_id:
+        try:
+            # отправляем текст
+            bot.send_message(chat_id, f"{advice}\n\n💖 *С любовью, {CHARACTERS[character]['name']}!*",
+                             parse_mode='Markdown')
+            # отправляем картинку персонажа
+            try:
+                bot.send_photo(chat_id, random.choice(CHARACTER_IMAGES.get(character, CHARACTER_IMAGES["usagi"])),
+                               caption="✨ Лунная магия всегда с тобой! 🌙")
+            except Exception as e:
+                print("Failed to send photo:", e)
+            # отправляем стикер (если есть)
+            sticker_id = CHARACTER_STICKERS.get(character)
+            if sticker_id:
+                try:
+                    bot.send_sticker(chat_id, sticker_id)
+                except Exception as e:
+                    print("Failed to send sticker:", e)
+        except Exception as e:
+            print("Failed to send message to Telegram:", e)
+
+    # Возвращаем advice фронтенду
+    return jsonify({"ok": True, "advice": advice})
+
 
 # === УСТАНОВКА ВЕБХУКА ===
 def set_webhook():
