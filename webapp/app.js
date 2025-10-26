@@ -1,4 +1,3 @@
-// app.js — логика мини-аппа
 const tg = window.Telegram.WebApp;
 tg.expand();
 
@@ -15,7 +14,7 @@ let state = {
   problem: ""
 };
 
-// Персонажи, имена и изображения (совпадают с backend keys)
+// персонажи
 const CHARACTERS = {
   "usagi": { label: "Усаги", img: "https://i.pinimg.com/736x/a4/47/c4/a447c423d530b9cac4612a9f71c96ddc.jpg" },
   "ami": { label: "Ами", img: "https://i.pinimg.com/736x/b1/61/1a/b1611addcf1190d311218c22614e1e36.jpg" },
@@ -30,15 +29,12 @@ const CHARACTERS = {
   "mamoru": { label: "Мамору", img: "https://i.pinimg.com/736x/62/c0/97/62c0978a24a049425d9895a159ca3104.jpg" }
 };
 
-
 function show(step) {
   document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
   document.getElementById(step).classList.add('active');
 }
 
-// init UI
 document.addEventListener('DOMContentLoaded', () => {
-  // render character cards
   const container = document.getElementById('characters');
   for (const key in CHARACTERS) {
     const ch = CHARACTERS[key];
@@ -53,17 +49,13 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     container.appendChild(div);
   }
-  // select default
+  [...container.children].forEach((el, i) => el.style.animationDelay = `${i * 0.08}s`);
   const first = container.querySelector('.char-card');
   if (first) { first.classList.add('selected'); state.character = first.dataset.key; }
 
-  // buttons
   document.getElementById('btn-name-next').onclick = () => {
     const name = document.getElementById('input-name').value.trim();
-    if (!name || name.length < 2) {
-      alert('Введите имя минимум из 2 символов');
-      return;
-    }
+    if (!name || name.length < 2) { alert('Введите имя минимум из 2 символов'); return; }
     state.name = name;
     show(STEP.CHAR);
   };
@@ -75,16 +67,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const problem = document.getElementById('input-problem').value.trim();
     if (!problem) { alert('Опиши проблему, пожалуйста'); return; }
     state.problem = problem;
-    // Получаем chat_id и имя из Telegram WebApp initDataUnsafe (если возможно)
     const init = tg.initDataUnsafe || {};
     const user = init.user || {};
     const chat_id = user.id || null;
     const username = state.name || (user.first_name || "друг");
 
-    // Постим на backend /ask
     try {
-      // Для Vercel заменяем backend на текущий домен
-      const backend = '';
+      const backend = ''; // Vercel API domain (можно оставить пустым)
       const resp = await fetch(`${backend}/ask`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -96,11 +85,8 @@ document.addEventListener('DOMContentLoaded', () => {
         })
       });
       const data = await resp.json();
-      if (!data.ok) {
-        document.getElementById('result-box').innerText = "Ошибка: " + (data.error || JSON.stringify(data));
-      } else {
-        document.getElementById('result-box').innerText = data.advice || "Пустой ответ";
-      }
+      document.getElementById('result-box').innerText =
+        data.ok ? (data.advice || "Пустой ответ") : ("Ошибка: " + (data.error || JSON.stringify(data)));
       show(STEP.RES);
     } catch (err) {
       console.error(err);
@@ -110,24 +96,15 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   document.getElementById('btn-result-again').onclick = () => {
-    // очистим поле проблемы и вернемся на шаг
     document.getElementById('input-problem').value = '';
     show(STEP.PROB);
   };
-  document.getElementById('btn-result-close').onclick = () => {
-    tg.close();
-  };
+  document.getElementById('btn-result-close').onclick = () => tg.close();
 
-  // show first step by default
   show(STEP.NAME);
-
-  // Auto-fill name from Telegram if available
   try {
     const init = tg.initDataUnsafe || {};
-    if (init.user && init.user.first_name) {
+    if (init.user && init.user.first_name)
       document.getElementById('input-name').value = init.user.first_name;
-    }
-  } catch(e){/* ignore */}
+  } catch(e){}
 });
-
-
