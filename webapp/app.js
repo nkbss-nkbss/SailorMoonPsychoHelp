@@ -14,7 +14,6 @@ let state = {
   problem: ""
 };
 
-// персонажи
 const CHARACTERS = {
   "usagi": { label: "Усаги", img: "https://i.pinimg.com/736x/a4/47/c4/a447c423d530b9cac4612a9f71c96ddc.jpg" },
   "ami": { label: "Ами", img: "https://i.pinimg.com/736x/b1/61/1a/b1611addcf1190d311218c22614e1e36.jpg" },
@@ -29,82 +28,81 @@ const CHARACTERS = {
   "mamoru": { label: "Мамору", img: "https://i.pinimg.com/736x/62/c0/97/62c0978a24a049425d9895a159ca3104.jpg" }
 };
 
-function show(step) {
-  document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
-  document.getElementById(step).classList.add('active');
+function show(step){
+  document.querySelectorAll('.card').forEach(c=>c.classList.remove('active'));
+  const el = document.getElementById(step);
+  el.classList.add('active');
+  // плавная анимация
+  el.style.opacity=0;
+  setTimeout(()=>el.style.opacity=1,10);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
   const container = document.getElementById('characters');
-  for (const key in CHARACTERS) {
+  for(const key in CHARACTERS){
     const ch = CHARACTERS[key];
     const div = document.createElement('div');
-    div.className = 'char-card';
-    div.dataset.key = key;
-    div.innerHTML = `<img src="${ch.img}" alt="${ch.label}" /><div class="label">${ch.label}</div>`;
-    div.onclick = () => {
-      document.querySelectorAll('.char-card').forEach(el => el.classList.remove('selected'));
+    div.className='char-card';
+    div.dataset.key=key;
+    div.innerHTML=`<img src="${ch.img}" alt="${ch.label}" /><div class="label">${ch.label}</div>`;
+    div.onclick = ()=>{
+      document.querySelectorAll('.char-card').forEach(el=>el.classList.remove('selected'));
       div.classList.add('selected');
-      state.character = key;
-    };
+      state.character=key;
+    }
     container.appendChild(div);
   }
-  [...container.children].forEach((el, i) => el.style.animationDelay = `${i * 0.08}s`);
   const first = container.querySelector('.char-card');
-  if (first) { first.classList.add('selected'); state.character = first.dataset.key; }
+  if(first){ first.classList.add('selected'); state.character=first.dataset.key; }
 
-  document.getElementById('btn-name-next').onclick = () => {
+  document.getElementById('btn-name-next').onclick = ()=>{
     const name = document.getElementById('input-name').value.trim();
-    if (!name || name.length < 2) { alert('Введите имя минимум из 2 символов'); return; }
-    state.name = name;
+    if(!name || name.length<2){ alert('Введите имя минимум из 2 символов'); return; }
+    state.name=name;
     show(STEP.CHAR);
   };
-  document.getElementById('btn-char-back').onclick = () => show(STEP.NAME);
-  document.getElementById('btn-char-next').onclick = () => show(STEP.PROB);
-  document.getElementById('btn-problem-back').onclick = () => show(STEP.CHAR);
+  document.getElementById('btn-char-back').onclick = ()=>show(STEP.NAME);
+  document.getElementById('btn-char-next').onclick = ()=>show(STEP.PROB);
+  document.getElementById('btn-problem-back').onclick = ()=>show(STEP.CHAR);
 
-  document.getElementById('btn-problem-send').onclick = async () => {
-    const problem = document.getElementById('input-problem').value.trim();
-    if (!problem) { alert('Опиши проблему, пожалуйста'); return; }
-    state.problem = problem;
-    const init = tg.initDataUnsafe || {};
-    const user = init.user || {};
-    const chat_id = user.id || null;
-    const username = state.name || (user.first_name || "друг");
+  document.getElementById('btn-problem-send').onclick = async ()=>{
+    const problem=document.getElementById('input-problem').value.trim();
+    if(!problem){ alert('Опиши проблему, пожалуйста'); return; }
+    state.problem=problem;
+    const init=tg.initDataUnsafe||{};
+    const user=init.user||{};
+    const chat_id=user.id||null;
+    const username=state.name||(user.first_name||"друг");
 
-    try {
-      const backend = ''; // Vercel API domain (можно оставить пустым)
-      const resp = await fetch(`${backend}/ask`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id: chat_id,
-          username: username,
-          character: state.character,
-          problem: state.problem
-        })
+    try{
+      const backend=''; // вставь свой бэкенд
+      const resp=await fetch(`${backend}/ask`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({chat_id, username, character:state.character, problem:state.problem})
       });
-      const data = await resp.json();
-      document.getElementById('result-box').innerText =
-        data.ok ? (data.advice || "Пустой ответ") : ("Ошибка: " + (data.error || JSON.stringify(data)));
+      const data=await resp.json();
+      document.getElementById('result-box').innerText = data.ok?data.advice||"Пустой ответ":"Ошибка: "+(data.error||JSON.stringify(data));
       show(STEP.RES);
-    } catch (err) {
+    }catch(err){
       console.error(err);
-      document.getElementById('result-box').innerText = "Ошибка связи с сервером. Попробуй позже.";
+      document.getElementById('result-box').innerText="Ошибка связи с сервером. Попробуй позже.";
       show(STEP.RES);
     }
   };
 
-  document.getElementById('btn-result-again').onclick = () => {
-    document.getElementById('input-problem').value = '';
+  document.getElementById('btn-result-again').onclick = ()=>{
+    document.getElementById('input-problem').value='';
     show(STEP.PROB);
   };
-  document.getElementById('btn-result-close').onclick = () => tg.close();
+  document.getElementById('btn-result-close').onclick = ()=>tg.close();
 
   show(STEP.NAME);
-  try {
-    const init = tg.initDataUnsafe || {};
-    if (init.user && init.user.first_name)
-      document.getElementById('input-name').value = init.user.first_name;
-  } catch(e){}
+
+  try{
+    const init=tg.initDataUnsafe||{};
+    if(init.user && init.user.first_name){
+      document.getElementById('input-name').value=init.user.first_name;
+    }
+  }catch(e){/* ignore */}
 });
