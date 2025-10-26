@@ -73,6 +73,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const user=init.user||{};
     const chat_id=user.id||null;
     const username=state.name||(user.first_name||"друг");
+  
+    const resultBox = document.getElementById('result-box');
+    const loader = document.getElementById('loading');
+  
+    // показать анимацию ожидания
+    resultBox.innerText = "";
+    loader.classList.remove('hidden');
+    show(STEP.RES);
+  
+    try{
+      const backend=''; // вставь свой бэкенд
+      const resp=await fetch(`${backend}/ask`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({chat_id, username, character:state.character, problem:state.problem})
+      });
+      const data=await resp.json();
+      loader.classList.add('hidden');
+      resultBox.innerText = data.ok ? (data.advice || "Пустой ответ") : "Ошибка: " + (data.error || JSON.stringify(data));
+    }catch(err){
+      console.error(err);
+      loader.classList.add('hidden');
+      resultBox.innerText = "Ошибка связи с сервером. Попробуй позже.";
+    }
+  };
+
 
     try{
       const backend=''; // вставь свой бэкенд
@@ -106,3 +132,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }catch(e){/* ignore */}
 });
+
