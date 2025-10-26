@@ -1,9 +1,17 @@
 const tg = window.Telegram.WebApp;
 tg.expand();
 
+const STEP = {
+  NAME: 'step-name',
+  CHAR: 'step-character',
+  PROB: 'step-problem',
+  RES: 'step-result'
+};
+
 let state = {
   name: "",
-  character: "usagi"
+  character: "usagi",
+  problem: ""
 };
 
 const CHARACTERS = {
@@ -20,13 +28,12 @@ const CHARACTERS = {
   "mamoru": { label: "Мамору", img: "https://i.pinimg.com/736x/62/c0/97/62c0978a24a049425d9895a159ca3104.jpg" }
 };
 
-// Показ шага
 function show(step){
   document.querySelectorAll('.card').forEach(c=>c.classList.remove('active'));
   const el = document.getElementById(step);
   el.classList.add('active');
-  el.style.opacity = 0;
-  setTimeout(()=>el.style.opacity = 1,10);
+  el.style.opacity=0;
+  setTimeout(()=>el.style.opacity=1,10);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -34,90 +41,80 @@ document.addEventListener('DOMContentLoaded', () => {
   for(const key in CHARACTERS){
     const ch = CHARACTERS[key];
     const div = document.createElement('div');
-    div.className = 'char-card';
-    div.dataset.key = key;
-    div.innerHTML = `
-      <img src="${ch.img}" alt="${ch.label}" />
-      <div class="label">${ch.label}</div>
-    `;
+    div.className='char-card';
+    div.dataset.key=key;
+    div.innerHTML=`<img src="${ch.img}" alt="${ch.label}" /><div class="label">${ch.label}</div>`;
     div.onclick = ()=>{
       document.querySelectorAll('.char-card').forEach(el=>el.classList.remove('selected'));
       div.classList.add('selected');
-      state.character = key;
-    };
+      state.character=key;
+    }
     container.appendChild(div);
   }
-
   const first = container.querySelector('.char-card');
-  if(first){ first.classList.add('selected'); state.character = first.dataset.key; }
+  if(first){ first.classList.add('selected'); state.character=first.dataset.key; }
 
-  // шаг 1 — ввод имени
   document.getElementById('btn-name-next').onclick = ()=>{
     const name = document.getElementById('input-name').value.trim();
     if(!name || name.length<2){ alert('Введите имя минимум из 2 символов'); return; }
-    state.name = name;
-    show('step-chat');
+    state.name=name;
+    show(STEP.CHAR);
   };
+  document.getElementById('btn-char-back').onclick = ()=>show(STEP.NAME);
+  document.getElementById('btn-char-next').onclick = ()=>show(STEP.PROB);
+  document.getElementById('btn-problem-back').onclick = ()=>show(STEP.CHAR);
 
-  // кнопка "назад" из выбора персонажа
-  document.getElementById('btn-char-back').onclick = ()=>show('step-name');
-
-  // обработчик отправки сообщения
-  document.getElementById('btn-send').onclick = async ()=>{
-    const input = document.getElementById('input-problem');
-    const problem = input.value.trim();
-    if(!problem){ alert('Опиши проблему, пожалуйста'); return; }
-    input.value = '';
-
-    const chatBox = document.getElementById('chat-box');
-    const userMsg = document.createElement('div');
-    userMsg.className = 'msg user';
-    userMsg.innerText = problem;
-    chatBox.appendChild(userMsg);
-    chatBox.scrollTop = chatBox.scrollHeight;
-
-    const loader = document.createElement('div');
-    loader.className = 'msg bot loading';
-    loader.innerText = '💫 Думает...';
-    chatBox.appendChild(loader);
-    chatBox.scrollTop = chatBox.scrollHeight;
-
-    try {
-      const backend = 'https://sailormoonpsychohelp-7bkw.onrender.com';
-      const resp = await fetch(`${backend}/ask`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
+  async function sendProblem(text){
+    const resultBox=document.getElementById('result-box');
+    const loader=document.getElementById('loading');
+    resultBox.innerText="";
+    loader.classList.remove('hidden');
+    show(STEP.RES);
+    try{
+      const backend='https://sailormoonpsychohelp-7bkw.onrender.com';
+      const resp=await fetch(`${backend}/ask`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
           chat_id: tg.initDataUnsafe?.user?.id || null,
           username: state.name,
           character: state.character,
-          problem
+          problem: text
         })
       });
-      const data = await resp.json();
-      loader.remove();
-
-      const botMsg = document.createElement('div');
-      botMsg.className = 'msg bot';
-      botMsg.innerText = data.ok ? (data.advice || "Пустой ответ") : "Ошибка: " + (data.error || JSON.stringify(data));
-      chatBox.appendChild(botMsg);
-      chatBox.scrollTop = chatBox.scrollHeight;
-    } catch(err) {
+      const data=await resp.json();
+      loader.classList.add('hidden');
+      resultBox.innerText=data.ok?(data.advice||"Пустой ответ"):"Ошибка: "+(data.error||JSON.stringify(data));
+    }catch(err){
       console.error(err);
-      loader.remove();
-      const errorMsg = document.createElement('div');
-      errorMsg.className = 'msg bot error';
-      errorMsg.innerText = "Ошибка связи с сервером. Попробуй позже.";
-      chatBox.appendChild(errorMsg);
+      loader.classList.add('hidden');
+      resultBox.innerText="Ошибка связи с сервером. Попробуй позже.";
     }
+  }
+
+  document.getElementById('btn-problem-send').onclick = ()=>{
+    const problem=document.getElementById('input-problem').value.trim();
+    if(!problem){ alert('Опиши проблему, пожалуйста'); return; }
+    state.problem=problem;
+    sendProblem(problem);
   };
 
-  show('step-name');
+  document.getElementById('btn-followup').onclick = ()=>{
+    const follow=document.getElementById('input-followup').value.trim();
+    if(!follow) return;
+    document.getElementById('input-followup').value='';
+    sendProblem(follow);
+  };
 
-  try {
-    const init = tg.initDataUnsafe || {};
+  document.getElementById('btn-result-again').onclick = ()=>show(STEP.PROB);
+  document.getElementById('btn-result-close').onclick = ()=>tg.close();
+
+  show(STEP.NAME);
+
+  try{
+    const init=tg.initDataUnsafe||{};
     if(init.user && init.user.first_name){
-      document.getElementById('input-name').value = init.user.first_name;
+      document.getElementById('input-name').value=init.user.first_name;
     }
-  } catch(e) { /* ignore */ }
+  }catch(e){}
 });
