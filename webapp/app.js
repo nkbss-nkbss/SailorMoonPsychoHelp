@@ -1,17 +1,9 @@
 const tg = window.Telegram.WebApp;
 tg.expand();
 
-const STEP = {
-  NAME: 'step-name',
-  CHAR: 'step-character',
-  PROB: 'step-problem',
-  RES: 'step-result'
-};
-
 let state = {
   name: "",
-  character: "usagi",
-  problem: ""
+  character: "usagi"
 };
 
 const CHARACTERS = {
@@ -28,86 +20,104 @@ const CHARACTERS = {
   "mamoru": { label: "Мамору", img: "https://i.pinimg.com/736x/62/c0/97/62c0978a24a049425d9895a159ca3104.jpg" }
 };
 
+// Показ шага
 function show(step){
   document.querySelectorAll('.card').forEach(c=>c.classList.remove('active'));
   const el = document.getElementById(step);
   el.classList.add('active');
-  el.style.opacity=0;
-  setTimeout(()=>el.style.opacity=1,10);
+  el.style.opacity = 0;
+  setTimeout(()=>el.style.opacity = 1,10);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  console.log("✅ App loaded");
-
   const container = document.getElementById('characters');
   for(const key in CHARACTERS){
     const ch = CHARACTERS[key];
     const div = document.createElement('div');
-    div.className='char-card';
-    div.dataset.key=key;
-    div.innerHTML=`<img src="${ch.img}" alt="${ch.label}" /><div class="label">${ch.label}</div>`;
+    div.className = 'char-card';
+    div.dataset.key = key;
+    div.innerHTML = `
+      <img src="${ch.img}" alt="${ch.label}" />
+      <div class="label">${ch.label}</div>
+    `;
     div.onclick = ()=>{
       document.querySelectorAll('.char-card').forEach(el=>el.classList.remove('selected'));
       div.classList.add('selected');
-      state.character=key;
-    }
+      state.character = key;
+    };
     container.appendChild(div);
   }
-  const first = container.querySelector('.char-card');
-  if(first){ first.classList.add('selected'); state.character=first.dataset.key; }
 
+  const first = container.querySelector('.char-card');
+  if(first){ first.classList.add('selected'); state.character = first.dataset.key; }
+
+  // шаг 1 — ввод имени
   document.getElementById('btn-name-next').onclick = ()=>{
     const name = document.getElementById('input-name').value.trim();
     if(!name || name.length<2){ alert('Введите имя минимум из 2 символов'); return; }
-    state.name=name;
-    show(STEP.CHAR);
+    state.name = name;
+    show('step-chat');
   };
-  document.getElementById('btn-char-back').onclick = ()=>show(STEP.NAME);
-  document.getElementById('btn-char-next').onclick = ()=>show(STEP.PROB);
-  document.getElementById('btn-problem-back').onclick = ()=>show(STEP.CHAR);
 
-  document.getElementById('btn-problem-send').onclick = async ()=>{
-    const problem=document.getElementById('input-problem').value.trim();
+  // кнопка "назад" из выбора персонажа
+  document.getElementById('btn-char-back').onclick = ()=>show('step-name');
+
+  // обработчик отправки сообщения
+  document.getElementById('btn-send').onclick = async ()=>{
+    const input = document.getElementById('input-problem');
+    const problem = input.value.trim();
     if(!problem){ alert('Опиши проблему, пожалуйста'); return; }
-    state.problem=problem;
+    input.value = '';
 
-    const init=tg.initDataUnsafe||{};
-    const user=init.user||{};
-    const chat_id=user.id||null;
-    const username=state.name||(user.first_name||"друг");
+    const chatBox = document.getElementById('chat-box');
+    const userMsg = document.createElement('div');
+    userMsg.className = 'msg user';
+    userMsg.innerText = problem;
+    chatBox.appendChild(userMsg);
+    chatBox.scrollTop = chatBox.scrollHeight;
 
-    const resultBox=document.getElementById('result-box');
-    resultBox.innerHTML = "🌕 Думаю над советом... 💫<br><div class='loader'></div>";
-    show(STEP.RES);
+    const loader = document.createElement('div');
+    loader.className = 'msg bot loading';
+    loader.innerText = '💫 Думает...';
+    chatBox.appendChild(loader);
+    chatBox.scrollTop = chatBox.scrollHeight;
 
-    try{
-      const backend='';
-      const resp=await fetch(`${backend}/ask`,{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({chat_id, username, character:state.character, problem:state.problem})
+    try {
+      const backend = 'https://sailormoonpsychohelp-7bkw.onrender.com';
+      const resp = await fetch(`${backend}/ask`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          chat_id: tg.initDataUnsafe?.user?.id || null,
+          username: state.name,
+          character: state.character,
+          problem
+        })
       });
-      const data=await resp.json();
-      resultBox.innerText = data.ok ? (data.advice || "Пустой ответ") : "Ошибка: " + (data.error || JSON.stringify(data));
-    }catch(err){
+      const data = await resp.json();
+      loader.remove();
+
+      const botMsg = document.createElement('div');
+      botMsg.className = 'msg bot';
+      botMsg.innerText = data.ok ? (data.advice || "Пустой ответ") : "Ошибка: " + (data.error || JSON.stringify(data));
+      chatBox.appendChild(botMsg);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    } catch(err) {
       console.error(err);
-      resultBox.innerText="Ошибка связи с сервером. Попробуй позже.";
+      loader.remove();
+      const errorMsg = document.createElement('div');
+      errorMsg.className = 'msg bot error';
+      errorMsg.innerText = "Ошибка связи с сервером. Попробуй позже.";
+      chatBox.appendChild(errorMsg);
     }
   };
 
-  document.getElementById('btn-result-again').onclick = ()=>{
-    document.getElementById('input-problem').value='';
-    show(STEP.PROB);
-  };
-  document.getElementById('btn-result-close').onclick = ()=>tg.close();
+  show('step-name');
 
-  show(STEP.NAME);
-
-  try{
-    const init=tg.initDataUnsafe||{};
+  try {
+    const init = tg.initDataUnsafe || {};
     if(init.user && init.user.first_name){
-      document.getElementById('input-name').value=init.user.first_name;
+      document.getElementById('input-name').value = init.user.first_name;
     }
-  }catch(e){}
+  } catch(e) { /* ignore */ }
 });
-
