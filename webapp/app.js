@@ -1,3 +1,5 @@
+// app.js
+
 const tg = window.Telegram.WebApp;
 tg.expand();
 
@@ -61,6 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
     state.name=name;
     show(STEP.CHAR);
   };
+
   document.getElementById('btn-char-back').onclick = ()=>show(STEP.NAME);
   document.getElementById('btn-char-next').onclick = ()=>show(STEP.PROB);
   document.getElementById('btn-problem-back').onclick = ()=>show(STEP.CHAR);
@@ -69,19 +72,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const problem=document.getElementById('input-problem').value.trim();
     if(!problem){ alert('Опиши проблему, пожалуйста'); return; }
     state.problem=problem;
+    
     const init=tg.initDataUnsafe||{};
     const user=init.user||{};
     const chat_id=user.id||null;
-    const username=state.name||(user.first_name||"друг");
-  
+    const username=state.name || user.first_name || "друг";
+
     const resultBox = document.getElementById('result-box');
     const loader = document.getElementById('loading');
-  
+
     // показать анимацию ожидания
     resultBox.innerText = "";
     loader.classList.remove('hidden');
     show(STEP.RES);
-  
+
     try{
       const backend=''; // вставь свой бэкенд
       const resp=await fetch(`${backend}/ask`,{
@@ -99,28 +103,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-
-    try{
-      const backend=''; // вставь свой бэкенд
-      const resp=await fetch(`${backend}/ask`,{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({chat_id, username, character:state.character, problem:state.problem})
-      });
-      const data=await resp.json();
-      document.getElementById('result-box').innerText = data.ok?data.advice||"Пустой ответ":"Ошибка: "+(data.error||JSON.stringify(data));
-      show(STEP.RES);
-    }catch(err){
-      console.error(err);
-      document.getElementById('result-box').innerText="Ошибка связи с сервером. Попробуй позже.";
-      show(STEP.RES);
-    }
-  };
-
   document.getElementById('btn-result-again').onclick = ()=>{
     document.getElementById('input-problem').value='';
     show(STEP.PROB);
   };
+  
   document.getElementById('btn-result-close').onclick = ()=>tg.close();
 
   show(STEP.NAME);
