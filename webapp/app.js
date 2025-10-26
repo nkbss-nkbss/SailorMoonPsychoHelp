@@ -32,12 +32,13 @@ function show(step){
   document.querySelectorAll('.card').forEach(c=>c.classList.remove('active'));
   const el = document.getElementById(step);
   el.classList.add('active');
-  // плавная анимация
   el.style.opacity=0;
   setTimeout(()=>el.style.opacity=1,10);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  console.log("✅ App loaded");
+
   const container = document.getElementById('characters');
   for(const key in CHARACTERS){
     const ch = CHARACTERS[key];
@@ -69,51 +70,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const problem=document.getElementById('input-problem').value.trim();
     if(!problem){ alert('Опиши проблему, пожалуйста'); return; }
     state.problem=problem;
+
     const init=tg.initDataUnsafe||{};
     const user=init.user||{};
     const chat_id=user.id||null;
     const username=state.name||(user.first_name||"друг");
-  
-    const resultBox = document.getElementById('result-box');
-    const loader = document.getElementById('loading');
-  
-    // показать анимацию ожидания
-    resultBox.innerText = "";
-    loader.classList.remove('hidden');
+
+    const resultBox=document.getElementById('result-box');
+    resultBox.innerHTML = "🌕 Думаю над советом... 💫<br><div class='loader'></div>";
     show(STEP.RES);
-  
+
     try{
-      const backend=''; // вставь свой бэкенд
+      const backend='https://sailormoonpsychohelp-7bkw.onrender.com';
       const resp=await fetch(`${backend}/ask`,{
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({chat_id, username, character:state.character, problem:state.problem})
       });
       const data=await resp.json();
-      loader.classList.add('hidden');
       resultBox.innerText = data.ok ? (data.advice || "Пустой ответ") : "Ошибка: " + (data.error || JSON.stringify(data));
     }catch(err){
       console.error(err);
-      loader.classList.add('hidden');
-      resultBox.innerText = "Ошибка связи с сервером. Попробуй позже.";
-    }
-  };
-
-
-    try{
-      const backend='https://sailormoonpsychohelp-7bkw.onrender.com'; // вставь свой бэкенд
-      const resp=await fetch(`${backend}/ask`,{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({chat_id, username, character:state.character, problem:state.problem})
-      });
-      const data=await resp.json();
-      document.getElementById('result-box').innerText = data.ok?data.advice||"Пустой ответ":"Ошибка: "+(data.error||JSON.stringify(data));
-      show(STEP.RES);
-    }catch(err){
-      console.error(err);
-      document.getElementById('result-box').innerText="Ошибка связи с сервером. Попробуй позже.";
-      show(STEP.RES);
+      resultBox.innerText="Ошибка связи с сервером. Попробуй позже.";
     }
   };
 
@@ -130,7 +108,5 @@ document.addEventListener('DOMContentLoaded', () => {
     if(init.user && init.user.first_name){
       document.getElementById('input-name').value=init.user.first_name;
     }
-  }catch(e){/* ignore */}
+  }catch(e){}
 });
-
-
