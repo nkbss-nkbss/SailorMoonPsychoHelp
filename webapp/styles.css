@@ -86,7 +86,29 @@ input,textarea{
   grid-template-columns:repeat(auto-fill, minmax(140px,1fr));
   gap:12px;
   margin:12px 0;
+  max-height: 420px;              /* ограничиваем высоту */
+  overflow-y: auto;               /* включаем вертикальную прокрутку */
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;        /* плавный скролл */
+  padding-right: 6px;             /* немного места для скроллбара */
 }
+
+/* 🌸 кастомный скроллбар под macOS / iOS стиль */
+.cards-grid::-webkit-scrollbar{
+  width:6px;
+}
+.cards-grid::-webkit-scrollbar-track{
+  background:transparent;
+}
+.cards-grid::-webkit-scrollbar-thumb{
+  background:linear-gradient(180deg, #e1caff, #d5b0f8);
+  border-radius:3px;
+  transition:opacity .3s;
+}
+.cards-grid:hover::-webkit-scrollbar-thumb{
+  opacity:1;
+}
+
 .char-card{
   background:linear-gradient(180deg,#fff,#fff7ff);
   border-radius:12px;
@@ -171,3 +193,4 @@ input,textarea{
   to{opacity:1; transform:translateY(0);}
 }
 footer{text-align:center; color:#8c6fae; margin-top:8px; font-size:12px}
+
