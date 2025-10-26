@@ -46,13 +46,18 @@
 
       <!-- Step 4: Result -->
       <section id="step-result" class="card">
-        <h2>Совет</h2>
-        <div id="result-box" class="result">🌕 Обдумываю ответ... 💫</div>
-        <div class="row">
-          <button id="btn-result-again" class="btn outline">Задать ещё вопрос</button>
-          <button id="btn-result-close" class="btn">Закрыть</button>
-        </div>
-      </section>
+      <h2>Совет</h2>
+      <div id="result-box" class="result">🌕 Обдумываю ответ... 💫</div>
+      <div id="loading" class="loading hidden">
+        <div class="moon-loader">🌙</div>
+        <div class="loading-text">Луна думает...</div>
+      </div>
+      <div class="row">
+        <button id="btn-result-again" class="btn outline">Задать ещё вопрос</button>
+        <button id="btn-result-close" class="btn">Закрыть</button>
+      </div>
+    </section>
+
     </main>
 
     <footer>
@@ -63,3 +68,4 @@
   <script src="app.js"></script>
 </body>
 </html>
+
