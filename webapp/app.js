@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
     show(STEP.RES);
 
     try{
-      const backend='https://sailormoonpsychohelp-7bkw.onrender.com';
+      const backend='';
       const resp=await fetch(`${backend}/ask`,{
         method:'POST',
         headers:{'Content-Type':'application/json'},
@@ -110,3 +110,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }catch(e){}
 });
+
