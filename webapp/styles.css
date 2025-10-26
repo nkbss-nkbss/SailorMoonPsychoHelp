@@ -1,144 +1,184 @@
-body {
-  font-family: 'SF Pro Display', 'Inter', sans-serif;
-  background: #fff;
-  color: #111;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  min-height: 100vh;
+/* === БАЗА === */
+* {
+  box-sizing: border-box;
+  font-family: 'Inter', 'Noto Sans', sans-serif;
   margin: 0;
   padding: 0;
 }
 
-.card {
-  display: none;
-  flex-direction: column;
+body {
+  background: linear-gradient(180deg, #fff 0%, #fef6ff 100%);
+  color: #222;
+  display: flex;
   align-items: center;
-  width: 90%;
+  justify-content: center;
+  min-height: 100vh;
+  overflow-x: hidden;
+  transition: background 0.4s ease;
+}
+
+#app {
+  width: 100%;
   max-width: 420px;
   padding: 20px;
+}
+
+/* === КАРТОЧКИ === */
+.card {
+  background: rgba(255, 255, 255, 0.9);
   border-radius: 24px;
-  background: #fafafa;
-  box-shadow: 0 0 20px rgba(0,0,0,0.05);
-  transition: opacity 0.3s;
+  box-shadow: 0 0 24px rgba(255, 182, 255, 0.2);
+  padding: 24px;
+  text-align: center;
+  opacity: 0;
+  transform: scale(0.98);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  display: none;
 }
 
 .card.active {
-  display: flex;
+  display: block;
   opacity: 1;
+  transform: scale(1);
 }
 
-h2 {
-  text-align: center;
-  font-weight: 600;
-}
-
+/* === ВВОД === */
 input, textarea {
   width: 100%;
+  border: 2px solid #f3d9ff;
+  border-radius: 16px;
+  padding: 12px 16px;
+  margin: 10px 0 20px;
   font-size: 16px;
-  border-radius: 12px;
-  border: 1px solid #ddd;
-  padding: 12px;
-  margin-top: 10px;
-  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.3s ease;
+  background: rgba(255,255,255,0.9);
 }
 
+input:focus, textarea:focus {
+  border-color: #d27bff;
+}
+
+/* === КНОПКИ === */
 button {
+  width: 100%;
+  background: linear-gradient(90deg, #ff7ce0, #b57bff);
   border: none;
-  background: #111;
   color: #fff;
-  font-size: 16px;
-  font-weight: 600;
-  border-radius: 12px;
-  padding: 12px 18px;
+  font-size: 17px;
+  border-radius: 16px;
+  padding: 12px;
   cursor: pointer;
-  transition: 0.3s;
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
 }
 
 button:hover {
-  opacity: 0.8;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(218, 134, 255, 0.4);
 }
 
-.buttons {
-  display: flex;
-  gap: 10px;
-  margin-top: 20px;
+button.secondary {
+  background: none;
+  border: 2px solid #d6a8ff;
+  color: #9d63ff;
 }
 
+button.secondary:hover {
+  background: rgba(246, 230, 255, 0.5);
+}
+
+/* === ПЕРСОНАЖИ === */
 #characters {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  gap: 10px;
-  width: 100%;
-  margin-top: 20px;
+  gap: 12px;
+  justify-items: center;
+  max-height: 55vh;
+  overflow-y: auto;
+  padding-bottom: 8px;
 }
 
 .char-card {
-  border: 2px solid transparent;
-  border-radius: 12px;
-  overflow: hidden;
+  background: rgba(255,255,255,0.8);
+  border-radius: 16px;
+  box-shadow: 0 0 10px rgba(180, 90, 255, 0.1);
+  padding: 6px;
+  transition: all 0.3s ease;
+  text-align: center;
   cursor: pointer;
-  transition: 0.3s;
-  background: #fff;
-}
-
-.char-card.selected {
-  border-color: #000;
+  width: 100%;
+  max-width: 110px;
 }
 
 .char-card img {
   width: 100%;
-  height: 120px;
+  border-radius: 12px;
+  aspect-ratio: 1/1;
   object-fit: cover;
 }
 
-.char-card .label {
-  text-align: center;
-  padding: 6px;
-  font-weight: 500;
+.char-card.selected {
+  box-shadow: 0 0 12px rgba(255, 130, 255, 0.4);
+  transform: scale(1.05);
 }
 
-#result-box {
-  background: #fff;
-  padding: 12px;
-  border-radius: 12px;
-  width: 100%;
-  min-height: 100px;
-  box-sizing: border-box;
-  border: 1px solid #eee;
-  margin: 10px 0;
-  text-align: left;
-  white-space: pre-line;
+.label {
+  font-size: 14px;
+  font-weight: 600;
+  margin-top: 6px;
 }
 
-.input-area {
-  display: flex;
-  gap: 10px;
-  width: 100%;
+/* === ЗАГРУЗКА === */
+#loading {
+  font-size: 16px;
+  color: #888;
   margin-top: 10px;
 }
 
-.input-area input {
-  flex: 1;
-}
-
 .hidden {
-  display: none;
+  display: none !important;
 }
 
-@media (max-width: 480px) {
-  .card {
-    padding: 14px;
-  }
-  h2 {
-    font-size: 18px;
-  }
-  button {
-    font-size: 14px;
-    padding: 10px;
-  }
-  textarea {
-    font-size: 14px;
-  }
+/* === РЕЗУЛЬТАТ / ЧАТ === */
+#result-box, #chat-box {
+  text-align: left;
+  background: rgba(255,255,255,0.8);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+  height: 40vh;
+  overflow-y: auto;
+}
+
+.message {
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.message.user {
+  text-align: right;
+}
+
+.message.user span {
+  background: linear-gradient(90deg, #ffaae0, #c1a1ff);
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 14px 14px 0 14px;
+  display: inline-block;
+}
+
+.message.bot span {
+  background: #f6eaff;
+  color: #444;
+  padding: 8px 14px;
+  border-radius: 14px 14px 14px 0;
+  display: inline-block;
+}
+
+/* === АДАПТИВ === */
+@media (max-width: 600px) {
+  #app { max-width: 100%; padding: 10px; }
+  .card { padding: 18px; }
+  button { font-size: 15px; }
+  #characters { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); }
 }
