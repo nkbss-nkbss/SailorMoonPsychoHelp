@@ -139,3 +139,51 @@ footer{ text-align:center; color:#8c6fae; margin-top:8px; font-size:12px }
   .cards-grid{ grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); max-height:50vh; }
   .row{ justify-content:center; }
 }
+
+/* === Loading animation === */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 20px;
+  text-align: center;
+  transition: opacity 0.4s;
+}
+
+.loading.hidden {
+  display: none;
+}
+
+.moon-loader {
+  font-size: 2.4rem;
+  animation: pulse 1.5s infinite ease-in-out;
+  color: var(--accent-2);
+  text-shadow: 0 0 12px rgba(183,138,230,0.4);
+}
+
+.loading-text {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--accent-2);
+  letter-spacing: 0.5px;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(90deg, #d8a7ff, #ffb0e6, #d8a7ff);
+  background-size: 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 3s infinite linear;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 0.7; }
+  50% { transform: scale(1.15); opacity: 1; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -100% 0; }
+  100% { background-position: 100% 0; }
+}
+
