@@ -216,7 +216,7 @@ footer{ text-align:center; color:#8c6fae; margin-top:8px; font-size:12px }
   position: fixed;
   bottom: 20px;
   right: 20px;
-  padding: 12px 16px;
+  padding: 12px 18px;
   border-radius: 50px;
   border: none;
   background: linear-gradient(135deg, #ff9ad8, #d58cf1);
@@ -239,7 +239,6 @@ footer{ text-align:center; color:#8c6fae; margin-top:8px; font-size:12px }
   box-shadow: 0 6px 12px rgba(183,138,230,0.3);
 }
 
-
 @keyframes twinkle {
   0%, 100% { opacity: 0.2; }
   50% { opacity: 1; }
@@ -255,6 +254,7 @@ footer{ text-align:center; color:#8c6fae; margin-top:8px; font-size:12px }
   0% { background-position: -100% 0; }
   100% { background-position: 100% 0; }
 }
+
 
 
 
