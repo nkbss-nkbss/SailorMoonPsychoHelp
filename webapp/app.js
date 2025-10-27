@@ -30,6 +30,20 @@ const CHARACTERS = {
   "mamoru": { label: "Мамору", img: "https://i.pinimg.com/736x/62/c0/97/62c0978a24a049425d9895a159ca3104.jpg" }
 };
 
+const music = document.getElementById('bg-music');
+const musicBtn = document.getElementById('music-toggle');
+
+musicBtn.addEventListener('click', () => {
+  if (music.paused) {
+    music.play();
+    musicBtn.textContent = '🔇 Выключить музыку';
+  } else {
+    music.pause();
+    musicBtn.textContent = '🔊 Включить музыку';
+  }
+});
+
+
 function show(step){
   document.querySelectorAll('.card').forEach(c=>c.classList.remove('active'));
   const el = document.getElementById(step);
@@ -128,4 +142,5 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }catch(e){/* ignore */}
 });
+
 
