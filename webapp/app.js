@@ -1,5 +1,4 @@
 // app.js
-
 const tg = window.Telegram.WebApp;
 tg.expand();
 
@@ -30,9 +29,9 @@ const CHARACTERS = {
   "mamoru": { label: "Мамору", img: "https://i.pinimg.com/736x/62/c0/97/62c0978a24a049425d9895a159ca3104.jpg" }
 };
 
+// === Music control ===
 const music = document.getElementById('bg-music');
 const musicBtn = document.getElementById('music-toggle');
-
 musicBtn.addEventListener('click', () => {
   if (music.paused) {
     music.play();
@@ -43,25 +42,46 @@ musicBtn.addEventListener('click', () => {
   }
 });
 
-
+// === Show step ===
 function show(step){
-  document.querySelectorAll('.card').forEach(c=>c.classList.remove('active'));
+  document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
   const el = document.getElementById(step);
   el.classList.add('active');
-  // плавная анимация
-  el.style.opacity=0;
-  setTimeout(()=>el.style.opacity=1,10);
+  el.style.opacity = 0;
+  setTimeout(()=> el.style.opacity = 1, 10);
 }
 
+// === Parallax effect ===
 document.addEventListener('mousemove', e => {
-  const x = (e.clientX / window.innerWidth - 0.5) * 20;
-  const y = (e.clientY / window.innerHeight - 0.5) * 20;
-  document.querySelectorAll('.parallax-layer').forEach(layer => {
-    layer.style.transform = `translate(${x}px, ${y}px)`;
+  const x = (e.clientX / window.innerWidth - 0.5) * 25;
+  const y = (e.clientY / window.innerHeight - 0.5) * 25;
+  document.querySelectorAll('.parallax-layer').forEach((layer, i) => {
+    const factor = 1 + i*0.2;
+    layer.style.transform = `translate(${x*factor}px, ${y*factor}px)`;
   });
 });
 
+// === Stars animation ===
+const starsContainer = document.querySelector('.stars');
+for (let i = 0; i < 150; i++) {
+  const star = document.createElement('div');
+  star.classList.add('star');
+  star.style.top = Math.random() * 100 + '%';
+  star.style.left = Math.random() * 100 + '%';
+  star.style.width = star.style.height = Math.random() * 2 + 1 + 'px';
+  star.style.animationDelay = Math.random() * 5 + 's';
+  starsContainer.appendChild(star);
+  // Falling stars
+  star.style.animation = `twinkle ${2 + Math.random()*3}s infinite ease-in-out, fall ${5 + Math.random()*5}s linear ${Math.random()*5}s infinite`;
+}
 
+// === Moon pulse animation ===
+const moonLayer = document.getElementById('moon');
+if(moonLayer){
+  moonLayer.style.animation = "pulse 4s infinite ease-in-out alternate";
+}
+
+// === DOMContentLoaded ===
 document.addEventListener('DOMContentLoaded', () => {
   const container = document.getElementById('characters');
   for(const key in CHARACTERS){
@@ -73,12 +93,12 @@ document.addEventListener('DOMContentLoaded', () => {
     div.onclick = ()=>{
       document.querySelectorAll('.char-card').forEach(el=>el.classList.remove('selected'));
       div.classList.add('selected');
-      state.character=key;
+      state.character = key;
     }
     container.appendChild(div);
   }
   const first = container.querySelector('.char-card');
-  if(first){ first.classList.add('selected'); state.character=first.dataset.key; }
+  if(first){ first.classList.add('selected'); state.character = first.dataset.key; }
 
   document.getElementById('btn-name-next').onclick = ()=>{
     const name = document.getElementById('input-name').value.trim();
@@ -104,19 +124,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const resultBox = document.getElementById('result-box');
     const loader = document.getElementById('loading');
 
-    // показать анимацию ожидания
     resultBox.innerText = "";
     loader.classList.remove('hidden');
     show(STEP.RES);
 
     try{
       const backend=''; // вставь свой бэкенд
-      const resp=await fetch(`${backend}/ask`,{
+      const resp = await fetch(`${backend}/ask`,{
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({chat_id, username, character:state.character, problem:state.problem})
       });
-      const data=await resp.json();
+      const data = await resp.json();
       loader.classList.add('hidden');
       resultBox.innerText = data.ok ? (data.advice || "Пустой ответ") : "Ошибка: " + (data.error || JSON.stringify(data));
     }catch(err){
@@ -142,5 +161,3 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }catch(e){/* ignore */}
 });
-
-
