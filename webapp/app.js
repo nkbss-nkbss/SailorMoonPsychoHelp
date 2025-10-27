@@ -35,10 +35,10 @@ const musicBtn = document.getElementById('music-toggle');
 musicBtn.addEventListener('click', () => {
   if (music.paused) {
     music.play();
-    musicBtn.textContent = '🔇 Выключить музыку';
+    musicBtn.textContent = '🔇';
   } else {
     music.pause();
-    musicBtn.textContent = '🔊 Включить музыку';
+    musicBtn.textContent = '🔊';
   }
 });
 
@@ -161,3 +161,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }catch(e){/* ignore */}
 });
+
