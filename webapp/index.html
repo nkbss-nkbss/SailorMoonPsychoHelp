@@ -66,5 +66,19 @@
   </div>
 
   <script src="app.js"></script>
+  <div class="stars"></div>
+  <script>
+  const starsContainer = document.querySelector('.stars');
+  for (let i = 0; i < 100; i++) {
+    const star = document.createElement('div');
+    star.classList.add('star');
+    star.style.top = Math.random() * 100 + '%';
+    star.style.left = Math.random() * 100 + '%';
+    star.style.animationDelay = Math.random() * 5 + 's';
+    starsContainer.appendChild(star);
+  }
+  </script>
+
 </body>
 </html>
+
