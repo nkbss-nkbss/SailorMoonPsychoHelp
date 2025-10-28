@@ -8,90 +8,6 @@
   --card:#ffffff;
 }
 
-[data-theme="dark"] {
-  --bg1: #1a0b2e;
-  --bg2: #2d1b47;
-  --text: #ffffff;
-  --card: #2d1b47;
-  --accent: #ff9ad8;
-  --accent-2: #b78ae6;
-}
-
-[data-theme="dark"] body {
-  background: radial-gradient(circle at 10% 10%, #2d1b47 0%, #1a0b2e 30%, #1a0b2e 100%) !important;
-}
-
-[data-theme="dark"] .container {
-  background: linear-gradient(180deg, rgba(45,27,71,0.9), rgba(40,20,65,0.95));
-  box-shadow: 0 12px 30px rgba(0,0,0,0.3);
-}
-
-[data-theme="dark"] input,
-[data-theme="dark"] textarea {
-  background: linear-gradient(180deg, #3a2458, #352250);
-  border-color: rgba(183,138,230,0.3);
-  color: #ffffff;
-}
-
-[data-theme="dark"] input::placeholder,
-[data-theme="dark"] textarea::placeholder {
-  color: rgba(255,255,255,0.6);
-}
-
-[data-theme="dark"] .char-card {
-  background: linear-gradient(180deg, #3a2458, #352250);
-  color: #ffffff;
-}
-
-[data-theme="dark"] .type-option {
-  background: linear-gradient(180deg, #3a2458, #352250);
-  border-color: rgba(183,138,230,0.3);
-  color: #ffffff;
-}
-
-[data-theme="dark"] .type-content h3 {
-  color: #ffffff;
-}
-
-[data-theme="dark"] .type-content p {
-  color: rgba(255,255,255,0.8);
-}
-
-[data-theme="dark"] .result {
-  background: linear-gradient(180deg, #3a2458, #352250);
-  border-color: rgba(183,138,230,0.2);
-  color: #ffffff;
-}
-
-[data-theme="dark"] .btn.outline {
-  border-color: rgba(183,138,230,0.4);
-  color: #ffffff;
-  background: transparent;
-}
-
-[data-theme="dark"] .subtitle {
-  color: rgba(255,255,255,0.8);
-}
-
-[data-theme="dark"] footer {
-  color: rgba(255,255,255,0.6);
-}
-
-[data-theme="dark"] .progress-bar {
-  background: rgba(183,138,230,0.1);
-}
-
-[data-theme="dark"] .step-dot {
-  background: rgba(183,138,230,0.3);
-}
-
-[data-theme="dark"] .progress-text {
-  background: linear-gradient(90deg, #ff9ad8, #d58cf1);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
 /* === CONTROL BUTTONS === */
 .control-buttons {
   position: fixed;
@@ -129,15 +45,6 @@
 .control-btn:active {
   transform: scale(0.95);
   box-shadow: 0 6px 12px rgba(183,138,230,0.3);
-}
-
-/* Dark theme adjustments for control buttons */
-[data-theme="dark"] .control-btn {
-  box-shadow: 0 6px 18px rgba(0,0,0,0.4);
-}
-
-[data-theme="dark"] .control-btn:hover {
-  box-shadow: 0 12px 20px rgba(0,0,0,0.5);
 }
 
 /* === ПРОГРЕСС-БАР === */
@@ -811,12 +718,9 @@ footer{ text-align:center; color:#8c6fae; margin-top:8px; font-size:12px }
   animation: pulse 4s infinite ease-in-out alternate;
 }
 
-[data-theme="dark"] #moon {
-  background: radial-gradient(circle at 30% 30%, #fff6b0, #ffb347);
-  box-shadow: 0 0 50px rgba(255, 179, 71, 0.3);
-}
 
 /* Remove old music button styles */
 .music-btn {
   display: none;
 }
+
