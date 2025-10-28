@@ -28,50 +28,182 @@ const CHARACTERS = {
   "mamoru": { label: "Мамору", img: "https://i.pinimg.com/736x/62/c0/97/62c0978a24a049425d9895a159ca3104.jpg" }
 };
 
-// === Improved Music control ===
+// === Audio elements ===
 const music = document.getElementById('bg-music');
+const clickSound = document.getElementById('click-sound');
+const magicSound = document.getElementById('magic-sound');
+const selectSound = document.getElementById('select-sound');
+
+// === Music fade variables ===
+let fadeInterval;
+let isFading = false;
+const FADE_DURATION = 1000; // 1 second fade
+const FADE_STEPS = 20;
+const FADE_INTERVAL = FADE_DURATION / FADE_STEPS;
+
+// === Sound functions ===
+function playClickSound() {
+  if (clickSound) {
+    clickSound.volume = 0.3;
+    clickSound.currentTime = 0;
+    clickSound.play().catch(e => console.log('Click sound error:', e));
+  }
+}
+
+function playMagicSound() {
+  if (magicSound) {
+    magicSound.volume = 0.4;
+    magicSound.currentTime = 0;
+    magicSound.play().catch(e => console.log('Magic sound error:', e));
+  }
+}
+
+function playSelectSound() {
+  if (selectSound) {
+    selectSound.volume = 0.3;
+    selectSound.currentTime = 0;
+    selectSound.play().catch(e => console.log('Select sound error:', e));
+  }
+}
+
+// === Fade functions ===
+function fadeIn(audioElement, targetVolume = 0.3) {
+  if (isFading) {
+    clearInterval(fadeInterval);
+  }
+  
+  isFading = true;
+  audioElement.volume = 0;
+  audioElement.play().catch(e => console.log('Fade in play error:', e));
+  
+  let currentStep = 0;
+  
+  fadeInterval = setInterval(() => {
+    currentStep++;
+    const newVolume = (currentStep / FADE_STEPS) * targetVolume;
+    audioElement.volume = newVolume;
+    
+    if (currentStep >= FADE_STEPS) {
+      clearInterval(fadeInterval);
+      audioElement.volume = targetVolume;
+      isFading = false;
+    }
+  }, FADE_INTERVAL);
+}
+
+function fadeOut(audioElement) {
+  if (isFading) {
+    clearInterval(fadeInterval);
+  }
+  
+  isFading = true;
+  const startVolume = audioElement.volume;
+  let currentStep = 0;
+  
+  fadeInterval = setInterval(() => {
+    currentStep++;
+    const newVolume = startVolume * (1 - currentStep / FADE_STEPS);
+    audioElement.volume = newVolume;
+    
+    if (currentStep >= FADE_STEPS) {
+      clearInterval(fadeInterval);
+      audioElement.pause();
+      audioElement.volume = 0.3; // Reset to default volume
+      isFading = false;
+    }
+  }, FADE_INTERVAL);
+}
+
+function crossFade(fromAudio, toAudio, targetVolume = 0.3) {
+  if (isFading) {
+    clearInterval(fadeInterval);
+  }
+  
+  isFading = true;
+  const startVolume = fromAudio.volume;
+  let currentStep = 0;
+  
+  // Start the new audio quietly
+  toAudio.volume = 0;
+  toAudio.currentTime = 0;
+  toAudio.play().catch(e => console.log('Cross fade play error:', e));
+  
+  fadeInterval = setInterval(() => {
+    currentStep++;
+    const progress = currentStep / FADE_STEPS;
+    
+    // Fade out old audio
+    fromAudio.volume = startVolume * (1 - progress);
+    
+    // Fade in new audio
+    toAudio.volume = progress * targetVolume;
+    
+    if (currentStep >= FADE_STEPS) {
+      clearInterval(fadeInterval);
+      fromAudio.pause();
+      fromAudio.volume = 0.3;
+      toAudio.volume = targetVolume;
+      isFading = false;
+    }
+  }, FADE_INTERVAL);
+}
+
+// === Improved Music control ===
 const musicBtn = document.getElementById('music-toggle');
 let musicInitialized = false;
+let isMusicPlaying = false;
 
 function initMusic() {
   if (musicInitialized) return;
   
-  music.volume = 0.3; // Устанавливаем комфортную громкость
+  // Устанавливаем начальную громкость
+  music.volume = 0;
   
-  musicBtn.addEventListener('click', toggleMusic);
+  musicBtn.addEventListener('click', function() {
+    playClickSound();
+    toggleMusic();
+  });
   
-  // Пытаемся автозапустить музыку после первого взаимодействия пользователя
+  // Автозапуск с плавным появлением
   document.addEventListener('click', function initMusicOnInteraction() {
     if (!musicInitialized) {
-      music.play().then(() => {
-        musicBtn.textContent = '🔊';
-        musicInitialized = true;
-      }).catch(error => {
-        console.log('Автозапуск музыки заблокирован, требуется ручной запуск');
-        musicBtn.textContent = '🔇';
-        musicInitialized = true;
-      });
+      fadeIn(music, 0.3);
+      musicBtn.textContent = '🔊';
+      musicInitialized = true;
+      isMusicPlaying = true;
       document.removeEventListener('click', initMusicOnInteraction);
     }
   }, { once: true });
 }
 
 function toggleMusic() {
-  if (music.paused) {
-    music.play().then(() => {
-      musicBtn.textContent = '🔊';
-    }).catch(error => {
-      console.error('Ошибка воспроизведения:', error);
-      alert('Не удалось воспроизвести музыку. Проверьте поддержку аудио в вашем браузере.');
-    });
-  } else {
-    music.pause();
+  if (isFading) return; // Предотвращаем множественные нажатия во время фейда
+  
+  if (isMusicPlaying) {
+    // Плавное затухание и пауза
+    fadeOut(music);
     musicBtn.textContent = '🔇';
+    isMusicPlaying = false;
+  } else {
+    // Плавное появление
+    fadeIn(music, 0.3);
+    musicBtn.textContent = '🔊';
+    isMusicPlaying = true;
   }
 }
 
-// === Show step ===
+// Обработчик для плавной остановки при закрытии страницы
+window.addEventListener('beforeunload', () => {
+  if (!music.paused) {
+    // Быстрое затухание при закрытии
+    music.volume = 0;
+    music.pause();
+  }
+});
+
+// === Show step with sound ===
 function show(step){
+  playClickSound();
   document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
   const el = document.getElementById(step);
   el.classList.add('active');
@@ -99,7 +231,6 @@ for (let i = 0; i < 150; i++) {
   star.style.width = star.style.height = Math.random() * 2 + 1 + 'px';
   star.style.animationDelay = Math.random() * 5 + 's';
   starsContainer.appendChild(star);
-  // Falling stars
   star.style.animation = `twinkle ${2 + Math.random()*3}s infinite ease-in-out, fall ${5 + Math.random()*5}s linear ${Math.random()*5}s infinite`;
 }
 
@@ -114,6 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Инициализируем музыку
   initMusic();
   
+  // Инициализируем персонажей
   const container = document.getElementById('characters');
   for(const key in CHARACTERS){
     const ch = CHARACTERS[key];
@@ -122,6 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
     div.dataset.key=key;
     div.innerHTML=`<img src="${ch.img}" alt="${ch.label}" /><div class="label">${ch.label}</div>`;
     div.onclick = ()=>{
+      playSelectSound();
       document.querySelectorAll('.char-card').forEach(el=>el.classList.remove('selected'));
       div.classList.add('selected');
       state.character = key;
@@ -131,20 +264,41 @@ document.addEventListener('DOMContentLoaded', () => {
   const first = container.querySelector('.char-card');
   if(first){ first.classList.add('selected'); state.character = first.dataset.key; }
 
+  // Обработчики кнопок с звуками
   document.getElementById('btn-name-next').onclick = ()=>{
+    playClickSound();
     const name = document.getElementById('input-name').value.trim();
-    if(!name || name.length<2){ alert('Введите имя минимум из 2 символов'); return; }
+    if(!name || name.length<2){ 
+      alert('Введите имя минимум из 2 символов'); 
+      return; 
+    }
     state.name=name;
     show(STEP.CHAR);
   };
 
-  document.getElementById('btn-char-back').onclick = ()=>show(STEP.NAME);
-  document.getElementById('btn-char-next').onclick = ()=>show(STEP.PROB);
-  document.getElementById('btn-problem-back').onclick = ()=>show(STEP.CHAR);
+  document.getElementById('btn-char-back').onclick = ()=>{
+    playClickSound();
+    show(STEP.NAME);
+  };
+  
+  document.getElementById('btn-char-next').onclick = ()=>{
+    playClickSound();
+    show(STEP.PROB);
+  };
+  
+  document.getElementById('btn-problem-back').onclick = ()=>{
+    playClickSound();
+    show(STEP.CHAR);
+  };
 
   document.getElementById('btn-problem-send').onclick = async ()=>{
+    playMagicSound(); // Особый звук для получения совета
+    
     const problem=document.getElementById('input-problem').value.trim();
-    if(!problem){ alert('Опиши проблему, пожалуйста'); return; }
+    if(!problem){ 
+      alert('Опиши проблему, пожалуйста'); 
+      return; 
+    }
     state.problem=problem;
     
     const init=tg.initDataUnsafe||{};
@@ -177,11 +331,20 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   document.getElementById('btn-result-again').onclick = ()=>{
+    playClickSound();
     document.getElementById('input-problem').value='';
     show(STEP.PROB);
   };
   
-  document.getElementById('btn-result-close').onclick = ()=>tg.close();
+  document.getElementById('btn-result-close').onclick = ()=>{
+    playClickSound();
+    tg.close();
+  };
+
+  // Добавляем звуки для всех кнопок при клике
+  document.querySelectorAll('.btn').forEach(btn => {
+    btn.addEventListener('click', playClickSound);
+  });
 
   show(STEP.NAME);
 
