@@ -431,3 +431,6 @@ if __name__ == "__main__":
     print("🌙 Sailor Moon Bot запускается... ✨")
     set_webhook()
     port = int(os.getenv("PORT", 5000))
+    # ДОБАВЬ ЭТИ СТРОКИ:
+    print(f"🚀 Запускаем сервер на порту {port}")
+    app.run(host='0.0.0.0', port=port, debug=False)
