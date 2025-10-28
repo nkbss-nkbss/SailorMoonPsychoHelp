@@ -115,7 +115,132 @@
   }
 }
 
-/* Остальные существующие стили остаются без изменений... */
+/* === ВЫБОР ТИПА ОТВЕТА === */
+.answer-type-options {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 20px 0;
+}
+
+.type-option {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  border: 2px solid rgba(183, 138, 230, 0.2);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  background: linear-gradient(180deg, #fff, #fffafc);
+}
+
+.type-option:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent-2);
+  box-shadow: 0 8px 25px rgba(183, 138, 230, 0.15);
+}
+
+.type-option.selected {
+  border-color: var(--accent-2);
+  background: linear-gradient(135deg, #fffafc, #f8f0ff);
+  box-shadow: 0 8px 25px rgba(183, 138, 230, 0.2);
+  transform: translateY(-2px);
+}
+
+.type-icon {
+  font-size: 2.5rem;
+  margin-right: 16px;
+  transition: transform 0.3s ease;
+}
+
+.type-option.selected .type-icon {
+  transform: scale(1.1);
+}
+
+.type-content h3 {
+  margin: 0 0 6px 0;
+  font-size: 1.1rem;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.type-content p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #6b4b7a;
+  line-height: 1.4;
+}
+
+/* Множественный выбор персонажей */
+.char-card.multiple {
+  position: relative;
+}
+
+.char-card.multiple::after {
+  content: '';
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(183, 138, 230, 0.3);
+  border-radius: 50%;
+  background: white;
+  transition: all 0.3s ease;
+}
+
+.char-card.multiple.selected::after {
+  background: var(--accent-2);
+  border-color: var(--accent-2);
+  content: '✓';
+  color: white;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.char-card.multiple.selected {
+  border-color: var(--accent-2);
+  transform: translateY(-4px) scale(1.03);
+  box-shadow: 0 10px 25px rgba(183, 138, 230, 0.15);
+}
+
+/* Счетчик выбранных персонажей */
+.selected-count {
+  display: inline-block;
+  background: var(--accent-2);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-left: 8px;
+  animation: pulse 2s infinite;
+}
+
+/* Адаптивность для выбора типа */
+@media (max-width: 600px) {
+  .type-option {
+    padding: 16px;
+  }
+  
+  .type-icon {
+    font-size: 2rem;
+    margin-right: 12px;
+  }
+  
+  .type-content h3 {
+    font-size: 1rem;
+  }
+  
+  .type-content p {
+    font-size: 0.85rem;
+  }
+}
+
+/* === ОСНОВНЫЕ СТИЛИ === */
 :root{
   --bg1:#fff0fb;
   --bg2:#f7eaff;
