@@ -115,15 +115,19 @@
       <small>Лунная магия с тобой 🌙✨</small>
     </footer>
 
-    <!-- КНОПКА И МУЗЫКА -->
-    <button id="music-toggle" class="music-btn">🔇</button>
+    <!-- КНОПКИ УПРАВЛЕНИЯ -->
+    <div class="control-buttons">
+      <button id="theme-toggle" class="control-btn" title="Сменить тему">🌙</button>
+      <button id="music-toggle" class="control-btn" title="Музыка">🔇</button>
+    </div>
+    
+    <!-- АУДИО ЭЛЕМЕНТЫ -->
     <audio id="bg-music" loop>
       <source src="./music/moonlight.mp3" type="audio/mpeg">
       <source src="./music/moonlight.ogg" type="audio/ogg">
       Ваш браузер не поддерживает аудио.
     </audio>
     
-    <!-- Звуки кнопок -->
     <audio id="click-sound" preload="auto">
       <source src="./music/click.mp3" type="audio/mpeg">
       <source src="./music/click.ogg" type="audio/ogg">
