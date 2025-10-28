@@ -20,39 +20,17 @@ user_states = {}
 
 # === КАРТИНКИ ===
 CHARACTER_IMAGES = {
-    "usagi": ["https://i.pinimg.com/736x/a4/47/c4/a447c423d530b9cac4612a9f71c96ddc.jpg", 
-              "https://i.pinimg.com/736x/d3/bd/f3/d3bdf3434e028dc4224886b252b6bbcd.jpg",
-              "https://i.pinimg.com/736x/00/e9/26/00e926f1c125521ea24b93800e98379d.jpg"],
-    "ami": ["https://i.pinimg.com/736x/b1/61/1a/b1611addcf1190d311218c22614e1e36.jpg",
-            "https://i.pinimg.com/736x/03/96/3a/03963a01acdcecf4d4c11e3a865c9304.jpg",
-            "https://i.pinimg.com/1200x/09/8a/1b/098a1b9482c97447f16268c6cdfcc5a1.jpg"],
-    "rei": ["https://i.pinimg.com/736x/d7/9c/61/d79c617912ae0e4d510660c32c971227.jpg",
-            "https://i.pinimg.com/1200x/85/30/18/85301847c800f90d35e4641df41baf89.jpg",
-            "https://i.pinimg.com/736x/6a/e8/bb/6ae8bb756a64864f2b93acee439f7430.jpg"],
-    "minako": ["https://i.pinimg.com/736x/68/68/52/6868521a4cf61d75b40772b6f13c0504.jpg",
-               "https://i.pinimg.com/736x/82/07/72/820772ae905cbee47d8c4e6beb9f61b6.jpg",
-               "https://i.pinimg.com/736x/b1/54/82/b15482867474573e46e537283818a199.jpg"],
-    "makoto": ["https://i.pinimg.com/736x/49/27/8d/49278da7f93a6028a0a3d05bbd43fd22.jpg",
-               "https://i.pinimg.com/1200x/57/a0/bb/57a0bbe1376cd0ca64e65e6a7e605329.jpg",
-               "https://i.pinimg.com/736x/30/63/b6/3063b608fcec74b994d384850b89d227.jpg"],
-    "hotaru": ["https://i.pinimg.com/736x/62/e8/61/62e861ea332c0bf8dafd00fd4e9571d9.jpg",
-               "https://i.pinimg.com/736x/7b/27/40/7b2740c08953e1e36f64e848dea4b8c5.jpg",
-               "https://i.pinimg.com/736x/2d/e3/b2/2de3b20ef89c8efea9f94b3aa313abae.jpg"],
-    "setsuna": ["https://i.pinimg.com/736x/89/bf/f4/89bff47fee6011a503b18c274a0370a5.jpg",
-               "https://i.pinimg.com/736x/c9/e7/f0/c9e7f08c46543a6d53bfff18d251640e.jpg",
-               "https://i.pinimg.com/1200x/ca/3c/f2/ca3cf2ffec5deb80582aff7e50d2a495.jpg"],
-    "haruka": ["https://i.pinimg.com/736x/a8/c9/9e/a8c99e3558ea0caf592cb06c1339f720.jpg",
-               "https://i.pinimg.com/736x/16/65/d3/1665d3aa94b9ba9636d2ab92f4a22347.jpg",
-               "https://i.pinimg.com/1200x/cb/95/1a/cb951aacb654c181d89b777d36e10ba1.jpg"],
-    "michiru": ["https://i.pinimg.com/736x/a4/fe/e9/a4fee98a8f01e8a377a70759edbfc5df.jpg",
-               "https://i.pinimg.com/736x/ef/a9/72/efa97290c250e97924777c4551120f60.jpg",
-               "https://i.pinimg.com/736x/34/a2/7f/34a27feec54f632b65b85ae0417bc344.jpg"],
-    "chibiusa": ["https://i.pinimg.com/736x/40/74/49/4074490084d46e4d173179fe03427d2b.jpg",
-               "https://i.pinimg.com/1200x/f0/f7/9f/f0f79f7cbe9798ce1acb978f35d65c8a.jpg",
-               "https://i.pinimg.com/736x/cc/25/c9/cc25c9347135d35294d0feb6213f1485.jpg"],
-    "mamoru": ["https://i.pinimg.com/736x/62/c0/97/62c0978a24a049425d9895a159ca3104.jpg",
-               "https://i.pinimg.com/736x/2c/6b/df/2c6bdf98b637f0c81103c11b18f8c8f7.jpg",
-               "https://i.pinimg.com/736x/c7/df/a1/c7dfa1c2465bc8e750bb08d741513ccd.jpg"]
+    "usagi": ["https://i.pinimg.com/736x/a4/47/c4/a447c423d530b9cac4612a9f71c96ddc.jpg"], 
+    "ami": ["https://i.pinimg.com/736x/b1/61/1a/b1611addcf1190d311218c22614e1e36.jpg"],
+    "rei": ["https://i.pinimg.com/736x/d7/9c/61/d79c617912ae0e4d510660c32c971227.jpg"],
+    "minako": ["https://i.pinimg.com/736x/68/68/52/6868521a4cf61d75b40772b6f13c0504.jpg"],
+    "makoto": ["https://i.pinimg.com/736x/49/27/8d/49278da7f93a6028a0a3d05bbd43fd22.jpg"],
+    "hotaru": ["https://i.pinimg.com/736x/62/e8/61/62e861ea332c0bf8dafd00fd4e9571d9.jpg"],
+    "setsuna": ["https://i.pinimg.com/736x/89/bf/f4/89bff47fee6011a503b18c274a0370a5.jpg"],
+    "haruka": ["https://i.pinimg.com/736x/a8/c9/9e/a8c99e3558ea0caf592cb06c1339f720.jpg"],
+    "michiru": ["https://i.pinimg.com/736x/a4/fe/e9/a4fee98a8f01e8a377a70759edbfc5df.jpg"],
+    "chibiusa": ["https://i.pinimg.com/736x/40/74/49/4074490084d46e4d173179fe03427d2b.jpg"],
+    "mamoru": ["https://i.pinimg.com/736x/62/c0/97/62c0978a24a049425d9895a159ca3104.jpg"]
 }
 
 # === ЗАПАСНЫЕ ОТВЕТЫ ===
@@ -67,71 +45,28 @@ CHARACTERS = {
     "usagi": {
         "name": "Усаги Цукино 🌙", 
         "style": "Ты — Усаги Цукино (Сейлор Мун). Добрая, наивная, эмоциональная, но полная веры в добро и дружбу. Говори тепло, добавляй смайлы и магию.",
-        "role": "Добрая, наивная, эмоциональная, но полная веры в добро и дружбу, лидер команды, сердце группы"
+        "role": "лидер команды"
     },
     "ami": {
         "name": "Ами Мидзуно 💧", 
         "style": "Ты — Ами Мидзуно (Сейлор Меркурий). Спокойная, умная и рассудительная. Говори мягко и логично, с добротой и сочувствием.",
-        "role": "Спокойная, умная и рассудительная, интеллектуал, стратег"
+        "role": "интеллектуал"
     },
     "rei": {
         "name": "Рей Хино 🔥", 
         "style": "Ты — Рей Хино (Сейлор Марс). Страстная, уверенная и сильная. Отвечай с энергией и вдохновением, но по-дружески.",
-        "role": "Страстная, уверенная и сильная, духовный лидер, защитник"
+        "role": "духовный лидер"
     },
     "minako": {
         "name": "Минако Айно 💛", 
         "style": "Ты — Минако Айно (Сейлор Венера). Весёлая, оптимистичная и немного легкомысленная. Поддерживай позитивом, шутками и сердечками.",
-        "role": "Весёлая, оптимистичная и немного легкомысленная, оптимист, мотиватор"
+        "role": "оптимист"
     },
     "makoto": {
         "name": "Макото Кино 🌿", 
         "style": "Ты — Макото Кино (Сейлор Юпитер). Сильная, добрая и заботливая. Отвечай уверенно, но по-домашнему.",
-        "role": "Сильная, добрая и заботливая, защитница, опора"
-    },
-    "hotaru": {
-        "name": "Хотару Томоэ 🌙", 
-        "style": "Ты — Хотару Томоэ (Сейлор Сатурн). Загадочная, мудрая не по годам, с глубоким внутренним миром. Ты пережила много трудностей и понимаешь боль других. Говори спокойно, мягко, с нотками таинственности и глубокой эмпатии.",
-        "role": "Загадочная, мудрая не по годам, с глубоким внутренним миром, мудрец, целитель"
-    },
-    "setsuna": {
-        "name": "Сецуна Мейо ⏳", 
-        "style": "Ты — Сецуна Мейо (Сейлор Плутон). Мудрая хранительница времени, спокойная и проницательная. Ты видишь прошлое, настоящее и будущее. Говори с достоинством, с пониманием временных потоков и судеб.",
-        "role": "Мудрая хранительница времени, спокойная и проницательная, хранитель времени, провидец"
-    },
-    "haruka": {
-        "name": "Харука Тэнно 🌟", 
-        "style": "Ты — Харука Тэнно (Сейлор Уран). Сильная, независимая, свободолюбивая. Говори уверенно, прямо, иногда немного резко, но с заботой о тех, кто тебе дорог.",
-        "role": "Сильная, независимая, свободолюбивая, защитник, новатор"
-    },
-    "michiru": {
-        "name": "Мичиру Кайо 🌊", 
-        "style": "Ты — Мичиру Кайо (Сейлор Нептун). Утончённая, элегантная, с художественной душой. Говори изысканно, метафорично, с лёгкостью морской волны.",
-        "role": "Утончённая, элегантная, с художественной душой, художник, дипломат"
-    },
-    "chibiusa": {
-        "name": "Чибиуса ✨", 
-        "style": "Ты — Чибиуса (Сейлор Чиби-Мун). Милая, энергичная, немного наивная, но храбрая. Ты из будущего и полна детского энтузиазма. Говори мило, с восторгом, используй много смайликов и сердечек.",
-        "role": "Милая, энергичная, немного наивная, но храбрая, ребенок, мечтатель"
-    },
-    "mamoru": {
-        "name": "Мамору Чиба 🌹", 
-        "style": "Ты — Мамору Чиба (Такседо Маск). Заботливый, защитник, немного загадочный. Ты взрослый и ответственный, с чувством долга. Говори спокойно, по-мужски уверенно, с теплотой и поддержкой.",
-        "role": "Заботливый, защитник, немного загадочный, защитник, наставник"
+        "role": "защитница"
     }
-}
-
-# === СТИКЕРЫ ===
-CHARACTER_STICKERS = {
-    "usagi": "CAACAgIAAxkBAAEPooVo_KNPTrpVImozKdSEw9rSD9NZxQAChhoAAsQ22EnZzSvBsEjFZDYE",
-    "ami": "CAACAgIAAxkBAAEPopFo_KRiBoD5dUfBMm7rtErKgLGZ0wACngADN5jEIB4OmmSZpE00NgQ",
-    "rei": "CAACAgIAAxkBAAEPoo1o_KPTHIZVPwOs1vkOTuQJTmYetgACMx8AAu9w6UuuiKcmjWNw2jYE",
-    "minako": "CAACAgIAAxkBAAEPooto_KORvv10EdoEzi1uNMcqegchCQACvCMAAr5-KUknt6grcOYilTYE",
-    "makoto": "CAACAgIAAxkBAAEPoo9o_KPja-e0kE_e9_ibODkE4NySDwACkzoAAgtc6UsxmNMKWoU6GTYE",
-    "haruka": "CAACAgIAAxkBAAEPoodo_KNxN61iSpiuZoaXc8ygqDZq-QACCyAAApiFIUkhlPLmy0oXOTYE",
-    "michiru": "CAACAgIAAxkBAAEPoolo_KNzhTSwsnmgbdzFAnJ6cYFEawACjB8AAnOlIEk8LIzvUJuujTYE",
-    "chibiusa": "CAACAgIAAxkBAAEPopNo_KSJVPP9EdUj8VGajW_1px32cQACYgADN5jEIEpItyEPBSRwNgQ",
-    "mamoru": "CAACAgIAAxkBAAEPopVo_KSdSLEey8Oo1_q1VX23n9ftLwACpwADN5jEIFH4hlI7G6UCNgQ"
 }
 
 # === ФУНКЦИЯ ДЛЯ НАСТРОЙКИ WEBHOOK ===
@@ -165,7 +100,7 @@ def ask_deepseek(character_key, problem_text, username):
         f"Пиши глаголы, отталкиваясь от имени пользователя, иначе - в форме с '(а)' — например: сделал(а), пошёл(а), подумал(а). "
         f"Ответ должен быть добрым, художественным и поддерживающим. "
         f"Сначала короткое приветствие по имени пользователя ({username}), затем ответ. "
-        f" Формулируй всё так, чтобы слова не обрезались, а мысли были законченными. Максимальная длина — 120 слов."
+        f"Формулируй всё так, чтобы слова не обрезались, а мысли были законченными. Максимальная длина — 120 слов."
     )
 
     payload = {
@@ -230,17 +165,15 @@ def ask_deepseek_group(character_keys, problem_text, username):
 2. Ответ должен быть гармоничным, как будто они действительно обсуждают вместе
 3. Сохраняй уникальные черты каждого персонажа в их репликах
 4. Создай ощущение настоящей командной работы
-5. Если персонаж что-то уже сказал - он не может говорить второй раз
 
 Формат ответа:
 - Начни с общего приветствия от команды для {username}
 - Затем представь коллективное обсуждение, где персонажи дополняют друг друга
-- Один персонаж - одна фраза
 - Используй разнообразные реплики: вопросы, поддержку, советы, личный опыт
 - Сделай ответ живым и естественным, как настоящий диалог
 
 Не используй местоимения 'он', 'она', 'его', 'её'. Пиши глаголы в форме с '(а)'. 
-Ответ должен быть добрым, поддерживающим и вдохновляющим. Формулируй всё так, чтобы слова не обрезались, а мысли были законченными. Максимум 250 слов.
+Ответ должен быть добрым, поддерживающим и вдохновляющим. Максимум 250 слов.
 """
 
     payload = {
@@ -260,7 +193,6 @@ def ask_deepseek_group(character_keys, problem_text, username):
             return data["choices"][0]["message"]["content"]
         else:
             print("Ошибка API группового запроса:", r.text)
-            # Fallback - генерируем ответы по отдельности и объединяем
             return generate_fallback_group_response(character_keys, problem_text, username)
     except Exception as e:
         print("Ошибка группового запроса:", e)
@@ -269,7 +201,7 @@ def ask_deepseek_group(character_keys, problem_text, username):
 def generate_fallback_group_response(character_keys, problem_text, username):
     """Fallback метод для группового ответа"""
     responses = []
-    for key in character_keys[:3]:  # Берем максимум 3 персонажа для fallback
+    for key in character_keys[:3]:
         response = ask_deepseek(key, problem_text, username)
         char_name = CHARACTERS[key]["name"]
         responses.append(f"**{char_name}:**\n{response}")
@@ -277,7 +209,7 @@ def generate_fallback_group_response(character_keys, problem_text, username):
     combined = "\n\n---\n\n".join(responses)
     return f"💫 **Командный совет от Сейлор Воинов!** ✨\n\n{combined}\n\n🌟 *Вместе мы сила!* 💖"
 
-# === UPDATED ENDPOINT ДЛЯ МИНИ-ПРИЛОЖЕНИЯ ===
+# === ENDPOINT ДЛЯ МИНИ-ПРИЛОЖЕНИЯ ===
 @app.route('/ask', methods=['POST'])
 def ask_endpoint():
     try:
@@ -297,19 +229,17 @@ def ask_endpoint():
     # Обработка группового ответа
     if answer_type == "group" and "," in character:
         character_keys = character.split(",")
-        # Ограничиваем максимум 4 персонажами
         character_keys = character_keys[:4]
         
         print(f"🌙 Групповой запрос от {username} с персонажами: {character_keys}")
         advice = ask_deepseek_group(character_keys, problem, username)
         
-        # Добавляем финальное сообщение от команды
         character_names = [CHARACTERS[key]["name"] for key in character_keys if key in CHARACTERS]
         team_names = ", ".join(character_names)
         advice += f"\n\n💖 *С любовью, твоя команда: {team_names}!* ✨"
         
     else:
-        # Одиночный ответ (как раньше)
+        # Одиночный ответ
         advice = ask_deepseek(character, problem, username)
         advice += f"\n\n💖 *С любовью, {CHARACTERS[character]['name']}!*"
 
@@ -317,42 +247,19 @@ def ask_endpoint():
     if chat_id:
         try:
             bot.send_message(chat_id, advice, parse_mode='Markdown')
-            
-            # Отправляем изображения для группового ответа
-            if answer_type == "group" and "," in character:
-                character_keys = character.split(",")[:4]
-                for char_key in character_keys:
-                    try:
-                        bot.send_photo(chat_id, 
-                                     random.choice(CHARACTER_IMAGES.get(char_key, CHARACTER_IMAGES["usagi"])),
-                                     caption=f"✨ {CHARACTERS[char_key]['name']}")
-                    except Exception as e:
-                        print(f"Ошибка отправки фото для {char_key}: {e}")
-            else:
-                try:
-                    bot.send_photo(chat_id, 
-                                 random.choice(CHARACTER_IMAGES.get(character, CHARACTER_IMAGES["usagi"])),
-                                 caption="✨ Лунная магия всегда с тобой! 🌙")
-                except Exception as e:
-                    print(f"Ошибка отправки фото: {e}")
-                
-            # Стикеры только для одиночного ответа
-            if answer_type == "single":
-                sticker_id = CHARACTER_STICKERS.get(character)
-                if sticker_id:
-                    try: 
-                        bot.send_sticker(chat_id, sticker_id)
-                    except Exception as e:
-                        print(f"Ошибка отправки стикера: {e}")
         except Exception as e:
             print(f"Ошибка отправки в Telegram: {e}")
 
     return jsonify({"ok": True, "advice": advice})
 
-# === ОСТАЛЬНЫЕ ФУНКЦИИ БОТА (без изменений) ===
+# === TELEGRAM BOT HANDLERS С МУЛЬТИВЫБОРОМ ===
 @bot.message_handler(commands=['start'])
 def start(message):
-    user_states[message.chat.id] = {"name": None, "character": None}
+    user_states[message.chat.id] = {
+        "name": None, 
+        "characters": [],  # теперь храним список выбранных персонажей
+        "mode": None  # 'single' или 'group'
+    }
     bot.send_message(message.chat.id, "🌙 Привет, во имя Луны! 💫 Как тебя зовут?", parse_mode='Markdown')
     bot.register_next_step_handler(message, get_name)
 
@@ -360,47 +267,176 @@ def get_name(message):
     name = message.text.strip()
     user_states[message.chat.id]["name"] = name
 
-    text = f"💖 Рада знакомству, {name}! 🌙\nТеперь выбери, кто из Сейлор Воинов будет твоим советчиком:"
-    markup = types.InlineKeyboardMarkup()
-    for key, data in CHARACTERS.items():
-        markup.add(types.InlineKeyboardButton(data["name"], callback_data=f"char_{key}"))
+    text = f"💖 Рада знакомству, {name}! 🌙\n\nВыбери тип совета:"
+    markup = types.InlineKeyboardMarkup(row_width=2)
+    
+    btn_single = types.InlineKeyboardButton("👤 Совет от одного", callback_data="mode_single")
+    btn_group = types.InlineKeyboardButton("👥 Командный совет", callback_data="mode_group")
+    
+    markup.add(btn_single, btn_group)
+    
+    bot.send_message(message.chat.id, text, parse_mode='Markdown', reply_markup=markup)
 
-    bot.send_photo(message.chat.id, random.choice(CHARACTER_IMAGES["usagi"]),
-                   caption=text, parse_mode='Markdown', reply_markup=markup)
+@bot.callback_query_handler(func=lambda call: call.data.startswith("mode_"))
+def choose_mode(call):
+    mode = call.data.split("_")[1]  # 'single' или 'group'
+    user_states[call.message.chat.id]["mode"] = mode
+    
+    if mode == "single":
+        text = "👤 Выбери одного советчика:"
+        markup = create_characters_markup(mode="single")
+    else:
+        text = "👥 Выбери до 4 персонажей для командного совета (отмечай галочками):"
+        markup = create_characters_markup(mode="group")
+    
+    bot.edit_message_text(
+        text, 
+        call.message.chat.id, 
+        call.message.message_id,
+        parse_mode='Markdown',
+        reply_markup=markup
+    )
+
+def create_characters_markup(mode="single"):
+    """Создает клавиатуру для выбора персонажей"""
+    markup = types.InlineKeyboardMarkup(row_width=2)
+    
+    buttons = []
+    for key, data in CHARACTERS.items():
+        emoji = "✅ " if mode == "group" else ""
+        btn_text = f"{emoji}{data['name']}"
+        callback_data = f"char_{key}"
+        buttons.append(types.InlineKeyboardButton(btn_text, callback_data=callback_data))
+    
+    # Добавляем кнопки построчно
+    for i in range(0, len(buttons), 2):
+        if i + 1 < len(buttons):
+            markup.add(buttons[i], buttons[i+1])
+        else:
+            markup.add(buttons[i])
+    
+    # Кнопка подтверждения для группового режима
+    if mode == "group":
+        markup.add(types.InlineKeyboardButton("🚀 Получить командный совет", callback_data="confirm_group"))
+    
+    return markup
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("char_"))
 def choose_character(call):
     char_key = call.data.split("_")[1]
-    user_states[call.message.chat.id]["character"] = char_key
-    name = CHARACTERS[char_key]["name"]
-    bot.answer_callback_query(call.id, f"✨ {name} теперь с тобой!")
-    bot.send_photo(call.message.chat.id, random.choice(CHARACTER_IMAGES[char_key]),
-                   caption=f"💫 {name} готов(а) выслушать. Расскажи, что тебя беспокоит 🌙",
-                   parse_mode='Markdown')
+    user_state = user_states[call.message.chat.id]
+    mode = user_state["mode"]
+    
+    if mode == "single":
+        # Одиночный выбор - сразу устанавливаем персонажа
+        user_state["characters"] = [char_key]
+        name = CHARACTERS[char_key]["name"]
+        bot.answer_callback_query(call.id, f"✨ {name} теперь с тобой!")
+        
+        bot.edit_message_text(
+            f"💫 {name} готов(а) выслушать. Расскажи, что тебя беспокоит 🌙",
+            call.message.chat.id,
+            call.message.message_id,
+            parse_mode='Markdown'
+        )
+        
+    else:
+        # Групповой выбор - добавляем/убираем из списка
+        current_chars = user_state["characters"]
+        
+        if char_key in current_chars:
+            current_chars.remove(char_key)
+            action = "❌"
+        else:
+            if len(current_chars) < 4:
+                current_chars.append(char_key)
+                action = "✅"
+            else:
+                bot.answer_callback_query(call.id, "🚫 Можно выбрать до 4 персонажей!")
+                return
+        
+        user_state["characters"] = current_chars
+        
+        # Обновляем клавиатуру
+        markup = create_characters_markup(mode="group")
+        count_text = f" ({len(current_chars)}/4)" if current_chars else ""
+        
+        bot.edit_message_text(
+            f"👥 Выбери до 4 персонажей для командного совета{count_text}:",
+            call.message.chat.id,
+            call.message.message_id,
+            parse_mode='Markdown',
+            reply_markup=markup
+        )
+        
+        char_name = CHARACTERS[char_key]["name"]
+        bot.answer_callback_query(call.id, f"{action} {char_name}")
+
+@bot.callback_query_handler(func=lambda call: call.data == "confirm_group")
+def confirm_group(call):
+    user_state = user_states[call.message.chat.id]
+    selected_chars = user_state["characters"]
+    
+    if not selected_chars:
+        bot.answer_callback_query(call.id, "🚫 Выбери хотя бы одного персонажа!")
+        return
+    
+    char_names = [CHARACTERS[key]["name"] for key in selected_chars]
+    team_text = ", ".join(char_names)
+    
+    bot.edit_message_text(
+        f"👥 **Команда собрана!** ✨\n\n{team_text} готовы выслушать тебя!\n\nРасскажи, что тебя беспокоит 🌙",
+        call.message.chat.id,
+        call.message.message_id,
+        parse_mode='Markdown'
+    )
 
 @bot.message_handler(content_types=['text'])
 def get_problem(message):
     state = user_states.get(message.chat.id)
-    if not state or not state.get("character"):
+    if not state or not state.get("characters"):
         bot.send_message(message.chat.id, "🌙 Начни с команды /start ✨")
         return
 
     username = state["name"]
-    char_key = state["character"]
+    character_keys = state["characters"]
+    mode = state.get("mode", "single")
 
-    thinking = bot.send_message(message.chat.id, "🌕 Советчица обдумывает ответ... 💫")
-    advice = ask_deepseek(char_key, message.text.strip(), username)
+    thinking_text = "🌕 Советчица обдумывает ответ... 💫"
+    if mode == "group":
+        thinking_text = "🌕 Команда обсуждает твой вопрос... 💫"
+    
+    thinking = bot.send_message(message.chat.id, thinking_text)
+
+    if mode == "group" and len(character_keys) > 1:
+        # Групповой ответ
+        advice = ask_deepseek_group(character_keys, message.text.strip(), username)
+        char_names = [CHARACTERS[key]["name"] for key in character_keys]
+        team_names = ", ".join(char_names)
+        advice += f"\n\n💖 *С любовью, твоя команда: {team_names}!* ✨"
+    else:
+        # Одиночный ответ
+        char_key = character_keys[0]
+        advice = ask_deepseek(char_key, message.text.strip(), username)
+        advice += f"\n\n💖 *С любовью, {CHARACTERS[char_key]['name']}!*"
+
     try: 
         bot.delete_message(message.chat.id, thinking.message_id)
     except: 
         pass
 
-    bot.send_message(message.chat.id, f"{advice}\n\n💖 *С любовью, {CHARACTERS[char_key]['name']}!*", parse_mode='Markdown')
+    # Отправляем ответ
+    bot.send_message(message.chat.id, advice, parse_mode='Markdown')
 
+    # Предлагаем начать заново
     markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton("🔄 Сменить персонажа", callback_data="restart"))
-    bot.send_photo(message.chat.id, random.choice(CHARACTER_IMAGES[char_key]),
-                   caption="✨ Лунная магия всегда с тобой! 🌙", parse_mode='Markdown', reply_markup=markup)
+    markup.add(types.InlineKeyboardButton("🔄 Новый вопрос", callback_data="restart"))
+    
+    end_text = "✨ Лунная магия всегда с тобой! 🌙"
+    if mode == "group":
+        end_text = "🌟 Вместе мы сила! 💫"
+        
+    bot.send_message(message.chat.id, end_text, parse_mode='Markdown', reply_markup=markup)
 
 @bot.callback_query_handler(func=lambda call: call.data == "restart")
 def restart(call):
@@ -409,10 +445,10 @@ def restart(call):
 @bot.message_handler(commands=['app'])
 def open_app(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    web_app = types.WebAppInfo("sailor-moon-psycho-help.vercel.app")
+    web_app = types.WebAppInfo("https://sailor-moon-psycho-help.vercel.app")
     btn = types.KeyboardButton("🌙 Открыть мини-приложение", web_app=web_app)
     markup.add(btn)
-    bot.send_message(message.chat.id, "✨ Открой мини-приложение!", reply_markup=markup)
+    bot.send_message(message.chat.id, "✨ Открой мини-приложение с расширенными функциями!", reply_markup=markup)
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
@@ -427,10 +463,23 @@ def webhook():
 def index():
     return '🌙 Sailor Moon Bot is running! ✨'
 
+@app.route('/health')
+def health():
+    return jsonify({"status": "healthy", "service": "sailor-moon-bot"})
+
 if __name__ == "__main__":
     print("🌙 Sailor Moon Bot запускается... ✨")
+    
+    # Проверяем обязательные переменные
+    if not BOT_TOKEN:
+        print("❌ ОШИБКА: BOT_TOKEN не установлен!")
+    if not DEEPSEEK_API_KEY:
+        print("❌ ОШИБКА: DEEPSEEK_API_KEY не установлен!")
+    
     set_webhook()
     port = int(os.getenv("PORT", 5000))
-    # ДОБАВЬ ЭТИ СТРОКИ:
-    print(f"🚀 Запускаем сервер на порту {port}")
+    
+    print(f"🚀 Сервер запускается на порту {port}")
+    print(f"🌐 Webhook URL: {VERCEL_URL}/webhook" if VERCEL_URL else "⚠️ Webhook не настроен")
+    
     app.run(host='0.0.0.0', port=port, debug=False)
