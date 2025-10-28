@@ -1,4 +1,3 @@
-// app.js
 const tg = window.Telegram.WebApp;
 tg.expand();
 
@@ -29,18 +28,47 @@ const CHARACTERS = {
   "mamoru": { label: "Мамору", img: "https://i.pinimg.com/736x/62/c0/97/62c0978a24a049425d9895a159ca3104.jpg" }
 };
 
-// === Music control ===
+// === Improved Music control ===
 const music = document.getElementById('bg-music');
 const musicBtn = document.getElementById('music-toggle');
-musicBtn.addEventListener('click', () => {
+let musicInitialized = false;
+
+function initMusic() {
+  if (musicInitialized) return;
+  
+  music.volume = 0.3; // Устанавливаем комфортную громкость
+  
+  musicBtn.addEventListener('click', toggleMusic);
+  
+  // Пытаемся автозапустить музыку после первого взаимодействия пользователя
+  document.addEventListener('click', function initMusicOnInteraction() {
+    if (!musicInitialized) {
+      music.play().then(() => {
+        musicBtn.textContent = '🔊';
+        musicInitialized = true;
+      }).catch(error => {
+        console.log('Автозапуск музыки заблокирован, требуется ручной запуск');
+        musicBtn.textContent = '🔇';
+        musicInitialized = true;
+      });
+      document.removeEventListener('click', initMusicOnInteraction);
+    }
+  }, { once: true });
+}
+
+function toggleMusic() {
   if (music.paused) {
-    music.play();
-    musicBtn.textContent = '🔇';
+    music.play().then(() => {
+      musicBtn.textContent = '🔊';
+    }).catch(error => {
+      console.error('Ошибка воспроизведения:', error);
+      alert('Не удалось воспроизвести музыку. Проверьте поддержку аудио в вашем браузере.');
+    });
   } else {
     music.pause();
-    musicBtn.textContent = '🔊';
+    musicBtn.textContent = '🔇';
   }
-});
+}
 
 // === Show step ===
 function show(step){
@@ -83,6 +111,9 @@ if(moonLayer){
 
 // === DOMContentLoaded ===
 document.addEventListener('DOMContentLoaded', () => {
+  // Инициализируем музыку
+  initMusic();
+  
   const container = document.getElementById('characters');
   for(const key in CHARACTERS){
     const ch = CHARACTERS[key];
@@ -161,4 +192,3 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }catch(e){/* ignore */}
 });
-
