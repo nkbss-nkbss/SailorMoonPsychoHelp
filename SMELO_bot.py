@@ -303,7 +303,7 @@ def create_characters_markup(mode="single"):
     
     buttons = []
     for key, data in CHARACTERS.items():
-        emoji = "✅ " if mode == "group" else ""
+        emoji = "" if mode == "group" else ""
         btn_text = f"{emoji}{data['name']}"
         callback_data = f"char_{key}"
         buttons.append(types.InlineKeyboardButton(btn_text, callback_data=callback_data))
