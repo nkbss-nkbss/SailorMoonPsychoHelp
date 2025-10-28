@@ -41,6 +41,90 @@ const FADE_DURATION = 1000; // 1 second fade
 const FADE_STEPS = 20;
 const FADE_INTERVAL = FADE_DURATION / FADE_STEPS;
 
+// === Progress bar functions ===
+function updateProgressBar(step) {
+  const stepMap = {
+    'step-name': 1,
+    'step-character': 2, 
+    'step-problem': 3,
+    'step-result': 4
+  };
+  
+  const currentStep = stepMap[step] || 1;
+  const progressPercentage = ((currentStep - 1) / 3) * 100;
+  
+  // Обновляем текст
+  document.getElementById('current-step').textContent = currentStep;
+  
+  // Обновляем прогресс-бар
+  const progressFill = document.querySelector('.progress-fill');
+  progressFill.style.width = `${progressPercentage}%`;
+  
+  // Обновляем точки шагов
+  updateStepDots(currentStep);
+}
+
+function updateStepDots(currentStep) {
+  const dots = document.querySelectorAll('.step-dot');
+  
+  dots.forEach((dot, index) => {
+    const stepNumber = index + 1;
+    
+    // Убираем все классы
+    dot.classList.remove('active', 'completed');
+    
+    // Добавляем соответствующие классы
+    if (stepNumber === currentStep) {
+      dot.classList.add('active');
+    } else if (stepNumber < currentStep) {
+      dot.classList.add('completed');
+    }
+  });
+}
+
+// === Updated show function with progress bar ===
+function show(step, direction = 'next') {
+  playClickSound();
+  
+  const currentStep = document.querySelector('.card.active');
+  const nextStep = document.getElementById(step);
+  
+  if (currentStep && nextStep) {
+    // Убираем текущий шаг с анимацией
+    currentStep.classList.remove('active');
+    
+    // Добавляем классы анимации в зависимости от направления
+    if (direction === 'next') {
+      currentStep.classList.add('slide-in-prev');
+      nextStep.classList.add('slide-in-next');
+    } else if (direction === 'prev') {
+      currentStep.classList.add('slide-in-next');
+      nextStep.classList.add('slide-in-prev');
+    } else if (direction === 'zoom') {
+      nextStep.classList.add('zoom-in');
+    }
+    
+    // Показываем следующий шаг
+    setTimeout(() => {
+      nextStep.classList.add('active');
+      
+      // Обновляем прогресс-бар
+      updateProgressBar(step);
+      
+      // Убираем классы анимации после завершения
+      setTimeout(() => {
+        currentStep.classList.remove('slide-in-prev', 'slide-in-next', 'zoom-in');
+        nextStep.classList.remove('slide-in-prev', 'slide-in-next', 'zoom-in');
+      }, 400);
+    }, 50);
+  } else {
+    // Первый запуск или fallback
+    document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+    nextStep.classList.add('active');
+    updateProgressBar(step);
+  }
+}
+
 // === Sound functions ===
 function playClickSound() {
   if (clickSound) {
@@ -396,3 +480,4 @@ document.addEventListener('touchstart', function() {
     });
   }
 }, { once: true });
+
