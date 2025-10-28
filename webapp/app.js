@@ -53,12 +53,16 @@ function updateProgressBar(step) {
   const currentStep = stepMap[step] || 1;
   const progressPercentage = ((currentStep - 1) / 3) * 100;
   
+  console.log('Updating progress bar:', step, '-> step', currentStep, '(', progressPercentage, '%)');
+  
   // Обновляем текст
   document.getElementById('current-step').textContent = currentStep;
   
   // Обновляем прогресс-бар
   const progressFill = document.querySelector('.progress-fill');
-  progressFill.style.width = `${progressPercentage}%`;
+  if (progressFill) {
+    progressFill.style.width = `${progressPercentage}%`;
+  }
   
   // Обновляем точки шагов
   updateStepDots(currentStep);
@@ -80,49 +84,6 @@ function updateStepDots(currentStep) {
       dot.classList.add('completed');
     }
   });
-}
-
-// === Updated show function with progress bar ===
-function show(step, direction = 'next') {
-  playClickSound();
-  
-  const currentStep = document.querySelector('.card.active');
-  const nextStep = document.getElementById(step);
-  
-  if (currentStep && nextStep) {
-    // Убираем текущий шаг с анимацией
-    currentStep.classList.remove('active');
-    
-    // Добавляем классы анимации в зависимости от направления
-    if (direction === 'next') {
-      currentStep.classList.add('slide-in-prev');
-      nextStep.classList.add('slide-in-next');
-    } else if (direction === 'prev') {
-      currentStep.classList.add('slide-in-next');
-      nextStep.classList.add('slide-in-prev');
-    } else if (direction === 'zoom') {
-      nextStep.classList.add('zoom-in');
-    }
-    
-    // Показываем следующий шаг
-    setTimeout(() => {
-      nextStep.classList.add('active');
-      
-      // Обновляем прогресс-бар
-      updateProgressBar(step);
-      
-      // Убираем классы анимации после завершения
-      setTimeout(() => {
-        currentStep.classList.remove('slide-in-prev', 'slide-in-next', 'zoom-in');
-        nextStep.classList.remove('slide-in-prev', 'slide-in-next', 'zoom-in');
-      }, 400);
-    }, 50);
-  } else {
-    // Первый запуск или fallback
-    document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
-    nextStep.classList.add('active');
-    updateProgressBar(step);
-  }
 }
 
 // === Sound functions ===
@@ -198,7 +159,7 @@ function fadeOut(audioElement) {
   }, FADE_INTERVAL);
 }
 
-// === Updated show function with animations ===
+// === Updated show function with animations and progress bar ===
 function show(step, direction = 'next') {
   playClickSound();
   
@@ -224,6 +185,9 @@ function show(step, direction = 'next') {
     setTimeout(() => {
       nextStep.classList.add('active');
       
+      // Обновляем прогресс-бар
+      updateProgressBar(step);
+      
       // Убираем классы анимации после завершения
       setTimeout(() => {
         currentStep.classList.remove('slide-in-prev', 'slide-in-next', 'zoom-in');
@@ -234,6 +198,7 @@ function show(step, direction = 'next') {
     // Первый запуск или fallback
     document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
     nextStep.classList.add('active');
+    updateProgressBar(step);
   }
 }
 
@@ -453,7 +418,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', playClickSound);
   });
 
-  // Показываем первый экран
+  // Показываем первый экран и инициализируем прогресс-бар
   show(STEP.NAME);
 
   // Автозаполнение имени из Telegram
@@ -480,4 +445,3 @@ document.addEventListener('touchstart', function() {
     });
   }
 }, { once: true });
-
