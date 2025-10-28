@@ -9,6 +9,14 @@ const STEP = {
   RES: 'step-result'
 };
 
+// === Theme management ===
+const Theme = {
+  LIGHT: 'light',
+  DARK: 'dark'
+};
+
+let currentTheme = Theme.LIGHT;
+
 let state = {
   name: "",
   answerType: "single", // "single" или "group"
@@ -30,6 +38,24 @@ const CHARACTERS = {
   "mamoru": { label: "Мамору", img: "https://i.pinimg.com/736x/62/c0/97/62c0978a24a049425d9895a159ca3104.jpg" }
 };
 
+// === Character sounds ===
+const CHARACTER_SOUNDS = {
+  "usagi": "./music/characters/usagi.mp3",
+  "ami": "./music/characters/ami.mp3", 
+  "rei": "./music/characters/rei.mp3",
+  "minako": "./music/characters/minako.mp3",
+  "makoto": "./music/characters/makoto.mp3",
+  "hotaru": "./music/characters/hotaru.mp3",
+  "setsuna": "./music/characters/setsuna.mp3",
+  "haruka": "./music/characters/haruka.mp3",
+  "michiru": "./music/characters/michiru.mp3",
+  "chibiusa": "./music/characters/chibiusa.mp3",
+  "mamoru": "./music/characters/mamoru.mp3"
+};
+
+// Audio element for character sounds
+let characterSound = null;
+
 // === Audio elements ===
 const music = document.getElementById('bg-music');
 const clickSound = document.getElementById('click-sound');
@@ -42,6 +68,96 @@ let isFading = false;
 const FADE_DURATION = 1000; // 1 second fade
 const FADE_STEPS = 20;
 const FADE_INTERVAL = FADE_DURATION / FADE_STEPS;
+
+// === Theme toggle functions ===
+function initTheme() {
+  // Load saved theme from localStorage or use default
+  const savedTheme = localStorage.getItem('sailor-moon-theme');
+  if (savedTheme) {
+    currentTheme = savedTheme;
+  } else {
+    // Auto-detect system preference
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      currentTheme = Theme.DARK;
+    }
+  }
+  
+  applyTheme(currentTheme);
+  setupThemeToggle();
+}
+
+function setupThemeToggle() {
+  const themeBtn = document.getElementById('theme-toggle');
+  if (!themeBtn) return;
+  
+  themeBtn.addEventListener('click', function() {
+    playClickSound();
+    toggleTheme();
+  });
+  
+  updateThemeButton();
+}
+
+function toggleTheme() {
+  currentTheme = currentTheme === Theme.LIGHT ? Theme.DARK : Theme.LIGHT;
+  applyTheme(currentTheme);
+  updateThemeButton();
+  
+  // Save theme preference
+  localStorage.setItem('sailor-moon-theme', currentTheme);
+}
+
+function applyTheme(theme) {
+  document.body.setAttribute('data-theme', theme);
+  
+  // Update CSS variables based on theme
+  const root = document.documentElement;
+  if (theme === Theme.DARK) {
+    root.style.setProperty('--bg1', '#1a0b2e');
+    root.style.setProperty('--bg2', '#2d1b47');
+    root.style.setProperty('--text', '#ffffff');
+    root.style.setProperty('--card', '#2d1b47');
+  } else {
+    root.style.setProperty('--bg1', '#fff0fb');
+    root.style.setProperty('--bg2', '#f7eaff');
+    root.style.setProperty('--text', '#2b1140');
+    root.style.setProperty('--card', '#ffffff');
+  }
+}
+
+function updateThemeButton() {
+  const themeBtn = document.getElementById('theme-toggle');
+  if (!themeBtn) return;
+  
+  themeBtn.textContent = currentTheme === Theme.LIGHT ? '🌙' : '☀️';
+  themeBtn.title = currentTheme === Theme.LIGHT ? 'Темная тема' : 'Светлая тема';
+}
+
+// === Character sound functions ===
+function playCharacterSound(characterKey) {
+  // Stop previous sound if playing
+  if (characterSound && !characterSound.paused) {
+    characterSound.pause();
+    characterSound.currentTime = 0;
+  }
+  
+  const soundFile = CHARACTER_SOUNDS[characterKey];
+  if (!soundFile) {
+    console.log('No sound for character:', characterKey);
+    playSelectSound();
+    return;
+  }
+  
+  // Create new audio element for character sound
+  characterSound = new Audio(soundFile);
+  characterSound.volume = 0.4;
+  
+  characterSound.play().catch(e => {
+    console.log('Character sound error:', e);
+    // Fallback to select sound if character sound fails
+    playSelectSound();
+  });
+}
 
 // === Progress bar functions ===
 function updateProgressBar(step) {
@@ -244,6 +360,9 @@ function updateCharacterSelectionUI() {
 function handleCharacterClick(charKey) {
   playSelectSound();
   
+  // Play character-specific sound
+  playCharacterSound(charKey);
+  
   if (state.answerType === 'group') {
     // Множественный выбор
     const index = state.characters.indexOf(charKey);
@@ -357,6 +476,9 @@ if(moonLayer){
 
 // === DOMContentLoaded ===
 document.addEventListener('DOMContentLoaded', () => {
+  // Инициализируем тему
+  initTheme();
+  
   // Инициализируем музыку
   initMusic();
   
