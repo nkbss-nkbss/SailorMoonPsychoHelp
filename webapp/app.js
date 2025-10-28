@@ -3,6 +3,7 @@ tg.expand();
 
 const STEP = {
   NAME: 'step-name',
+  TYPE: 'step-type',
   CHAR: 'step-character',
   PROB: 'step-problem',
   RES: 'step-result'
@@ -10,7 +11,8 @@ const STEP = {
 
 let state = {
   name: "",
-  character: "usagi",
+  answerType: "single", // "single" или "group"
+  characters: ["usagi"], // массив выбранных персонажей
   problem: ""
 };
 
@@ -45,13 +47,14 @@ const FADE_INTERVAL = FADE_DURATION / FADE_STEPS;
 function updateProgressBar(step) {
   const stepMap = {
     'step-name': 1,
-    'step-character': 2, 
-    'step-problem': 3,
-    'step-result': 4
+    'step-type': 2,
+    'step-character': 3, 
+    'step-problem': 4,
+    'step-result': 5
   };
   
   const currentStep = stepMap[step] || 1;
-  const progressPercentage = ((currentStep - 1) / 3) * 100;
+  const progressPercentage = ((currentStep - 1) / 4) * 100;
   
   console.log('Updating progress bar:', step, '-> step', currentStep, '(', progressPercentage, '%)');
   
@@ -202,6 +205,74 @@ function show(step, direction = 'next') {
   }
 }
 
+// === Character selection functions ===
+function updateCharacterSelectionUI() {
+  const title = document.getElementById('character-title');
+  const charactersContainer = document.getElementById('characters');
+  
+  if (state.answerType === 'group') {
+    title.innerHTML = `Выбери персонажей <span class="selected-count">${state.characters.length}</span>`;
+    
+    // Обновляем все карточки для множественного выбора
+    document.querySelectorAll('.char-card').forEach(card => {
+      card.classList.add('multiple');
+      const charKey = card.dataset.key;
+      
+      if (state.characters.includes(charKey)) {
+        card.classList.add('selected');
+      } else {
+        card.classList.remove('selected');
+      }
+    });
+  } else {
+    title.textContent = 'Выбери персонажа';
+    
+    // Обновляем все карточки для одиночного выбора
+    document.querySelectorAll('.char-card').forEach(card => {
+      card.classList.remove('multiple');
+      const charKey = card.dataset.key;
+      
+      if (state.characters[0] === charKey) {
+        card.classList.add('selected');
+      } else {
+        card.classList.remove('selected');
+      }
+    });
+  }
+}
+
+function handleCharacterClick(charKey) {
+  playSelectSound();
+  
+  if (state.answerType === 'group') {
+    // Множественный выбор
+    const index = state.characters.indexOf(charKey);
+    
+    if (index > -1) {
+      // Убираем из выбранных
+      state.characters.splice(index, 1);
+      // Если ничего не выбрано, добавляем обратно
+      if (state.characters.length === 0) {
+        state.characters.push('usagi');
+      }
+    } else {
+      // Добавляем в выбранные (максимум 4 персонажа)
+      if (state.characters.length < 4) {
+        state.characters.push(charKey);
+      } else {
+        // Можно показать уведомление о максимальном количестве
+        alert('Можно выбрать до 4 персонажей для группового ответа');
+        return;
+      }
+    }
+  } else {
+    // Одиночный выбор
+    state.characters = [charKey];
+  }
+  
+  updateCharacterSelectionUI();
+}
+
 // === Improved Music control ===
 const musicBtn = document.getElementById('music-toggle');
 let musicInitialized = false;
@@ -300,6 +371,19 @@ document.addEventListener('DOMContentLoaded', () => {
   `;
   document.head.appendChild(style);
   
+  // Инициализируем выбор типа ответа
+  document.querySelectorAll('.type-option').forEach(option => {
+    option.addEventListener('click', function() {
+      playSelectSound();
+      document.querySelectorAll('.type-option').forEach(opt => opt.classList.remove('selected'));
+      this.classList.add('selected');
+      state.answerType = this.dataset.type;
+    });
+  });
+  
+  // Устанавливаем выбранный тип по умолчанию
+  document.querySelector('.type-option[data-type="single"]').classList.add('selected');
+  
   // Инициализируем персонажей
   const container = document.getElementById('characters');
   for(const key in CHARACTERS){
@@ -308,19 +392,16 @@ document.addEventListener('DOMContentLoaded', () => {
     div.className='char-card';
     div.dataset.key=key;
     div.innerHTML=`<img src="${ch.img}" alt="${ch.label}" /><div class="label">${ch.label}</div>`;
-    div.onclick = ()=>{
-      playSelectSound();
-      document.querySelectorAll('.char-card').forEach(el=>el.classList.remove('selected'));
-      div.classList.add('selected');
-      state.character = key;
-    }
+    div.onclick = () => handleCharacterClick(key);
     container.appendChild(div);
   }
+  
+  // Устанавливаем первого персонажа по умолчанию
   const first = container.querySelector('.char-card');
   if(first){ 
     first.classList.add('selected'); 
-    state.character = first.dataset.key; 
   }
+  updateCharacterSelectionUI();
 
   // Обработчики кнопок с анимациями
   document.getElementById('btn-name-next').onclick = ()=>{
@@ -335,11 +416,19 @@ document.addEventListener('DOMContentLoaded', () => {
       return; 
     }
     state.name=name;
+    show(STEP.TYPE, 'next');
+  };
+
+  document.getElementById('btn-type-back').onclick = ()=>{
+    show(STEP.NAME, 'prev');
+  };
+  
+  document.getElementById('btn-type-next').onclick = ()=>{
     show(STEP.CHAR, 'next');
   };
 
   document.getElementById('btn-char-back').onclick = ()=>{
-    show(STEP.NAME, 'prev');
+    show(STEP.TYPE, 'prev');
   };
   
   document.getElementById('btn-char-next').onclick = ()=>{
@@ -382,7 +471,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const resp = await fetch(`${backend}/ask`,{
         method:'POST',
         headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({chat_id, username, character:state.character, problem:state.problem})
+        body:JSON.stringify({
+          chat_id, 
+          username, 
+          character: state.answerType === 'single' ? state.characters[0] : state.characters.join(','),
+          answer_type: state.answerType,
+          problem: state.problem
+        })
       });
       const data = await resp.json();
       loader.classList.add('hidden');
