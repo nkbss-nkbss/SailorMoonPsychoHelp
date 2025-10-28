@@ -1,3 +1,121 @@
+/* === ПРОГРЕСС-БАР === */
+.progress-container {
+  margin-bottom: 20px;
+  animation: fadeIn 0.6s ease-out;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.progress-text {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--accent-2);
+  background: linear-gradient(90deg, #ff9ad8, #d58cf1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.progress-steps {
+  display: flex;
+  gap: 6px;
+}
+
+.step-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(183, 138, 230, 0.2);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.step-dot.active {
+  background: var(--accent-2);
+  transform: scale(1.2);
+  box-shadow: 0 0 8px rgba(183, 138, 230, 0.4);
+}
+
+.step-dot.completed {
+  background: var(--accent);
+}
+
+.step-dot.completed::after {
+  content: '✓';
+  position: absolute;
+  top: -2px;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  color: white;
+  font-size: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(183, 138, 230, 0.15);
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff9ad8, #d58cf1);
+  border-radius: 10px;
+  transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  animation: shimmer 2s infinite;
+}
+
+/* Анимация пульсации для активного шага */
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(183, 138, 230, 0.4); }
+  50% { transform: scale(1.1); box-shadow: 0 0 0 4px rgba(183, 138, 230, 0.2); }
+}
+
+.step-dot.active {
+  animation: pulse-dot 2s infinite;
+}
+
+/* Адаптивность для прогресс-бара */
+@media (max-width: 600px) {
+  .progress-header {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  
+  .progress-steps {
+    align-self: flex-end;
+  }
+  
+  .progress-text {
+    font-size: 0.85rem;
+  }
+}
+
+/* Остальные существующие стили остаются без изменений... */
 :root{
   --bg1:#fff0fb;
   --bg2:#f7eaff;
@@ -304,18 +422,9 @@ footer{ text-align:center; color:#8c6fae; margin-top:8px; font-size:12px }
   }
 }
 
-/* Анимация появления элементов с задержкой */
-.fade-in-up {
-  opacity: 0;
-  transform: translateY(20px);
-  animation: fadeInUp 0.6s ease-out forwards;
-}
-
-@keyframes fadeInUp {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+@keyframes shimmer {
+  0% { background-position: -100% 0; }
+  100% { background-position: 200% 0; }
 }
 
 /* Responsive */
@@ -434,9 +543,4 @@ footer{ text-align:center; color:#8c6fae; margin-top:8px; font-size:12px }
 @keyframes pulse {
   0%, 100% { transform: scale(1); opacity: 0.7; }
   50% { transform: scale(1.15); opacity: 1; }
-}
-
-@keyframes shimmer {
-  0% { background-position: -100% 0; }
-  100% { background-position: 100% 0; }
 }
