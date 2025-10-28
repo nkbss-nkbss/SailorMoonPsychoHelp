@@ -9,14 +9,6 @@ const STEP = {
   RES: 'step-result'
 };
 
-// === Theme management ===
-const Theme = {
-  LIGHT: 'light',
-  DARK: 'dark'
-};
-
-let currentTheme = Theme.LIGHT;
-
 let state = {
   name: "",
   answerType: "single", // "single" или "group"
@@ -412,8 +404,7 @@ if(moonLayer){
 
 // === DOMContentLoaded ===
 document.addEventListener('DOMContentLoaded', () => {
-  // Инициализируем тему
-  initTheme();
+  // УБРАЛ ВЫЗОВ initTheme() - ТЕМА БОЛЬШЕ НЕ НУЖНА
   
   // Инициализируем музыку
   initMusic();
@@ -598,4 +589,3 @@ document.addEventListener('touchstart', function() {
     });
   }
 }, { once: true });
-
