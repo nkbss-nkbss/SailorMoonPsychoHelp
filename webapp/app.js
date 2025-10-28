@@ -69,70 +69,6 @@ const FADE_DURATION = 1000; // 1 second fade
 const FADE_STEPS = 20;
 const FADE_INTERVAL = FADE_DURATION / FADE_STEPS;
 
-// === Theme toggle functions ===
-function initTheme() {
-  // Load saved theme from localStorage or use default
-  const savedTheme = localStorage.getItem('sailor-moon-theme');
-  if (savedTheme) {
-    currentTheme = savedTheme;
-  } else {
-    // Auto-detect system preference
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      currentTheme = Theme.DARK;
-    }
-  }
-  
-  applyTheme(currentTheme);
-  setupThemeToggle();
-}
-
-function setupThemeToggle() {
-  const themeBtn = document.getElementById('theme-toggle');
-  if (!themeBtn) return;
-  
-  themeBtn.addEventListener('click', function() {
-    playClickSound();
-    toggleTheme();
-  });
-  
-  updateThemeButton();
-}
-
-function toggleTheme() {
-  currentTheme = currentTheme === Theme.LIGHT ? Theme.DARK : Theme.LIGHT;
-  applyTheme(currentTheme);
-  updateThemeButton();
-  
-  // Save theme preference
-  localStorage.setItem('sailor-moon-theme', currentTheme);
-}
-
-function applyTheme(theme) {
-  document.body.setAttribute('data-theme', theme);
-  
-  // Update CSS variables based on theme
-  const root = document.documentElement;
-  if (theme === Theme.DARK) {
-    root.style.setProperty('--bg1', '#1a0b2e');
-    root.style.setProperty('--bg2', '#2d1b47');
-    root.style.setProperty('--text', '#ffffff');
-    root.style.setProperty('--card', '#2d1b47');
-  } else {
-    root.style.setProperty('--bg1', '#fff0fb');
-    root.style.setProperty('--bg2', '#f7eaff');
-    root.style.setProperty('--text', '#2b1140');
-    root.style.setProperty('--card', '#ffffff');
-  }
-}
-
-function updateThemeButton() {
-  const themeBtn = document.getElementById('theme-toggle');
-  if (!themeBtn) return;
-  
-  themeBtn.textContent = currentTheme === Theme.LIGHT ? '🌙' : '☀️';
-  themeBtn.title = currentTheme === Theme.LIGHT ? 'Темная тема' : 'Светлая тема';
-}
-
 // === Character sound functions ===
 function playCharacterSound(characterKey) {
   // Stop previous sound if playing
@@ -662,3 +598,4 @@ document.addEventListener('touchstart', function() {
     });
   }
 }, { once: true });
+
