@@ -114,38 +114,43 @@ function fadeOut(audioElement) {
   }, FADE_INTERVAL);
 }
 
-function crossFade(fromAudio, toAudio, targetVolume = 0.3) {
-  if (isFading) {
-    clearInterval(fadeInterval);
-  }
+// === Updated show function with animations ===
+function show(step, direction = 'next') {
+  playClickSound();
   
-  isFading = true;
-  const startVolume = fromAudio.volume;
-  let currentStep = 0;
+  const currentStep = document.querySelector('.card.active');
+  const nextStep = document.getElementById(step);
   
-  // Start the new audio quietly
-  toAudio.volume = 0;
-  toAudio.currentTime = 0;
-  toAudio.play().catch(e => console.log('Cross fade play error:', e));
-  
-  fadeInterval = setInterval(() => {
-    currentStep++;
-    const progress = currentStep / FADE_STEPS;
+  if (currentStep && nextStep) {
+    // Убираем текущий шаг с анимацией
+    currentStep.classList.remove('active');
     
-    // Fade out old audio
-    fromAudio.volume = startVolume * (1 - progress);
-    
-    // Fade in new audio
-    toAudio.volume = progress * targetVolume;
-    
-    if (currentStep >= FADE_STEPS) {
-      clearInterval(fadeInterval);
-      fromAudio.pause();
-      fromAudio.volume = 0.3;
-      toAudio.volume = targetVolume;
-      isFading = false;
+    // Добавляем классы анимации в зависимости от направления
+    if (direction === 'next') {
+      currentStep.classList.add('slide-in-prev');
+      nextStep.classList.add('slide-in-next');
+    } else if (direction === 'prev') {
+      currentStep.classList.add('slide-in-next');
+      nextStep.classList.add('slide-in-prev');
+    } else if (direction === 'zoom') {
+      nextStep.classList.add('zoom-in');
     }
-  }, FADE_INTERVAL);
+    
+    // Показываем следующий шаг
+    setTimeout(() => {
+      nextStep.classList.add('active');
+      
+      // Убираем классы анимации после завершения
+      setTimeout(() => {
+        currentStep.classList.remove('slide-in-prev', 'slide-in-next', 'zoom-in');
+        nextStep.classList.remove('slide-in-prev', 'slide-in-next', 'zoom-in');
+      }, 400);
+    }, 50);
+  } else {
+    // Первый запуск или fallback
+    document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+    nextStep.classList.add('active');
+  }
 }
 
 // === Improved Music control ===
@@ -201,16 +206,6 @@ window.addEventListener('beforeunload', () => {
   }
 });
 
-// === Show step with sound ===
-function show(step){
-  playClickSound();
-  document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
-  const el = document.getElementById(step);
-  el.classList.add('active');
-  el.style.opacity = 0;
-  setTimeout(()=> el.style.opacity = 1, 10);
-}
-
 // === Parallax effect ===
 document.addEventListener('mousemove', e => {
   const x = (e.clientX / window.innerWidth - 0.5) * 25;
@@ -245,6 +240,17 @@ document.addEventListener('DOMContentLoaded', () => {
   // Инициализируем музыку
   initMusic();
   
+  // Добавляем анимацию тряски для ошибок
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+  `;
+  document.head.appendChild(style);
+  
   // Инициализируем персонажей
   const container = document.getElementById('characters');
   for(const key in CHARACTERS){
@@ -262,40 +268,47 @@ document.addEventListener('DOMContentLoaded', () => {
     container.appendChild(div);
   }
   const first = container.querySelector('.char-card');
-  if(first){ first.classList.add('selected'); state.character = first.dataset.key; }
+  if(first){ 
+    first.classList.add('selected'); 
+    state.character = first.dataset.key; 
+  }
 
-  // Обработчики кнопок с звуками
+  // Обработчики кнопок с анимациями
   document.getElementById('btn-name-next').onclick = ()=>{
     playClickSound();
     const name = document.getElementById('input-name').value.trim();
     if(!name || name.length<2){ 
+      // Анимация "тряски" для инпута при ошибке
+      const input = document.getElementById('input-name');
+      input.style.animation = 'shake 0.5s ease-in-out';
+      setTimeout(() => input.style.animation = '', 500);
       alert('Введите имя минимум из 2 символов'); 
       return; 
     }
     state.name=name;
-    show(STEP.CHAR);
+    show(STEP.CHAR, 'next');
   };
 
   document.getElementById('btn-char-back').onclick = ()=>{
-    playClickSound();
-    show(STEP.NAME);
+    show(STEP.NAME, 'prev');
   };
   
   document.getElementById('btn-char-next').onclick = ()=>{
-    playClickSound();
-    show(STEP.PROB);
+    show(STEP.PROB, 'next');
   };
   
   document.getElementById('btn-problem-back').onclick = ()=>{
-    playClickSound();
-    show(STEP.CHAR);
+    show(STEP.CHAR, 'prev');
   };
 
   document.getElementById('btn-problem-send').onclick = async ()=>{
-    playMagicSound(); // Особый звук для получения совета
+    playMagicSound();
     
     const problem=document.getElementById('input-problem').value.trim();
     if(!problem){ 
+      const textarea = document.getElementById('input-problem');
+      textarea.style.animation = 'shake 0.5s ease-in-out';
+      setTimeout(() => textarea.style.animation = '', 500);
       alert('Опиши проблему, пожалуйста'); 
       return; 
     }
@@ -311,7 +324,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     resultBox.innerText = "";
     loader.classList.remove('hidden');
-    show(STEP.RES);
+    
+    // Показываем экран результата с особой анимацией
+    show(STEP.RES, 'zoom');
 
     try{
       const backend=''; // вставь свой бэкенд
@@ -322,7 +337,15 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       const data = await resp.json();
       loader.classList.add('hidden');
+      
+      // Анимация появления результата
+      resultBox.classList.add('fade-in');
       resultBox.innerText = data.ok ? (data.advice || "Пустой ответ") : "Ошибка: " + (data.error || JSON.stringify(data));
+      
+      setTimeout(() => {
+        resultBox.classList.remove('fade-in');
+      }, 600);
+      
     }catch(err){
       console.error(err);
       loader.classList.add('hidden');
@@ -333,7 +356,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-result-again').onclick = ()=>{
     playClickSound();
     document.getElementById('input-problem').value='';
-    show(STEP.PROB);
+    show(STEP.PROB, 'prev');
   };
   
   document.getElementById('btn-result-close').onclick = ()=>{
@@ -346,8 +369,10 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', playClickSound);
   });
 
+  // Показываем первый экран
   show(STEP.NAME);
 
+  // Автозаполнение имени из Telegram
   try{
     const init=tg.initDataUnsafe||{};
     if(init.user && init.user.first_name){
@@ -355,3 +380,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }catch(e){/* ignore */}
 });
+
+// === Touch device support ===
+document.addEventListener('touchstart', function() {
+  // Активируем музыку на тач-устройствах при первом касании
+  if (!musicInitialized) {
+    music.play().then(() => {
+      musicBtn.textContent = '🔊';
+      musicInitialized = true;
+      isMusicPlaying = true;
+    }).catch(error => {
+      console.log('Автозапуск музыки на тач-устройстве заблокирован');
+      musicBtn.textContent = '🔇';
+      musicInitialized = true;
+    });
+  }
+}, { once: true });
