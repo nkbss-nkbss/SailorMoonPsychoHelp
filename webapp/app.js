@@ -32,17 +32,17 @@ const CHARACTERS = {
 
 // === Character sounds ===
 const CHARACTER_SOUNDS = {
-  "usagi": "./music/characters/usagi.mp3",
-  "ami": "./music/characters/ami.mp3", 
-  "rei": "./music/characters/rei.mp3",
-  "minako": "./music/characters/minako.mp3",
-  "makoto": "./music/characters/makoto.mp3",
-  "hotaru": "./music/characters/hotaru.mp3",
-  "setsuna": "./music/characters/setsuna.mp3",
-  "haruka": "./music/characters/haruka.mp3",
-  "michiru": "./music/characters/michiru.mp3",
-  "chibiusa": "./music/characters/chibiusa.mp3",
-  "mamoru": "./music/characters/mamoru.mp3"
+  "usagi": "./music/characters/usagi (1).mp3",
+  "ami": "./music/characters/ami (1).mp3", 
+  "rei": "./music/characters/rei (1).mp3",
+  "minako": "./music/characters/minako (1).mp3",
+  "makoto": "./music/characters/makoto (1).mp3",
+  "hotaru": "./music/characters/hotaru (1).mp3",
+  "setsuna": "./music/characters/setsuna (1).mp3",
+  "haruka": "./music/characters/haruka (1).mp3",
+  "michiru": "./music/characters/michiru (1).mp3",
+  "chibiusa": "./music/characters/chibiusa (1).mp3",
+  "mamoru": "./music/characters/mamoru (1).mp3"
 };
 
 // Audio element for character sounds
@@ -589,3 +589,4 @@ document.addEventListener('touchstart', function() {
     });
   }
 }, { once: true });
+
