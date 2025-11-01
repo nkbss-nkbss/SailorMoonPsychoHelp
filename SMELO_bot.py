@@ -13,7 +13,7 @@ VERCEL_URL = os.getenv("VERCEL_URL")
 
 bot = telebot.TeleBot(BOT_TOKEN)
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "https://sailor-moon-psycho-help.vercel.app"}})
 
 # === ХРАНЕНИЕ СОСТОЯНИЙ ПОЛЬЗОВАТЕЛЕЙ ===
 user_states = {}
