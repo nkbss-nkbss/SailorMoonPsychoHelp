@@ -38,11 +38,13 @@ def log_user_request(username, problem, ip_address):
     )
 
     admin_chat_id = os.getenv("ADMIN_CHAT_ID")
+    print(f"🔍 Логирование: ADMIN_CHAT_ID = {admin_chat_id}, msg = {log_msg[:50]}...")  # отладка
     if admin_chat_id:
         try:
             bot.send_message(admin_chat_id, log_msg, parse_mode='Markdown')
+            print("✅ Лог успешно отправлен в Telegram")
         except Exception as e:
-            print("⚠️ Не удалось отправить лог:", e)
+            print("⚠️ ОШИБКА отправки лога:", e)
 
 
 # === ПЕРСОНАЖИ С ФОРМАМИ ===
