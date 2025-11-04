@@ -93,7 +93,7 @@ const CHARACTERS = {
       "sailor": { title: "Сейлор Чиби-Мун 💕", img: "https://i.pinimg.com/736x/09/89/00/098900bcc276be04da9e30b7cf3a6007.jpg" }
     }
   },
-  "mamoru": {
+  "seiya": {
     label: "Сейя",
     forms: {
       "human": { title: "Сейя Кое ♂️⭐", img: "https://i.pinimg.com/736x/fa/44/48/fa4448c6b3b4d06e33e905e34256199b.jpg" },
@@ -101,7 +101,7 @@ const CHARACTERS = {
     }
   },
 
-  "mamoru": {
+  "taiki": {
     label: "Тайки",
     forms: {
       "human": { title: "Тайки Кое ♂️📚", img: "https://i.pinimg.com/736x/9d/cf/05/9dcf05f2328100ef411b710d30ffc465.jpg" },
@@ -109,7 +109,7 @@ const CHARACTERS = {
     }
   },
 
-  "mamoru": {
+  "yaten": {
     label: "Ятен",
     forms: {
       "human": { title: "Ятен ♂️🎭", img: "https://i.pinimg.com/736x/68/b2/00/68b2006277d4c56dde09e0eb1cce61e0.jpg" },
@@ -570,5 +570,6 @@ document.addEventListener('touchstart', () => {
     });
   }
 }, { once: true });
+
 
 
