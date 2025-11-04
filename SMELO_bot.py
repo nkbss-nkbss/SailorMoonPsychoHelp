@@ -563,6 +563,12 @@ def get_problem(message):
         return
 
     username = state["name"]
+    problem = message.text.strip()
+    # Получаем IP — но в Telegram его нет! Поэтому используем "telegram"
+    user_ip = "telegram"  # или message.chat.id, или "direct"
+    log_user_request(username, problem, user_ip)  # ← ДОБАВЬ ЭТУ СТРОКУ
+
+    username = state["name"]
     character_keys = state["characters"]
     mode = state.get("mode", "single")
 
