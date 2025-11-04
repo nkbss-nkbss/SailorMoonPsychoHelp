@@ -6,7 +6,7 @@ const STEP = {
   NAME: 'step-name',
   TYPE: 'step-type',
   CHAR: 'step-character',
-  FORM: 'step-form',      // <<< НОВЫЙ ШАГ
+  FORM: 'step-form',
   PROB: 'step-problem',
   RES: 'step-result'
 };
@@ -15,11 +15,11 @@ let state = {
   name: "",
   answerType: "single",
   characters: ["usagi"],
-  form: "human",         // <<< по умолчанию
+  form: "human",
   problem: ""
 };
 
-// === CHARACTER DATA WITH FORMS ===
+// === CHARACTER DATA WITH FORMS (без лишних пробелов в URL) ===
 const CHARACTERS = {
   "usagi": {
     label: "Усаги",
@@ -157,12 +157,12 @@ function updateProgressBar(step) {
     'step-name': 1,
     'step-type': 2,
     'step-character': 3,
-    'step-form': 3.5,    // не влияет на прогресс, но не ломает
+    'step-form': 3.5,
     'step-problem': 4,
     'step-result': 5
   };
   let currentStep = stepMap[step] || 1;
-  if (currentStep === 3.5) currentStep = 3; // форма — часть шага 3
+  if (currentStep === 3.5) currentStep = 3;
   const progressPercentage = ((currentStep - 1) / 4) * 100;
   document.getElementById('current-step').textContent = Math.min(5, Math.ceil(currentStep));
   document.querySelector('.progress-fill').style.width = `${progressPercentage}%`;
@@ -236,7 +236,7 @@ function fadeOut(audio) {
   }, FADE_INTERVAL);
 }
 
-// === Show step ===
+// === Show step (С КЛЮЧЕВЫМ ИСПРАВЛЕНИЕМ) ===
 function show(step, direction = 'next') {
   playClickSound();
   const current = document.querySelector('.card.active');
@@ -255,6 +255,12 @@ function show(step, direction = 'next') {
     setTimeout(() => {
       next.classList.add('active');
       updateProgressBar(step);
+
+      // 🔥 КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: рендерим формы при входе на шаг
+      if (step === STEP.FORM) {
+        renderFormStep();
+      }
+
       setTimeout(() => {
         current.classList.remove('slide-in-prev', 'slide-in-next', 'zoom-in');
         next.classList.remove('slide-in-prev', 'slide-in-next', 'zoom-in');
@@ -264,6 +270,10 @@ function show(step, direction = 'next') {
     document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
     next.classList.add('active');
     updateProgressBar(step);
+
+    if (step === STEP.FORM) {
+      renderFormStep();
+    }
   }
 }
 
@@ -284,11 +294,9 @@ function handleCharacterClick(charKey) {
   } else {
     state.characters = [charKey];
     updateCharacterSelectionUI();
-    // Проверяем, есть ли формы > 1
     if (Object.keys(CHARACTERS[charKey].forms).length > 1) {
       show(STEP.FORM, 'next');
     } else {
-      // Если только одна форма — пропускаем
       state.form = Object.keys(CHARACTERS[charKey].forms)[0];
       show(STEP.PROB, 'next');
     }
@@ -407,9 +415,6 @@ if(moonLayer){
 document.addEventListener('DOMContentLoaded', () => {
   initMusic();
 
-  // Theme removed, music handled above
-
-  // Answer type
   document.querySelectorAll('.type-option').forEach(opt => {
     opt.addEventListener('click', () => {
       playSelectSound();
@@ -420,7 +425,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   document.querySelector('.type-option[data-type="single"]').classList.add('selected');
 
-  // Characters
   const charContainer = document.getElementById('characters');
   for (const key in CHARACTERS) {
     const ch = CHARACTERS[key];
@@ -433,7 +437,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   charContainer.querySelector('.char-card').classList.add('selected');
 
-  // Form step navigation
   document.getElementById('btn-form-back').onclick = () => {
     show(STEP.CHAR, 'prev');
   };
@@ -441,7 +444,6 @@ document.addEventListener('DOMContentLoaded', () => {
     show(STEP.PROB, 'next');
   };
 
-  // Buttons
   document.getElementById('btn-name-next').onclick = () => {
     const name = document.getElementById('input-name').value.trim();
     if (!name || name.length < 2) {
@@ -461,7 +463,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (state.answerType === 'group') {
       show(STEP.PROB, 'next');
     } else {
-      // Это не нужно — выбор формы происходит при клике по персонажу
       alert('Выбери персонажа выше');
     }
   };
@@ -496,7 +497,8 @@ document.addEventListener('DOMContentLoaded', () => {
     show(STEP.RES, 'zoom');
 
     try {
-      const backend = 'https://your-vercel-url.vercel.app'; // <<< ЗАМЕНИ НА СВОЙ!
+      // ⚠️ Замените на ваш настоящий URL!
+      const backend = 'https://sailor-moon-psycho-help.vercel.app';
       const resp = await fetch(`${backend}/ask`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
