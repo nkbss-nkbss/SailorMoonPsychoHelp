@@ -560,10 +560,16 @@ def get_name(message):
 @bot.callback_query_handler(func=lambda call: call.data.startswith("mode_"))
 def choose_mode(call):
     mode = call.data.split("_")[1]
-    user_states[call.message.chat.id]["mode"] = mode
+    user_state = user_states[call.message.chat.id]
+    user_state["mode"] = mode
+    user_state["characters"] = []  # Очищаем предыдущий выбор
     
-    text = "👤 Выбери персонажа:"
-    markup = create_base_characters_markup()
+    if mode == "single":
+        text = "👤 Выбери персонажа:"
+        markup = create_base_characters_markup()
+    else:
+        text = "👥 Выбери до 4 персонажей для командного совета:"
+        markup = create_base_characters_markup_with_confirm()
     
     bot.edit_message_text(
         text, 
@@ -649,6 +655,7 @@ def handle_character_selection(call, character_key):
         name = CHARACTERS[character_key]["name"]
         bot.answer_callback_query(call.id, f"✨ {name} теперь с тобой!")
         
+        # ОБНОВЛЯЕМ сообщение после выбора формы
         bot.edit_message_text(
             f"💫 {name} готов(а) выслушать. Расскажи, что тебя беспокоит 🌙",
             call.message.chat.id,
@@ -673,8 +680,8 @@ def handle_character_selection(call, character_key):
         
         user_state["characters"] = current_chars
         
-        # Обновляем клавиатуру
-        markup = create_base_characters_markup()
+        # Обновляем клавиатуру с кнопкой подтверждения
+        markup = create_base_characters_markup_with_confirm(current_chars)
         count_text = f" ({len(current_chars)}/4)" if current_chars else ""
         
         bot.edit_message_text(
@@ -687,6 +694,34 @@ def handle_character_selection(call, character_key):
         
         char_name = CHARACTERS[character_key]["name"]
         bot.answer_callback_query(call.id, f"{action} {char_name}")
+
+def create_base_characters_markup_with_confirm(selected_chars=None):
+    """Создает клавиатуру для выбора базовых персонажей с кнопкой подтверждения"""
+    if selected_chars is None:
+        selected_chars = []
+    
+    markup = types.InlineKeyboardMarkup(row_width=2)
+    
+    buttons = []
+    base_characters = ["usagi", "ami", "rei", "minako", "makoto", "hotaru", "setsuna", "haruka", "michiru", "chibiusa", "mamoru", "seiya", "taiki", "yaten"]
+    
+    for base_char in base_characters:
+        char_data = CHARACTERS[CHARACTER_FORMS[base_char][0]]
+        btn_text = f"{char_data['name'].split(' ')[0]}"
+        callback_data = f"base_{base_char}"
+        buttons.append(types.InlineKeyboardButton(btn_text, callback_data=callback_data))
+    
+    for i in range(0, len(buttons), 2):
+        if i + 1 < len(buttons):
+            markup.add(buttons[i], buttons[i+1])
+        else:
+            markup.add(buttons[i])
+    
+    # Добавляем кнопку подтверждения если есть выбранные персонажи
+    if selected_chars:
+        markup.add(types.InlineKeyboardButton("🚀 Получить командный совет", callback_data="confirm_group"))
+    
+    return markup
 
 @bot.callback_query_handler(func=lambda call: call.data == "confirm_group")
 def confirm_group(call):
