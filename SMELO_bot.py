@@ -538,7 +538,8 @@ def start(message):
         "name": None, 
         "characters": [],
         "mode": None,
-        "selecting_forms": False
+        "selecting_forms": False,
+        "awaiting_problem": False
     }
     bot.send_message(message.chat.id, "🌙 Привет, во имя Луны! 💫 Как тебя зовут?", parse_mode='Markdown')
     bot.register_next_step_handler(message, get_name)
@@ -652,6 +653,7 @@ def handle_character_selection(call, character_key):
     
     if mode == "single":
         user_state["characters"] = [character_key]
+        user_state["awaiting_problem"] = True  # Добавляем флаг ожидания
         name = CHARACTERS[character_key]["name"]
         bot.answer_callback_query(call.id, f"✨ {name} теперь с тобой!")
         
@@ -741,17 +743,28 @@ def confirm_group(call):
         call.message.message_id,
         parse_mode='Markdown'
     )
+    
+    # Добавляем состояние, что пользователь ожидает ввода проблемы
+    user_state["awaiting_problem"] = True
 
 @bot.message_handler(content_types=['text'])
 def get_problem(message):
     state = user_states.get(message.chat.id)
+    
+    # Проверяем, ожидает ли бот проблему от пользователя
     if not state or not state.get("characters"):
-        bot.send_message(message.chat.id, "🌙 Начни с команды /start ✨")
-        return
-
+        # Если это не ответ на предыдущий запрос, предлагаем начать
+        if not state or not state.get("awaiting_problem"):
+            bot.send_message(message.chat.id, "🌙 Начни с команды /start ✨")
+            return
+    
     username = state["name"]
     character_keys = state["characters"]
     mode = state.get("mode", "single")
+
+    # Сбрасываем флаг ожидания проблемы
+    if "awaiting_problem" in state:
+        state["awaiting_problem"] = False
 
     thinking_text = "🌕 Советчица обдумывает ответ... 💫"
     if mode == "group":
