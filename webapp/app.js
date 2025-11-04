@@ -1,3 +1,4 @@
+//app.js
 const tg = window.Telegram.WebApp;
 tg.expand();
 
@@ -5,29 +6,100 @@ const STEP = {
   NAME: 'step-name',
   TYPE: 'step-type',
   CHAR: 'step-character',
+  FORM: 'step-form',      // <<< НОВЫЙ ШАГ
   PROB: 'step-problem',
   RES: 'step-result'
 };
 
 let state = {
   name: "",
-  answerType: "single", // "single" или "group"
-  characters: ["usagi"], // массив выбранных персонажей
+  answerType: "single",
+  characters: ["usagi"],
+  form: "human",         // <<< по умолчанию
   problem: ""
 };
 
+// === CHARACTER DATA WITH FORMS ===
 const CHARACTERS = {
-  "usagi": { label: "Усаги", img: "https://i.pinimg.com/736x/a4/47/c4/a447c423d530b9cac4612a9f71c96ddc.jpg" },
-  "ami": { label: "Ами", img: "https://i.pinimg.com/736x/b1/61/1a/b1611addcf1190d311218c22614e1e36.jpg" },
-  "rei": { label: "Рей", img: "https://i.pinimg.com/736x/d7/9c/61/d79c617912ae0e4d510660c32c971227.jpg" },
-  "minako": { label: "Минако", img: "https://i.pinimg.com/736x/68/68/52/6868521a4cf61d75b40772b6f13c0504.jpg" },
-  "makoto": { label: "Макото", img: "https://i.pinimg.com/736x/49/27/8d/49278da7f93a6028a0a3d05bbd43fd22.jpg" },
-  "hotaru": { label: "Хотару", img: "https://i.pinimg.com/736x/62/e8/61/62e861ea332c0bf8dafd00fd4e9571d9.jpg" },
-  "setsuna": { label: "Сецуна", img: "https://i.pinimg.com/736x/89/bf/f4/89bff47fee6011a503b18c274a0370a5.jpg" },
-  "haruka": { label: "Харука", img: "https://i.pinimg.com/736x/a8/c9/9e/a8c99e3558ea0caf592cb06c1339f720.jpg" },
-  "michiru": { label: "Мичиру", img: "https://i.pinimg.com/736x/a4/fe/e9/a4fee98a8f01e8a377a70759edbfc5df.jpg" },
-  "chibiusa": { label: "Чибиуса", img: "https://i.pinimg.com/736x/40/74/49/4074490084d46e4d173179fe03427d2b.jpg" },
-  "mamoru": { label: "Мамору", img: "https://i.pinimg.com/736x/62/c0/97/62c0978a24a049425d9895a159ca3104.jpg" }
+  "usagi": {
+    label: "Усаги",
+    forms: {
+      "human": { title: "Усаги Цукино 👧", img: "https://i.pinimg.com/736x/a4/47/c4/a447c423d530b9cac4612a9f71c96ddc.jpg" },
+      "sailor": { title: "Сейлор Мун 🌙", img: "https://i.pinimg.com/736x/55/ff/32/55ff32a1d1a2e86ff41d76068672e108.jpg" },
+      "super": { title: "Супер Сейлор Мун 💫", img: "https://i.pinimg.com/736x/56/7b/38/567b38a7e0d7729573f997ded2448d5e.jpg" },
+      "eternal": { title: "Вечная Сейлор Мун ✨", img: "https://i.pinimg.com/1200x/a1/e5/52/a1e552f9276025313b66b8f3a36a3c44.jpg" }
+    }
+  },
+  "ami": {
+    label: "Ами",
+    forms: {
+      "human": { title: "Ами Мидзуно 📚", img: "https://i.pinimg.com/736x/0b/07/f9/0b07f95abbceecf7922c44ac333a48f2.jpg" },
+      "sailor": { title: "Сейлор Меркурий 💧", img: "https://i.pinimg.com/736x/b1/61/1a/b1611addcf1190d311218c22614e1e36.jpg" }
+    }
+  },
+  "rei": {
+    label: "Рей",
+    forms: {
+      "human": { title: "Рей Хино 🔥", img: "https://i.pinimg.com/736x/d7/9c/61/d79c617912ae0e4d510660c32c971227.jpg" },
+      "sailor": { title: "Сейлор Марс 🔥", img: "https://i.pinimg.com/736x/7f/e6/e8/7fe6e8b47812f4778d229903c1776744.jpg" }
+    }
+  },
+  "minako": {
+    label: "Минако",
+    forms: {
+      "human": { title: "Минако Айно 💛", img: "https://i.pinimg.com/736x/68/68/52/6868521a4cf61d75b40772b6f13c0504.jpg" },
+      "sailor": { title: "Сейлор Венера 💖", img: "https://i.pinimg.com/1200x/bb/e9/6e/bbe96e1b50292f72dab46e16dfd5f632.jpg" }
+    }
+  },
+  "makoto": {
+    label: "Макото",
+    forms: {
+      "human": { title: "Макото Кино 🌿", img: "https://i.pinimg.com/736x/49/27/8d/49278da7f93a6028a0a3d05bbd43fd22.jpg" },
+      "sailor": { title: "Сейлор Юпитер ⚡", img: "https://i.pinimg.com/736x/84/f8/c0/84f8c01989fa310f2ca46bd8bcd58af3.jpg" }
+    }
+  },
+  "hotaru": {
+    label: "Хотару",
+    forms: {
+      "human": { title: "Хотару Томоэ 🌙", img: "https://i.pinimg.com/736x/62/e8/61/62e861ea332c0bf8dafd00fd4e9571d9.jpg" },
+      "sailor": { title: "Сейлор Сатурн 🌑", img: "https://i.pinimg.com/736x/65/e3/95/65e3950cb55aaffbfd443ef8d5f3ae2a.jpg" }
+    }
+  },
+  "setsuna": {
+    label: "Сецуна",
+    forms: {
+      "human": { title: "Сецуна Мейо ⏳", img: "https://i.pinimg.com/736x/89/bf/f4/89bff47fee6011a503b18c274a0370a5.jpg" },
+      "sailor": { title: "Сейлор Плутон 🕰️", img: "https://i.pinimg.com/736x/d4/8b/89/d48b8992dfac715b928af9d974d4c37c.jpg" }
+    }
+  },
+  "haruka": {
+    label: "Харука",
+    forms: {
+      "human": { title: "Харука Тэнно 🌟", img: "https://i.pinimg.com/736x/a8/c9/9e/a8c99e3558ea0caf592cb06c1339f720.jpg" },
+      "sailor": { title: "Сейлор Уран 🌪️", img: "https://i.pinimg.com/1200x/ec/bd/fd/ecbdfd6392394b2d66fa68729eeb5948.jpg" }
+    }
+  },
+  "michiru": {
+    label: "Мичиру",
+    forms: {
+      "human": { title: "Мичиру Кайо 🌊", img: "https://i.pinimg.com/736x/a4/fe/e9/a4fee98a8f01e8a377a70759edbfc5df.jpg" },
+      "sailor": { title: "Сейлор Нептун 🎻", img: "https://i.pinimg.com/736x/ef/a9/72/efa97290c250e97924777c4551120f60.jpg" }
+    }
+  },
+  "chibiusa": {
+    label: "Чибиуса",
+    forms: {
+      "human": { title: "Чибиуса ✨", img: "https://i.pinimg.com/736x/40/74/49/4074490084d46e4d173179fe03427d2b.jpg" },
+      "sailor": { title: "Сейлор Чиби-Мун 💕", img: "https://i.pinimg.com/736x/09/89/00/098900bcc276be04da9e30b7cf3a6007.jpg" }
+    }
+  },
+  "mamoru": {
+    label: "Мамору",
+    forms: {
+      "human": { title: "Мамору Чиба 🌹", img: "https://i.pinimg.com/736x/68/f4/07/68f4077d2f6944bad32604a96a62f310.jpg" },
+      "sailor": { title: "Такседо Маск 🥶", img: "https://i.pinimg.com/736x/62/c0/97/62c0978a24a049425d9895a159ca3104.jpg" }
+    }
+  }
 };
 
 // === Character sounds ===
@@ -45,7 +117,6 @@ const CHARACTER_SOUNDS = {
   "mamoru": "./music/characters/mamoru (1).mp3"
 };
 
-// Audio element for character sounds
 let characterSound = null;
 
 // === Audio elements ===
@@ -57,79 +128,54 @@ const selectSound = document.getElementById('select-sound');
 // === Music fade variables ===
 let fadeInterval;
 let isFading = false;
-const FADE_DURATION = 1000; // 1 second fade
+const FADE_DURATION = 1000;
 const FADE_STEPS = 20;
 const FADE_INTERVAL = FADE_DURATION / FADE_STEPS;
 
 // === Character sound functions ===
 function playCharacterSound(characterKey) {
-  // Stop previous sound if playing
   if (characterSound && !characterSound.paused) {
     characterSound.pause();
     characterSound.currentTime = 0;
   }
-  
   const soundFile = CHARACTER_SOUNDS[characterKey];
   if (!soundFile) {
-    console.log('No sound for character:', characterKey);
     playSelectSound();
     return;
   }
-  
-  // Create new audio element for character sound
   characterSound = new Audio(soundFile);
   characterSound.volume = 0.4;
-  
   characterSound.play().catch(e => {
     console.log('Character sound error:', e);
-    // Fallback to select sound if character sound fails
     playSelectSound();
   });
 }
 
-// === Progress bar functions ===
+// === Progress bar ===
 function updateProgressBar(step) {
   const stepMap = {
     'step-name': 1,
     'step-type': 2,
-    'step-character': 3, 
+    'step-character': 3,
+    'step-form': 3.5,    // не влияет на прогресс, но не ломает
     'step-problem': 4,
     'step-result': 5
   };
-  
-  const currentStep = stepMap[step] || 1;
+  let currentStep = stepMap[step] || 1;
+  if (currentStep === 3.5) currentStep = 3; // форма — часть шага 3
   const progressPercentage = ((currentStep - 1) / 4) * 100;
-  
-  console.log('Updating progress bar:', step, '-> step', currentStep, '(', progressPercentage, '%)');
-  
-  // Обновляем текст
-  document.getElementById('current-step').textContent = currentStep;
-  
-  // Обновляем прогресс-бар
-  const progressFill = document.querySelector('.progress-fill');
-  if (progressFill) {
-    progressFill.style.width = `${progressPercentage}%`;
-  }
-  
-  // Обновляем точки шагов
-  updateStepDots(currentStep);
+  document.getElementById('current-step').textContent = Math.min(5, Math.ceil(currentStep));
+  document.querySelector('.progress-fill').style.width = `${progressPercentage}%`;
+  updateStepDots(Math.min(5, Math.ceil(currentStep)));
 }
 
 function updateStepDots(currentStep) {
   const dots = document.querySelectorAll('.step-dot');
-  
   dots.forEach((dot, index) => {
-    const stepNumber = index + 1;
-    
-    // Убираем все классы
+    const n = index + 1;
     dot.classList.remove('active', 'completed');
-    
-    // Добавляем соответствующие классы
-    if (stepNumber === currentStep) {
-      dot.classList.add('active');
-    } else if (stepNumber < currentStep) {
-      dot.classList.add('completed');
-    }
+    if (n === currentStep) dot.classList.add('active');
+    else if (n < currentStep) dot.classList.add('completed');
   });
 }
 
@@ -141,7 +187,6 @@ function playClickSound() {
     clickSound.play().catch(e => console.log('Click sound error:', e));
   }
 }
-
 function playMagicSound() {
   if (magicSound) {
     magicSound.volume = 0.4;
@@ -149,7 +194,6 @@ function playMagicSound() {
     magicSound.play().catch(e => console.log('Magic sound error:', e));
   }
 }
-
 function playSelectSound() {
   if (selectSound) {
     selectSound.volume = 0.3;
@@ -159,231 +203,190 @@ function playSelectSound() {
 }
 
 // === Fade functions ===
-function fadeIn(audioElement, targetVolume = 0.3) {
-  if (isFading) {
-    clearInterval(fadeInterval);
-  }
-  
+function fadeIn(audio, vol = 0.3) {
+  if (isFading) clearInterval(fadeInterval);
   isFading = true;
-  audioElement.volume = 0;
-  audioElement.play().catch(e => console.log('Fade in play error:', e));
-  
-  let currentStep = 0;
-  
+  audio.volume = 0;
+  audio.play().catch(e => console.log('Fade in error:', e));
+  let s = 0;
   fadeInterval = setInterval(() => {
-    currentStep++;
-    const newVolume = (currentStep / FADE_STEPS) * targetVolume;
-    audioElement.volume = newVolume;
-    
-    if (currentStep >= FADE_STEPS) {
+    s++;
+    audio.volume = (s / FADE_STEPS) * vol;
+    if (s >= FADE_STEPS) {
       clearInterval(fadeInterval);
-      audioElement.volume = targetVolume;
+      audio.volume = vol;
+      isFading = false;
+    }
+  }, FADE_INTERVAL);
+}
+function fadeOut(audio) {
+  if (isFading) clearInterval(fadeInterval);
+  isFading = true;
+  const v = audio.volume;
+  let s = 0;
+  fadeInterval = setInterval(() => {
+    s++;
+    audio.volume = v * (1 - s / FADE_STEPS);
+    if (s >= FADE_STEPS) {
+      clearInterval(fadeInterval);
+      audio.pause();
+      audio.volume = 0.3;
       isFading = false;
     }
   }, FADE_INTERVAL);
 }
 
-function fadeOut(audioElement) {
-  if (isFading) {
-    clearInterval(fadeInterval);
-  }
-  
-  isFading = true;
-  const startVolume = audioElement.volume;
-  let currentStep = 0;
-  
-  fadeInterval = setInterval(() => {
-    currentStep++;
-    const newVolume = startVolume * (1 - currentStep / FADE_STEPS);
-    audioElement.volume = newVolume;
-    
-    if (currentStep >= FADE_STEPS) {
-      clearInterval(fadeInterval);
-      audioElement.pause();
-      audioElement.volume = 0.3; // Reset to default volume
-      isFading = false;
-    }
-  }, FADE_INTERVAL);
-}
-
-// === Updated show function with animations and progress bar ===
+// === Show step ===
 function show(step, direction = 'next') {
   playClickSound();
-  
-  const currentStep = document.querySelector('.card.active');
-  const nextStep = document.getElementById(step);
-  
-  if (currentStep && nextStep) {
-    // Убираем текущий шаг с анимацией
-    currentStep.classList.remove('active');
-    
-    // Добавляем классы анимации в зависимости от направления
+  const current = document.querySelector('.card.active');
+  const next = document.getElementById(step);
+  if (current && next) {
+    current.classList.remove('active');
     if (direction === 'next') {
-      currentStep.classList.add('slide-in-prev');
-      nextStep.classList.add('slide-in-next');
+      current.classList.add('slide-in-prev');
+      next.classList.add('slide-in-next');
     } else if (direction === 'prev') {
-      currentStep.classList.add('slide-in-next');
-      nextStep.classList.add('slide-in-prev');
+      current.classList.add('slide-in-next');
+      next.classList.add('slide-in-prev');
     } else if (direction === 'zoom') {
-      nextStep.classList.add('zoom-in');
+      next.classList.add('zoom-in');
     }
-    
-    // Показываем следующий шаг
     setTimeout(() => {
-      nextStep.classList.add('active');
-      
-      // Обновляем прогресс-бар
+      next.classList.add('active');
       updateProgressBar(step);
-      
-      // Убираем классы анимации после завершения
       setTimeout(() => {
-        currentStep.classList.remove('slide-in-prev', 'slide-in-next', 'zoom-in');
-        nextStep.classList.remove('slide-in-prev', 'slide-in-next', 'zoom-in');
+        current.classList.remove('slide-in-prev', 'slide-in-next', 'zoom-in');
+        next.classList.remove('slide-in-prev', 'slide-in-next', 'zoom-in');
       }, 400);
     }, 50);
   } else {
-    // Первый запуск или fallback
     document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
-    nextStep.classList.add('active');
+    next.classList.add('active');
     updateProgressBar(step);
   }
 }
 
-// === Character selection functions ===
+// === Handle character click ===
+function handleCharacterClick(charKey) {
+  playSelectSound();
+  playCharacterSound(charKey);
+  if (state.answerType === 'group') {
+    const i = state.characters.indexOf(charKey);
+    if (i > -1) {
+      state.characters.splice(i, 1);
+      if (state.characters.length === 0) state.characters.push('usagi');
+    } else {
+      if (state.characters.length < 4) state.characters.push(charKey);
+      else { alert('Можно выбрать до 4 персонажей'); return; }
+    }
+    updateCharacterSelectionUI();
+  } else {
+    state.characters = [charKey];
+    updateCharacterSelectionUI();
+    // Проверяем, есть ли формы > 1
+    if (Object.keys(CHARACTERS[charKey].forms).length > 1) {
+      show(STEP.FORM, 'next');
+    } else {
+      // Если только одна форма — пропускаем
+      state.form = Object.keys(CHARACTERS[charKey].forms)[0];
+      show(STEP.PROB, 'next');
+    }
+  }
+}
+
 function updateCharacterSelectionUI() {
   const title = document.getElementById('character-title');
-  const charactersContainer = document.getElementById('characters');
-  
+  const container = document.getElementById('characters');
   if (state.answerType === 'group') {
     title.innerHTML = `Выбери персонажей <span class="selected-count">${state.characters.length}</span>`;
-    
-    // Обновляем все карточки для множественного выбора
     document.querySelectorAll('.char-card').forEach(card => {
       card.classList.add('multiple');
-      const charKey = card.dataset.key;
-      
-      if (state.characters.includes(charKey)) {
-        card.classList.add('selected');
-      } else {
-        card.classList.remove('selected');
-      }
+      const k = card.dataset.key;
+      if (state.characters.includes(k)) card.classList.add('selected');
+      else card.classList.remove('selected');
     });
   } else {
     title.textContent = 'Выбери персонажа';
-    
-    // Обновляем все карточки для одиночного выбора
     document.querySelectorAll('.char-card').forEach(card => {
       card.classList.remove('multiple');
-      const charKey = card.dataset.key;
-      
-      if (state.characters[0] === charKey) {
-        card.classList.add('selected');
-      } else {
-        card.classList.remove('selected');
-      }
+      const k = card.dataset.key;
+      if (state.characters[0] === k) card.classList.add('selected');
+      else card.classList.remove('selected');
     });
   }
 }
 
-function handleCharacterClick(charKey) {
-  playSelectSound();
-  
-  // Play character-specific sound
-  playCharacterSound(charKey);
-  
-  if (state.answerType === 'group') {
-    // Множественный выбор
-    const index = state.characters.indexOf(charKey);
-    
-    if (index > -1) {
-      // Убираем из выбранных
-      state.characters.splice(index, 1);
-      // Если ничего не выбрано, добавляем обратно
-      if (state.characters.length === 0) {
-        state.characters.push('usagi');
-      }
-    } else {
-      // Добавляем в выбранные (максимум 4 персонажа)
-      if (state.characters.length < 4) {
-        state.characters.push(charKey);
-      } else {
-        // Можно показать уведомление о максимальном количестве
-        alert('Можно выбрать до 4 персонажей для группового ответа');
-        return;
-      }
-    }
-  } else {
-    // Одиночный выбор
-    state.characters = [charKey];
+// === FORM STEP UI ===
+function renderFormStep() {
+  const charKey = state.characters[0];
+  const container = document.getElementById('form-options');
+  container.innerHTML = '';
+  const char = CHARACTERS[charKey];
+  for (const formKey in char.forms) {
+    const form = char.forms[formKey];
+    const div = document.createElement('div');
+    div.className = 'form-card';
+    div.dataset.form = formKey;
+    div.innerHTML = `<img src="${form.img}" alt="${form.title}" /><div class="label">${form.title}</div>`;
+    div.onclick = () => {
+      state.form = formKey;
+      document.querySelectorAll('.form-card').forEach(c => c.classList.remove('selected'));
+      div.classList.add('selected');
+      playSelectSound();
+    };
+    container.appendChild(div);
   }
-  
-  updateCharacterSelectionUI();
+  const first = container.querySelector('.form-card');
+  if (first) {
+    first.classList.add('selected');
+    state.form = first.dataset.form;
+  }
 }
 
-// === Improved Music control ===
+// === Music ===
 const musicBtn = document.getElementById('music-toggle');
 let musicInitialized = false;
 let isMusicPlaying = false;
 
 function initMusic() {
   if (musicInitialized) return;
-  
-  // Устанавливаем начальную громкость
   music.volume = 0;
-  
-  musicBtn.addEventListener('click', function() {
-    playClickSound();
-    toggleMusic();
-  });
-  
-  // Автозапуск с плавным появлением
-  document.addEventListener('click', function initMusicOnInteraction() {
+  musicBtn.addEventListener('click', () => { playClickSound(); toggleMusic(); });
+  document.addEventListener('click', () => {
     if (!musicInitialized) {
       fadeIn(music, 0.3);
       musicBtn.textContent = '🔊';
       musicInitialized = true;
       isMusicPlaying = true;
-      document.removeEventListener('click', initMusicOnInteraction);
     }
   }, { once: true });
 }
-
 function toggleMusic() {
-  if (isFading) return; // Предотвращаем множественные нажатия во время фейда
-  
+  if (isFading) return;
   if (isMusicPlaying) {
-    // Плавное затухание и пауза
     fadeOut(music);
     musicBtn.textContent = '🔇';
     isMusicPlaying = false;
   } else {
-    // Плавное появление
     fadeIn(music, 0.3);
     musicBtn.textContent = '🔊';
     isMusicPlaying = true;
   }
 }
-
-// Обработчик для плавной остановки при закрытии страницы
 window.addEventListener('beforeunload', () => {
-  if (!music.paused) {
-    // Быстрое затухание при закрытии
-    music.volume = 0;
-    music.pause();
-  }
+  if (!music.paused) { music.volume = 0; music.pause(); }
 });
 
-// === Parallax effect ===
+// === Parallax & Stars ===
 document.addEventListener('mousemove', e => {
   const x = (e.clientX / window.innerWidth - 0.5) * 25;
   const y = (e.clientY / window.innerHeight - 0.5) * 25;
   document.querySelectorAll('.parallax-layer').forEach((layer, i) => {
-    const factor = 1 + i*0.2;
-    layer.style.transform = `translate(${x*factor}px, ${y*factor}px)`;
+    const f = 1 + i*0.2;
+    layer.style.transform = `translate(${x*f}px, ${y*f}px)`;
   });
 });
-
-// === Stars animation ===
 const starsContainer = document.querySelector('.stars');
 for (let i = 0; i < 150; i++) {
   const star = document.createElement('div');
@@ -395,8 +398,6 @@ for (let i = 0; i < 150; i++) {
   starsContainer.appendChild(star);
   star.style.animation = `twinkle ${2 + Math.random()*3}s infinite ease-in-out, fall ${5 + Math.random()*5}s linear ${Math.random()*5}s infinite`;
 }
-
-// === Moon pulse animation ===
 const moonLayer = document.getElementById('moon');
 if(moonLayer){
   moonLayer.style.animation = "pulse 4s infinite ease-in-out alternate";
@@ -404,189 +405,150 @@ if(moonLayer){
 
 // === DOMContentLoaded ===
 document.addEventListener('DOMContentLoaded', () => {
-  // УБРАЛ ВЫЗОВ initTheme() - ТЕМА БОЛЬШЕ НЕ НУЖНА
-  
-  // Инициализируем музыку
   initMusic();
-  
-  // Добавляем анимацию тряски для ошибок
-  const style = document.createElement('style');
-  style.textContent = `
-    @keyframes shake {
-      0%, 100% { transform: translateX(0); }
-      25% { transform: translateX(-5px); }
-      75% { transform: translateX(5px); }
-    }
-  `;
-  document.head.appendChild(style);
-  
-  // Инициализируем выбор типа ответа
-  document.querySelectorAll('.type-option').forEach(option => {
-    option.addEventListener('click', function() {
+
+  // Theme removed, music handled above
+
+  // Answer type
+  document.querySelectorAll('.type-option').forEach(opt => {
+    opt.addEventListener('click', () => {
       playSelectSound();
-      document.querySelectorAll('.type-option').forEach(opt => opt.classList.remove('selected'));
-      this.classList.add('selected');
-      state.answerType = this.dataset.type;
+      document.querySelectorAll('.type-option').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+      state.answerType = opt.dataset.type;
     });
   });
-  
-  // Устанавливаем выбранный тип по умолчанию
   document.querySelector('.type-option[data-type="single"]').classList.add('selected');
-  
-  // Инициализируем персонажей
-  const container = document.getElementById('characters');
-  for(const key in CHARACTERS){
+
+  // Characters
+  const charContainer = document.getElementById('characters');
+  for (const key in CHARACTERS) {
     const ch = CHARACTERS[key];
     const div = document.createElement('div');
-    div.className='char-card';
-    div.dataset.key=key;
-    div.innerHTML=`<img src="${ch.img}" alt="${ch.label}" /><div class="label">${ch.label}</div>`;
+    div.className = 'char-card';
+    div.dataset.key = key;
+    div.innerHTML = `<img src="${Object.values(ch.forms)[0].img}" alt="${ch.label}" /><div class="label">${ch.label}</div>`;
     div.onclick = () => handleCharacterClick(key);
-    container.appendChild(div);
+    charContainer.appendChild(div);
   }
-  
-  // Устанавливаем первого персонажа по умолчанию
-  const first = container.querySelector('.char-card');
-  if(first){ 
-    first.classList.add('selected'); 
-  }
-  updateCharacterSelectionUI();
+  charContainer.querySelector('.char-card').classList.add('selected');
 
-  // Обработчики кнопок с анимациями
-  document.getElementById('btn-name-next').onclick = ()=>{
-    playClickSound();
+  // Form step navigation
+  document.getElementById('btn-form-back').onclick = () => {
+    show(STEP.CHAR, 'prev');
+  };
+  document.getElementById('btn-form-next').onclick = () => {
+    show(STEP.PROB, 'next');
+  };
+
+  // Buttons
+  document.getElementById('btn-name-next').onclick = () => {
     const name = document.getElementById('input-name').value.trim();
-    if(!name || name.length<2){ 
-      // Анимация "тряски" для инпута при ошибке
+    if (!name || name.length < 2) {
       const input = document.getElementById('input-name');
       input.style.animation = 'shake 0.5s ease-in-out';
       setTimeout(() => input.style.animation = '', 500);
-      alert('Введите имя минимум из 2 символов'); 
-      return; 
+      alert('Введите имя минимум из 2 символов');
+      return;
     }
-    state.name=name;
+    state.name = name;
     show(STEP.TYPE, 'next');
   };
-
-  document.getElementById('btn-type-back').onclick = ()=>{
-    show(STEP.NAME, 'prev');
+  document.getElementById('btn-type-back').onclick = () => show(STEP.NAME, 'prev');
+  document.getElementById('btn-type-next').onclick = () => show(STEP.CHAR, 'next');
+  document.getElementById('btn-char-back').onclick = () => show(STEP.TYPE, 'prev');
+  document.getElementById('btn-char-next').onclick = () => {
+    if (state.answerType === 'group') {
+      show(STEP.PROB, 'next');
+    } else {
+      // Это не нужно — выбор формы происходит при клике по персонажу
+      alert('Выбери персонажа выше');
+    }
   };
-  
-  document.getElementById('btn-type-next').onclick = ()=>{
-    show(STEP.CHAR, 'next');
+  document.getElementById('btn-problem-back').onclick = () => {
+    if (state.answerType === 'group') {
+      show(STEP.CHAR, 'prev');
+    } else {
+      show(STEP.FORM, 'prev');
+    }
   };
-
-  document.getElementById('btn-char-back').onclick = ()=>{
-    show(STEP.TYPE, 'prev');
-  };
-  
-  document.getElementById('btn-char-next').onclick = ()=>{
-    show(STEP.PROB, 'next');
-  };
-  
-  document.getElementById('btn-problem-back').onclick = ()=>{
-    show(STEP.CHAR, 'prev');
-  };
-
-  document.getElementById('btn-problem-send').onclick = async ()=>{
+  document.getElementById('btn-problem-send').onclick = async () => {
     playMagicSound();
-    
-    const problem=document.getElementById('input-problem').value.trim();
-    if(!problem){ 
+    const problem = document.getElementById('input-problem').value.trim();
+    if (!problem) {
       const textarea = document.getElementById('input-problem');
       textarea.style.animation = 'shake 0.5s ease-in-out';
       setTimeout(() => textarea.style.animation = '', 500);
-      alert('Опиши проблему, пожалуйста'); 
-      return; 
+      alert('Опиши проблему, пожалуйста');
+      return;
     }
-    state.problem=problem;
-    
-    const init=tg.initDataUnsafe||{};
-    const user=init.user||{};
-    const chat_id=user.id||null;
-    const username=state.name || user.first_name || "друг";
+    state.problem = problem;
+
+    const init = tg.initDataUnsafe || {};
+    const user = init.user || {};
+    const chat_id = user.id || null;
+    const username = state.name || user.first_name || "друг";
 
     const resultBox = document.getElementById('result-box');
     const loader = document.getElementById('loading');
-
     resultBox.innerText = "";
     loader.classList.remove('hidden');
-    
-    // Показываем экран результата с особой анимацией
     show(STEP.RES, 'zoom');
 
-    try{
-      const backend=''; // вставь свой бэкенд
-      const resp = await fetch(`${backend}/ask`,{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({
-          chat_id, 
-          username, 
+    try {
+      const backend = 'https://your-vercel-url.vercel.app'; // <<< ЗАМЕНИ НА СВОЙ!
+      const resp = await fetch(`${backend}/ask`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id,
+          username,
           character: state.answerType === 'single' ? state.characters[0] : state.characters.join(','),
+          form: state.answerType === 'single' ? state.form : undefined,
           answer_type: state.answerType,
           problem: state.problem
         })
       });
       const data = await resp.json();
       loader.classList.add('hidden');
-      
-      // Анимация появления результата
       resultBox.classList.add('fade-in');
       resultBox.innerText = data.ok ? (data.advice || "Пустой ответ") : "Ошибка: " + (data.error || JSON.stringify(data));
-      
-      setTimeout(() => {
-        resultBox.classList.remove('fade-in');
-      }, 600);
-      
-    }catch(err){
+      setTimeout(() => resultBox.classList.remove('fade-in'), 600);
+    } catch (err) {
       console.error(err);
       loader.classList.add('hidden');
       resultBox.innerText = "Ошибка связи с сервером. Попробуй позже.";
     }
   };
-
-  document.getElementById('btn-result-again').onclick = ()=>{
-    playClickSound();
-    document.getElementById('input-problem').value='';
+  document.getElementById('btn-result-again').onclick = () => {
+    document.getElementById('input-problem').value = '';
     show(STEP.PROB, 'prev');
   };
-  
-  document.getElementById('btn-result-close').onclick = ()=>{
-    playClickSound();
-    tg.close();
-  };
+  document.getElementById('btn-result-close').onclick = () => tg.close();
 
-  // Добавляем звуки для всех кнопок при клике
   document.querySelectorAll('.btn').forEach(btn => {
     btn.addEventListener('click', playClickSound);
   });
 
-  // Показываем первый экран и инициализируем прогресс-бар
   show(STEP.NAME);
 
-  // Автозаполнение имени из Telegram
-  try{
-    const init=tg.initDataUnsafe||{};
-    if(init.user && init.user.first_name){
-      document.getElementById('input-name').value=init.user.first_name;
+  try {
+    const init = tg.initDataUnsafe || {};
+    if (init.user && init.user.first_name) {
+      document.getElementById('input-name').value = init.user.first_name;
     }
-  }catch(e){/* ignore */}
+  } catch (e) { /* ignore */ }
 });
 
-// === Touch device support ===
-document.addEventListener('touchstart', function() {
-  // Активируем музыку на тач-устройствах при первом касании
+document.addEventListener('touchstart', () => {
   if (!musicInitialized) {
     music.play().then(() => {
       musicBtn.textContent = '🔊';
       musicInitialized = true;
       isMusicPlaying = true;
-    }).catch(error => {
-      console.log('Автозапуск музыки на тач-устройстве заблокирован');
+    }).catch(() => {
       musicBtn.textContent = '🔇';
       musicInitialized = true;
     });
   }
 }, { once: true });
-
