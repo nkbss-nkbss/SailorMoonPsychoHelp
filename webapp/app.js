@@ -514,7 +514,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
       // ⚠️ Замените на ваш настоящий URL!
-      const backend = 'https://sailor-moon-psycho-help.vercel.app';
+      const backend = 'https://sailormoonpsychohelp-7bkw.onrender.com';
       const resp = await fetch(`${backend}/ask`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -570,6 +570,7 @@ document.addEventListener('touchstart', () => {
     });
   }
 }, { once: true });
+
 
 
 
