@@ -1,6 +1,7 @@
 import os
 import random
 import requests
+import datetime
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import telebot
@@ -18,7 +19,35 @@ CORS(app, resources={r"/*": {"origins": "https://sailor-moon-psycho-help.vercel.
 # === ХРАНЕНИЕ СОСТОЯНИЙ ПОЛЬЗОВАТЕЛЕЙ ===
 user_states = {}
 
+# === ФУНКЦИЯ ЛОГИРОВАНИЯ В TELEGRAM ===
+def log_user_request(username, problem, ip_address):
+    """Отправляет краткий лог в админский Telegram-чат"""
+    if not problem.strip():
+        return
+
+    # Обрезаем для приватности и читаемости
+    safe_problem = problem[:100].replace("\n", " ").strip()
+    timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
+    
+    log_msg = (
+        f"📩 *Новый запрос*\n"
+        f"🕒 Время: `{timestamp}`\n"
+        f"👤 Имя: `{username}`\n"
+        f"🌐 IP: `{ip_address}`\n"
+        f"💬 Текст: {safe_problem}"
+    )
+
+    admin_chat_id = os.getenv("ADMIN_CHAT_ID")
+    if admin_chat_id:
+        try:
+            bot.send_message(admin_chat_id, log_msg, parse_mode='Markdown')
+        except Exception as e:
+            print("⚠️ Не удалось отправить лог:", e)
+
+
 # === ПЕРСОНАЖИ С ФОРМАМИ ===
+# ⬇️ ВСТАВЬ ТУТ СВОЙ ПОЛНЫЙ БЛОК CHARACTERS (как у тебя был) ⬇️
+
 CHARACTERS = {
     "usagi": {
         "name": "Усаги Цукино",
@@ -145,7 +174,6 @@ CHARACTERS = {
             "sailor": "Ты — Такседо Маск, таинственный защитник в маске! Говори с достоинством и загадочностью, но с неизменной теплотой и заботой. Ты — опора и поддержка в трудную минуту."
         }
     },
-
     "seiya": {
         "name": "Сейя Кое",
         "forms": {
@@ -157,7 +185,6 @@ CHARACTERS = {
             "sailor": "Ты — Сейлор Стар Файтер, звёздный воин! Говори с космической силой и решимостью. Твои слова вдохновляют на подвиги и вселяют уверенность. Используй образы звёзд, света и бесконечного космоса."
         }
     },
-
     "taiki": {
         "name": "Тайки Кое",
         "forms": {
@@ -169,7 +196,6 @@ CHARACTERS = {
             "sailor": "Ты — Сейлор Стар Хилер, целительница звёзд! Говори мудро и спокойно, как опытный врач души. Ты исцеляешь словами и находишь корень проблем. Используй медицинские и научные аналогии."
         }
     },
-
     "yaten": {
         "name": "Ятэн Кое",
         "forms": {
@@ -258,7 +284,7 @@ def ask_deepseek(character_key, form_key, problem_text, username):
         print("Ошибка запроса:", e)
         return random.choice(BACKUP_RESPONSES)
 
-# === ГРУППОВОЙ ЗАПРОС (БЕЗ ФОРМ — ТОЛЬКО СТАНДАРТНЫЙ СЕЙЛОР) ===
+# === ГРУППОВОЙ ЗАПРОС ===
 def ask_deepseek_group(character_keys, problem_text, username):
     url = "https://openrouter.ai/api/v1/chat/completions"
 
@@ -266,11 +292,9 @@ def ask_deepseek_group(character_keys, problem_text, username):
     for key in character_keys:
         if key in CHARACTERS:
             char = CHARACTERS[key]
-            # Для группового — используем "sailor" если есть, иначе "human"
             form_key = "sailor" if "sailor" in char["forms"] else "human"
             selected_characters.append({
                 "name": char["forms"][form_key]["title"],
-                "role": "",
                 "style": char["styles"][form_key]
             })
     
@@ -297,7 +321,7 @@ def ask_deepseek_group(character_keys, problem_text, username):
 - Каждый вносит свой вклад согласно характеру
 - Сохраняй уникальные черты
 - Ответ должен быть поддерживающим и вдохновляющим
-- Пиши глаголы в зависимости от имени (пол), иначе неопределенные глаголы.'
+- Пиши глаголы в зависимости от имени (пол), иначе неопределенные глаголы.
 - Максимум 250 слов
 """
 
@@ -334,7 +358,7 @@ def generate_fallback_group_response(character_keys, problem_text, username):
     combined = "\n\n---\n\n".join(responses)
     return f"💫 **Командный совет от Сейлор Воинов!** ✨\n\n{combined}\n\n🌟 *Вместе мы сила!* 💖"
 
-# === ENDPOINT /ask ===
+# === ENDPOINT /ask С ЛОГИРОВАНИЕМ В TELEGRAM ===
 @app.route('/ask', methods=['POST'])
 def ask_endpoint():
     try:
@@ -342,12 +366,16 @@ def ask_endpoint():
     except Exception:
         return jsonify({"ok": False, "error": "invalid json"}), 400
 
+    # === ЛОГИРОВАНИЕ ===
+    user_ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()
+    username = payload.get("username", "аноним")
+    problem = payload.get("problem", "").strip()
+    log_user_request(username, problem, user_ip)
+
     chat_id = payload.get("chat_id")
-    username = payload.get("username", "друг")
     character = payload.get("character", "usagi")
     form = payload.get("form", "human")
     answer_type = payload.get("answer_type", "single")
-    problem = payload.get("problem", "").strip()
 
     if not problem:
         return jsonify({"ok": False, "error": "empty problem"}), 400
@@ -377,7 +405,8 @@ def ask_endpoint():
 
     return jsonify({"ok": True, "advice": advice})
 
-# === TELEGRAM HANDLERS ===
+# === ВСЕ TELEGRAM HANDLERS (БЕЗ ИЗМЕНЕНИЙ) ===
+
 @bot.message_handler(commands=['start'])
 def start(message):
     user_states[message.chat.id] = {
