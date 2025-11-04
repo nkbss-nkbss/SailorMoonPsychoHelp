@@ -20,31 +20,40 @@ CORS(app, resources={r"/*": {"origins": "https://sailor-moon-psycho-help.vercel.
 user_states = {}
 
 # === ФУНКЦИЯ ЛОГИРОВАНИЯ В TELEGRAM ===
-def log_user_request(username, problem, ip_address):
-    """Отправляет краткий лог в админский Telegram-чат"""
+def log_user_request(source, username, problem, identifier):
+    """
+    source: "web" или "telegram"
+    identifier: IP-адрес (для web) или tg_user_id (для telegram)
+    """
     if not problem.strip():
         return
 
-    # Обрезаем для приватности и читаемости
     safe_problem = problem[:100].replace("\n", " ").strip()
     timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
     
-    log_msg = (
-        f"📩 *Новый запрос*\n"
-        f"🕒 Время: `{timestamp}`\n"
-        f"👤 Имя: `{username}`\n"
-        f"🌐 IP: `{ip_address}`\n"
-        f"💬 Текст: {safe_problem}"
-    )
+    if source == "web":
+        log_msg = (
+            f"🌐 *Веб-запрос*\n"
+            f"🕒 Время: `{timestamp}`\n"
+            f"👤 Имя: `{username}`\n"
+            f"🆔 IP: `{identifier}`\n"
+            f"💬 Текст: {safe_problem}"
+        )
+    else:  # telegram
+        log_msg = (
+            f"📱 *Telegram-запрос*\n"
+            f"🕒 Время: `{timestamp}`\n"
+            f"👤 Имя: `{username}`\n"
+            f"🆔 User ID: `{identifier}`\n"
+            f"💬 Текст: {safe_problem}"
+        )
 
     admin_chat_id = os.getenv("ADMIN_CHAT_ID")
-    print(f"🔍 Логирование: ADMIN_CHAT_ID = {admin_chat_id}, msg = {log_msg[:50]}...")  # отладка
     if admin_chat_id:
         try:
             bot.send_message(admin_chat_id, log_msg, parse_mode='Markdown')
-            print("✅ Лог успешно отправлен в Telegram")
         except Exception as e:
-            print("⚠️ ОШИБКА отправки лога:", e)
+            print("⚠️ Ошибка отправки лога:", e)
 
 
 # === ПЕРСОНАЖИ С ФОРМАМИ ===
@@ -372,7 +381,8 @@ def ask_endpoint():
     user_ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()
     username = payload.get("username", "аноним")
     problem = payload.get("problem", "").strip()
-    log_user_request(username, problem, user_ip)
+
+    log_user_request("web", username, problem, user_ip)  # ← вот так
 
     chat_id = payload.get("chat_id")
     character = payload.get("character", "usagi")
@@ -562,11 +572,11 @@ def get_problem(message):
         bot.send_message(message.chat.id, "🌙 Начни с команды /start ✨")
         return
 
-    username = state["name"]
+    username = state["name"] or message.from_user.first_name or "аноним"
     problem = message.text.strip()
-    # Получаем IP — но в Telegram его нет! Поэтому используем "telegram"
-    user_ip = "telegram"  # или message.chat.id, или "direct"
-    log_user_request(username, problem, user_ip)  # ← ДОБАВЬ ЭТУ СТРОКУ
+    user_id = message.from_user.id
+
+    log_user_request("telegram", username, problem, user_id)  # ← добавь эту строку
 
     username = state["name"]
     character_keys = state["characters"]
