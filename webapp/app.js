@@ -94,7 +94,7 @@ const CHARACTERS = {
     }
   },
   "mamoru": {
-    label: "Мамору",
+    label: "Сейя",
     forms: {
       "human": { title: "Сейя Кое ♂️⭐", img: "https://i.pinimg.com/736x/fa/44/48/fa4448c6b3b4d06e33e905e34256199b.jpg" },
       "sailor": { title: "Сейлор Стар Файтер ⭐", img: "https://i.pinimg.com/736x/7c/f6/11/7cf6111d7e826a5e8008310206683b1e.jpg" }
@@ -102,7 +102,7 @@ const CHARACTERS = {
   },
 
   "mamoru": {
-    label: "Мамору",
+    label: "Тайки",
     forms: {
       "human": { title: "Тайки Кое ♂️📚", img: "https://i.pinimg.com/736x/9d/cf/05/9dcf05f2328100ef411b710d30ffc465.jpg" },
       "sailor": { title: "Сейлор Стар Хилер 📚", img: "https://i.pinimg.com/736x/32/1f/c6/321fc67961d968c73c972616e53721af.jpg" }
@@ -110,7 +110,7 @@ const CHARACTERS = {
   },
 
   "mamoru": {
-    label: "Мамору",
+    label: "Ятен",
     forms: {
       "human": { title: "Ятен ♂️🎭", img: "https://i.pinimg.com/736x/68/b2/00/68b2006277d4c56dde09e0eb1cce61e0.jpg" },
       "sailor": { title: "Сейлор Стар Мейкер 🎭", img: "https://i.pinimg.com/736x/90/42/a3/9042a33ae40ccc635e909c2ba00449fb.jpg" }
@@ -570,4 +570,5 @@ document.addEventListener('touchstart', () => {
     });
   }
 }, { once: true });
+
 
