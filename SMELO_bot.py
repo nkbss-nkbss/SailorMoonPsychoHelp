@@ -19,42 +19,6 @@ CORS(app, resources={r"/*": {"origins": "https://sailor-moon-psycho-help.vercel.
 # === ХРАНЕНИЕ СОСТОЯНИЙ ПОЛЬЗОВАТЕЛЕЙ ===
 user_states = {}
 
-# === ФУНКЦИЯ ЛОГИРОВАНИЯ В TELEGRAM ===
-def log_user_request(source, username, problem, identifier):
-    """
-    source: "web" или "telegram"
-    identifier: IP-адрес (для web) или tg_user_id (для telegram)
-    """
-    if not problem.strip():
-        return
-
-    safe_problem = problem[:100].replace("\n", " ").strip()
-    timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
-    
-    if source == "web":
-        log_msg = (
-            f"🌐 *Веб-запрос*\n"
-            f"🕒 Время: `{timestamp}`\n"
-            f"👤 Имя: `{username}`\n"
-            f"🆔 IP: `{identifier}`\n"
-            f"💬 Текст: {safe_problem}"
-        )
-    else:  # telegram
-        log_msg = (
-            f"📱 *Telegram-запрос*\n"
-            f"🕒 Время: `{timestamp}`\n"
-            f"👤 Имя: `{username}`\n"
-            f"🆔 User ID: `{identifier}`\n"
-            f"💬 Текст: {safe_problem}"
-        )
-
-    admin_chat_id = os.getenv("ADMIN_CHAT_ID")
-    if admin_chat_id:
-        try:
-            bot.send_message(admin_chat_id, log_msg, parse_mode='Markdown')
-        except Exception as e:
-            print("⚠️ Ошибка отправки лога:", e)
-
 
 # === ПЕРСОНАЖИ С ФОРМАМИ ===
 # ⬇️ ВСТАВЬ ТУТ СВОЙ ПОЛНЫЙ БЛОК CHARACTERS (как у тебя был) ⬇️
@@ -382,8 +346,6 @@ def ask_endpoint():
     username = payload.get("username", "аноним")
     problem = payload.get("problem", "").strip()
 
-    log_user_request("web", username, problem, user_ip)  # ← вот так
-
     chat_id = payload.get("chat_id")
     character = payload.get("character", "usagi")
     form = payload.get("form", "human")
@@ -575,8 +537,6 @@ def get_problem(message):
     username = state["name"] or message.from_user.first_name or "аноним"
     problem = message.text.strip()
     user_id = message.from_user.id
-
-    log_user_request("telegram", username, problem, user_id)  # ← добавь эту строку
 
     username = state["name"]
     character_keys = state["characters"]
