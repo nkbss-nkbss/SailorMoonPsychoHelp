@@ -563,8 +563,8 @@ def choose_mode(call):
     mode = call.data.split("_")[1]
     user_state = user_states[call.message.chat.id]
     user_state["mode"] = mode
-    user_state["characters"] = []  # Очищаем предыдущий выбор
-    
+    user_state["characters"] = []
+
     if mode == "single":
         text = "👤 Выбери персонажа:"
         markup = create_base_characters_markup()
@@ -581,15 +581,13 @@ def choose_mode(call):
     )
 
 def create_base_characters_markup():
-    """Создает клавиатуру для выбора базовых персонажей"""
     markup = types.InlineKeyboardMarkup(row_width=2)
-    
     buttons = []
     base_characters = ["usagi", "ami", "rei", "minako", "makoto", "hotaru", "setsuna", "haruka", "michiru", "chibiusa", "mamoru", "seiya", "taiki", "yaten"]
     
     for base_char in base_characters:
         char_data = CHARACTERS[CHARACTER_FORMS[base_char][0]]
-        btn_text = f"{char_data['name'].split(' ')[0]}"
+        btn_text = char_data['name'].split(' ')[0]
         callback_data = f"base_{base_char}"
         buttons.append(types.InlineKeyboardButton(btn_text, callback_data=callback_data))
     
@@ -598,38 +596,30 @@ def create_base_characters_markup():
             markup.add(buttons[i], buttons[i+1])
         else:
             markup.add(buttons[i])
-    
     return markup
 
 def create_forms_markup(base_character):
-    """Создает клавиатуру для выбора форм персонажа"""
     markup = types.InlineKeyboardMarkup()
-    
     forms = CHARACTER_FORMS[base_character]
     for form_key in forms:
         char_data = CHARACTERS[form_key]
-        btn_text = f"{char_data['name']}"
+        btn_text = char_data['name']
         callback_data = f"form_{form_key}"
         markup.add(types.InlineKeyboardButton(btn_text, callback_data=callback_data))
-    
     return markup
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("base_"))
 def choose_base_character(call):
     base_char = call.data.split("_")[1]
     user_state = user_states[call.message.chat.id]
-    
     forms = CHARACTER_FORMS[base_char]
     
     if len(forms) > 1:
-        # Если у персонажа есть несколько форм, показываем выбор формы
         user_state["selecting_forms"] = True
         user_state["current_base"] = base_char
-        
         char_data = CHARACTERS[forms[0]]
         text = f"✨ Выбери форму {char_data['base_character'].title()}:"
         markup = create_forms_markup(base_char)
-        
         bot.edit_message_text(
             text,
             call.message.chat.id,
@@ -638,7 +628,6 @@ def choose_base_character(call):
             reply_markup=markup
         )
     else:
-        # Если только одна форма, сразу выбираем
         character_key = forms[0]
         handle_character_selection(call, character_key)
 
@@ -653,22 +642,19 @@ def handle_character_selection(call, character_key):
     
     if mode == "single":
         user_state["characters"] = [character_key]
-        user_state["awaiting_problem"] = True  # Добавляем флаг ожидания
+        user_state["awaiting_problem"] = True
         name = CHARACTERS[character_key]["name"]
         bot.answer_callback_query(call.id, f"✨ {name} теперь с тобой!")
         
-        # ОБНОВЛЯЕМ сообщение после выбора формы
-        bot.edit_message_text(
-            f"💫 {name} готов(а) выслушать. Расскажи, что тебя беспокоит 🌙",
+        msg = bot.send_message(
             call.message.chat.id,
-            call.message.message_id,
+            f"💫 {name} готов(а) выслушать. Расскажи, что тебя беспокоит 🌙",
             parse_mode='Markdown'
         )
-        
+        bot.register_next_step_handler(msg, get_problem_step)
+
     else:
-        # Групповой выбор - добавляем/убираем из списка
         current_chars = user_state["characters"]
-        
         if character_key in current_chars:
             current_chars.remove(character_key)
             action = "❌"
@@ -679,13 +665,9 @@ def handle_character_selection(call, character_key):
             else:
                 bot.answer_callback_query(call.id, "🚫 Можно выбрать до 4 персонажей!")
                 return
-        
         user_state["characters"] = current_chars
-        
-        # Обновляем клавиатуру с кнопкой подтверждения
         markup = create_base_characters_markup_with_confirm(current_chars)
         count_text = f" ({len(current_chars)}/4)" if current_chars else ""
-        
         bot.edit_message_text(
             f"👥 Выбери до 4 персонажей для командного совета{count_text}:",
             call.message.chat.id,
@@ -693,120 +675,83 @@ def handle_character_selection(call, character_key):
             parse_mode='Markdown',
             reply_markup=markup
         )
-        
         char_name = CHARACTERS[character_key]["name"]
         bot.answer_callback_query(call.id, f"{action} {char_name}")
 
 def create_base_characters_markup_with_confirm(selected_chars=None):
-    """Создает клавиатуру для выбора базовых персонажей с кнопкой подтверждения"""
     if selected_chars is None:
         selected_chars = []
-    
     markup = types.InlineKeyboardMarkup(row_width=2)
-    
     buttons = []
     base_characters = ["usagi", "ami", "rei", "minako", "makoto", "hotaru", "setsuna", "haruka", "michiru", "chibiusa", "mamoru", "seiya", "taiki", "yaten"]
-    
     for base_char in base_characters:
         char_data = CHARACTERS[CHARACTER_FORMS[base_char][0]]
-        btn_text = f"{char_data['name'].split(' ')[0]}"
+        btn_text = char_data['name'].split(' ')[0]
         callback_data = f"base_{base_char}"
         buttons.append(types.InlineKeyboardButton(btn_text, callback_data=callback_data))
-    
     for i in range(0, len(buttons), 2):
         if i + 1 < len(buttons):
             markup.add(buttons[i], buttons[i+1])
         else:
             markup.add(buttons[i])
-    
-    # Добавляем кнопку подтверждения если есть выбранные персонажи
     if selected_chars:
         markup.add(types.InlineKeyboardButton("🚀 Получить командный совет", callback_data="confirm_group"))
-    
     return markup
 
 @bot.callback_query_handler(func=lambda call: call.data == "confirm_group")
 def confirm_group(call):
     user_state = user_states[call.message.chat.id]
     selected_chars = user_state["characters"]
-    
     if not selected_chars:
         bot.answer_callback_query(call.id, "🚫 Выбери хотя бы одного персонажа!")
         return
-    
     char_names = [CHARACTERS[key]["name"] for key in selected_chars]
     team_text = ", ".join(char_names)
-    
-    bot.edit_message_text(
-        f"👥 **Команда собрана!** ✨\n\n{team_text} готовы выслушать тебя!\n\nРасскажи, что тебя беспокоит 🌙",
+    msg = bot.send_message(
         call.message.chat.id,
-        call.message.message_id,
+        f"👥 **Команда собрана!** ✨\n\n{team_text} готовы выслушать тебя!\n\nРасскажи, что тебя беспокоит 🌙",
         parse_mode='Markdown'
     )
-    
-    # Добавляем состояние, что пользователь ожидает ввода проблемы
     user_state["awaiting_problem"] = True
+    bot.register_next_step_handler(msg, get_problem_step)
 
-@bot.message_handler(content_types=['text'])
-def get_problem(message):
+def get_problem_step(message):
     state = user_states.get(message.chat.id)
-    
-    # Проверяем, ожидает ли бот проблему от пользователя
-    if not state or not state.get("characters"):
-        # Если это не ответ на предыдущий запрос, предлагаем начать
-        if not state or not state.get("awaiting_problem"):
-            bot.send_message(message.chat.id, "🌙 Начни с команды /start ✨")
-            return
-    
+    if not state or not state.get("characters") or not state.get("awaiting_problem"):
+        bot.send_message(message.chat.id, "🌙 Пожалуйста, начни с команды /start ✨")
+        return
+
+    state["awaiting_problem"] = False
     username = state["name"]
     character_keys = state["characters"]
     mode = state.get("mode", "single")
 
-    # Сбрасываем флаг ожидания проблемы
-    if "awaiting_problem" in state:
-        state["awaiting_problem"] = False
-
-    thinking_text = "🌕 Советчица обдумывает ответ... 💫"
-    if mode == "group":
-        thinking_text = "🌕 Команда обсуждает твой вопрос... 💫"
-    
+    thinking_text = "🌕 Команда обсуждает твой вопрос... 💫" if mode == "group" else "🌕 Советчица обдумывает ответ... 💫"
     thinking = bot.send_message(message.chat.id, thinking_text)
 
     if mode == "group" and len(character_keys) > 1:
-        # Групповой ответ
         advice = ask_deepseek_group(character_keys, message.text.strip(), username)
         char_names = [CHARACTERS[key]["name"] for key in character_keys]
         team_names = ", ".join(char_names)
         advice += f"\n\n💖 *С любовью, твоя команда: {team_names}!* ✨"
-        
-        # Для группового ответа отправляем без конкретной картинки
-        try: 
+        try:
             bot.delete_message(message.chat.id, thinking.message_id)
-        except: 
+        except:
             pass
         bot.send_message(message.chat.id, advice, parse_mode='Markdown')
-        
     else:
-        # Одиночный ответ
         char_key = character_keys[0]
         advice = ask_deepseek(char_key, message.text.strip(), username)
         advice += f"\n\n💖 *С любовью, {CHARACTERS[char_key]['name']}!*"
-
-        try: 
+        try:
             bot.delete_message(message.chat.id, thinking.message_id)
-        except: 
+        except:
             pass
-        
         send_message_with_photo(message.chat.id, advice, char_key)
 
-    # Предлагаем начать заново
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton("🔄 Новый вопрос", callback_data="restart"))
-    
-    end_text = "✨ Лунная магия всегда с тобой! 🌙"
-    if mode == "group":
-        end_text = "🌟 Вместе мы сила! 💫"
-        
+    end_text = "🌟 Вместе мы сила! 💫" if mode == "group" else "✨ Лунная магия всегда с тобой! 🌙"
     bot.send_message(message.chat.id, end_text, parse_mode='Markdown', reply_markup=markup)
 
 @bot.callback_query_handler(func=lambda call: call.data == "restart")
@@ -840,17 +785,12 @@ def health():
 
 if __name__ == "__main__":
     print("🌙 Sailor Moon Bot запускается... ✨")
-    
-    # Проверяем обязательные переменные
     if not BOT_TOKEN:
         print("❌ ОШИБКА: BOT_TOKEN не установлен!")
     if not DEEPSEEK_API_KEY:
         print("❌ ОШИБКА: DEEPSEEK_API_KEY не установлен!")
-    
     set_webhook()
     port = int(os.getenv("PORT", 5000))
-    
     print(f"🚀 Сервер запускается на порту {port}")
     print(f"🌐 Webhook URL: {VERCEL_URL}/webhook" if VERCEL_URL else "⚠️ Webhook не настроен")
-    
     app.run(host='0.0.0.0', port=port, debug=False)
