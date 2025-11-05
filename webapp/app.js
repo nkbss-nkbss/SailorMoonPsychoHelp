@@ -140,6 +140,8 @@ const music = document.getElementById('bg-music');
 const clickSound = document.getElementById('click-sound');
 const magicSound = document.getElementById('magic-sound');
 const selectSound = document.getElementById('select-sound');
+const DEFAULT_MUSIC_VOLUME = 0.3;
+const QUIET_MUSIC_VOLUME = 0.1;
 
 // === Music fade variables ===
 let fadeInterval;
@@ -150,21 +152,36 @@ const FADE_INTERVAL = FADE_DURATION / FADE_STEPS;
 
 // === Character sound functions ===
 function playCharacterSound(characterKey) {
+  // Остановить предыдущий звук персонажа
   if (characterSound && !characterSound.paused) {
     characterSound.pause();
     characterSound.currentTime = 0;
   }
+
+  // Приглушить фоновую музыку
+  if (!isFading) {
+    music.volume = QUIET_MUSIC_VOLUME;
+  }
+
   const soundFile = CHARACTER_SOUNDS[characterKey];
   if (!soundFile) {
     playSelectSound();
     return;
   }
+
   characterSound = new Audio(soundFile);
   characterSound.volume = 0.4;
   characterSound.play().catch(e => {
     console.log('Character sound error:', e);
     playSelectSound();
   });
+
+  // Восстановить громкость фоновой музыки, когда индивидуальный звук закончится
+  characterSound.onended = () => {
+    if (!isFading && isMusicPlaying) {
+      music.volume = DEFAULT_MUSIC_VOLUME;
+    }
+  };
 }
 
 // === Progress bar ===
@@ -457,6 +474,14 @@ document.addEventListener('DOMContentLoaded', () => {
     show(STEP.CHAR, 'prev');
   };
   document.getElementById('btn-form-next').onclick = () => {
+    // Остановить звук персонажа
+    if (characterSound && !characterSound.paused) {
+      characterSound.pause();
+      characterSound.currentTime = 0;
+    }
+    if (isMusicPlaying && !isFading) {
+      music.volume = DEFAULT_MUSIC_VOLUME;
+    }
     show(STEP.PROB, 'next');
   };
 
@@ -477,6 +502,15 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-char-back').onclick = () => show(STEP.TYPE, 'prev');
   document.getElementById('btn-char-next').onclick = () => {
     if (state.answerType === 'group') {
+      // Остановить текущий звук персонажа
+      if (characterSound && !characterSound.paused) {
+        characterSound.pause();
+        characterSound.currentTime = 0;
+      }
+      // Вернуть фоновую музыку
+      if (isMusicPlaying && !isFading) {
+        music.volume = DEFAULT_MUSIC_VOLUME;
+      }
       show(STEP.PROB, 'next');
     } else {
       alert('Выбери персонажа выше');
@@ -570,6 +604,7 @@ document.addEventListener('touchstart', () => {
     });
   }
 }, { once: true });
+
 
 
 
