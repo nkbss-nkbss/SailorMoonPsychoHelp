@@ -385,6 +385,310 @@ function renderFormStep() {
   }
 }
 
+// === КЛАСС ДНЕВНИКА НАСТРОЕНИЯ ===
+class MoodDiary {
+    constructor() {
+        this.entries = this.loadEntries();
+        this.currentMood = null;
+        this.init();
+    }
+
+    init() {
+        this.setupEventListeners();
+        this.renderMoodCalendar();
+        this.updateStats();
+    }
+
+    setupEventListeners() {
+        // Выбор настроения
+        document.querySelectorAll('.mood-option').forEach(option => {
+            option.addEventListener('click', () => {
+                this.selectMood(option.dataset.mood);
+            });
+        });
+
+        // Сохранение записи
+        document.getElementById('save-mood').addEventListener('click', () => {
+            this.saveEntry();
+        });
+
+        // Экспорт/импорт
+        document.getElementById('export-mood').addEventListener('click', () => {
+            this.exportData();
+        });
+
+        document.getElementById('import-mood').addEventListener('click', () => {
+            document.getElementById('import-file').click();
+        });
+
+        document.getElementById('import-file').addEventListener('change', (e) => {
+            this.importData(e.target.files[0]);
+        });
+    }
+
+    selectMood(mood) {
+        this.currentMood = parseInt(mood);
+        
+        document.querySelectorAll('.mood-option').forEach(opt => {
+            opt.classList.remove('selected');
+        });
+        
+        document.querySelector(`.mood-option[data-mood="${mood}"]`).classList.add('selected');
+        playSelectSound();
+    }
+
+    saveEntry() {
+        if (!this.currentMood) {
+            alert('Выбери настроение!');
+            return;
+        }
+
+        const note = document.getElementById('mood-note').value.trim();
+        
+        const entry = {
+            id: Date.now(),
+            date: new Date().toISOString(),
+            mood: this.currentMood,
+            note: note || '',
+            timestamp: Date.now()
+        };
+
+        this.entries.push(entry);
+        this.saveEntries();
+        this.renderMoodCalendar();
+        this.updateStats();
+        
+        // Анимация сохранения
+        const saveBtn = document.getElementById('save-mood');
+        saveBtn.textContent = '✅ Сохранено!';
+        saveBtn.classList.add('mood-saved');
+        
+        setTimeout(() => {
+            saveBtn.textContent = '💾 Сохранить запись';
+            saveBtn.classList.remove('mood-saved');
+        }, 2000);
+
+        // Очистка формы
+        document.getElementById('mood-note').value = '';
+        document.querySelectorAll('.mood-option').forEach(opt => {
+            opt.classList.remove('selected');
+        });
+        this.currentMood = null;
+
+        playMagicSound();
+    }
+
+    loadEntries() {
+        const stored = localStorage.getItem('moon_mood_diary');
+        return stored ? JSON.parse(stored) : [];
+    }
+
+    saveEntries() {
+        localStorage.setItem('moon_mood_diary', JSON.stringify(this.entries));
+    }
+
+    renderMoodCalendar() {
+        const container = document.getElementById('mood-calendar');
+        const today = new Date();
+        const last30Days = this.getLast30Days();
+        
+        container.innerHTML = last30Days.map(day => {
+            const entry = this.getEntryByDate(day);
+            const moodLevel = entry ? entry.mood : 0;
+            const dayNumber = new Date(day).getDate();
+            const isToday = this.isSameDay(day, today);
+            
+            return `
+                <div class="calendar-day ${isToday ? 'today' : ''}" 
+                     data-date="${day}" 
+                     data-mood="${moodLevel}"
+                     title="${entry ? `Настроение: ${moodLevel}/5` : 'Нет записи'}">
+                    <div class="day-mood mood-${moodLevel}"></div>
+                    <span class="day-number">${dayNumber}</span>
+                </div>
+            `;
+        }).join('');
+    }
+
+    getLast30Days() {
+        const days = [];
+        const today = new Date();
+        
+        for (let i = 29; i >= 0; i--) {
+            const date = new Date(today);
+            date.setDate(today.getDate() - i);
+            days.push(date.toISOString().split('T')[0]);
+        }
+        
+        return days;
+    }
+
+    getEntryByDate(dateString) {
+        return this.entries.find(entry => 
+            entry.date.startsWith(dateString)
+        );
+    }
+
+    isSameDay(dateString1, date2) {
+        return dateString1 === date2.toISOString().split('T')[0];
+    }
+
+    updateStats() {
+        if (this.entries.length === 0) {
+            document.getElementById('mood-average').textContent = '-';
+            document.getElementById('total-entries').textContent = '0';
+            document.getElementById('current-streak').textContent = '0';
+            document.getElementById('best-mood').textContent = '-';
+            return;
+        }
+
+        // Среднее настроение
+        const average = this.entries.reduce((sum, entry) => sum + entry.mood, 0) / this.entries.length;
+        document.getElementById('mood-average').textContent = average.toFixed(1);
+
+        // Всего записей
+        document.getElementById('total-entries').textContent = this.entries.length;
+
+        // Текущая серия
+        document.getElementById('current-streak').textContent = this.calculateCurrentStreak();
+
+        // Лучшее настроение
+        const bestMood = Math.max(...this.entries.map(entry => entry.mood));
+        document.getElementById('best-mood').textContent = bestMood;
+    }
+
+    calculateCurrentStreak() {
+        if (this.entries.length === 0) return 0;
+        
+        const sortedEntries = [...this.entries].sort((a, b) => new Date(b.date) - new Date(a.date));
+        let streak = 0;
+        let currentDate = new Date();
+        
+        for (let i = 0; i < sortedEntries.length; i++) {
+            const entryDate = new Date(sortedEntries[i].date);
+            if (this.isSameDay(entryDate.toISOString().split('T')[0], currentDate) || 
+                this.isConsecutiveDay(entryDate, currentDate)) {
+                streak++;
+                currentDate = new Date(entryDate);
+                currentDate.setDate(currentDate.getDate() - 1);
+            } else {
+                break;
+            }
+        }
+        
+        return streak;
+    }
+
+    isConsecutiveDay(date1, date2) {
+        const prevDay = new Date(date2);
+        prevDay.setDate(prevDay.getDate() - 1);
+        return date1.toISOString().split('T')[0] === prevDay.toISOString().split('T')[0];
+    }
+
+    exportData() {
+        const data = JSON.stringify(this.entries, null, 2);
+        const blob = new Blob([data], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `moon-diary-${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        playClickSound();
+    }
+
+    importData(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const imported = JSON.parse(e.target.result);
+                if (Array.isArray(imported)) {
+                    this.entries = imported;
+                    this.saveEntries();
+                    this.renderMoodCalendar();
+                    this.updateStats();
+                    alert('✅ Данные успешно импортированы!');
+                    playMagicSound();
+                } else {
+                    alert('❌ Неверный формат файла');
+                }
+            } catch (error) {
+                alert('❌ Ошибка при импорте файла');
+            }
+        };
+        reader.readAsText(file);
+    }
+}
+
+// === УПРАВЛЕНИЕ РЕЖИМАМИ ===
+function setupNavigation() {
+    const navButtons = document.querySelectorAll('.nav-btn');
+    const chatMode = document.getElementById('chat-mode');
+    const diaryMode = document.getElementById('diary-mode');
+    const progressContainer = document.getElementById('progress-container');
+    const subtitle = document.getElementById('main-subtitle');
+
+    navButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const targetTab = this.dataset.tab;
+            
+            // Обновляем активную кнопку
+            navButtons.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            playClickSound();
+            
+            // Переключаем режимы
+            if (targetTab === 'chat') {
+                chatMode.classList.remove('hidden');
+                diaryMode.classList.add('hidden');
+                progressContainer.classList.remove('hidden');
+                subtitle.textContent = 'Воин в матроске всегда поможет!';
+            } else {
+                chatMode.classList.add('hidden');
+                diaryMode.classList.remove('hidden');
+                progressContainer.classList.add('hidden');
+                subtitle.textContent = 'Следи за своим настроением 🌈';
+                
+                // Инициализируем дневник если еще не инициализирован
+                if (!window.moodDiary) {
+                    window.moodDiary = new MoodDiary();
+                } else {
+                    window.moodDiary.renderMoodCalendar();
+                    window.moodDiary.updateStats();
+                }
+            }
+        });
+    });
+}
+
+// === ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ ===
+document.addEventListener('DOMContentLoaded', () => {
+    // Инициализация существующего функционала
+    initMusic();
+    setupCharacterSelection();
+    setupNavigation(); // Добавляем инициализацию навигации
+    
+    // Показываем начальный экран
+    show(STEP.NAME);
+
+    // Предзагружаем дневник
+    window.moodDiary = new MoodDiary();
+});
+
+// Обнови функцию show чтобы скрывать прогресс-бар в режиме дневника
+const originalShow = show;
+show = function(step, direction = 'next') {
+    originalShow(step, direction);
+    
+    // Скрываем прогресс-бар в режиме дневника
+    const activeNav = document.querySelector('.nav-btn.active');
+    if (activeNav && activeNav.dataset.tab === 'diary') {
+        document.getElementById('progress-container').classList.add('hidden');
+    }
+};
+
 // === Music ===
 const musicBtn = document.getElementById('music-toggle');
 let musicInitialized = false;
@@ -604,6 +908,7 @@ document.addEventListener('touchstart', () => {
     });
   }
 }, { once: true });
+
 
 
 
