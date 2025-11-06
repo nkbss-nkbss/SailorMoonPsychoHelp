@@ -19,7 +19,7 @@ let state = {
   problem: ""
 };
 
-// === CHARACTER DATA WITH FORMS ===
+// === CHARACTER DATA WITH FORMS (без лишних пробелов в URL) ===
 const CHARACTERS = {
   "usagi": {
     label: "Усаги",
@@ -100,6 +100,7 @@ const CHARACTERS = {
       "sailor": { title: "Сейлор Стар Файтер ⭐", img: "https://i.pinimg.com/736x/7c/f6/11/7cf6111d7e826a5e8008310206683b1e.jpg" }
     }
   },
+
   "taiki": {
     label: "Тайки",
     forms: {
@@ -107,6 +108,7 @@ const CHARACTERS = {
       "sailor": { title: "Сейлор Стар Хилер 📚", img: "https://i.pinimg.com/736x/32/1f/c6/321fc67961d968c73c972616e53721af.jpg" }
     }
   },
+
   "yaten": {
     label: "Ятен",
     forms: {
@@ -150,11 +152,13 @@ const FADE_INTERVAL = FADE_DURATION / FADE_STEPS;
 
 // === Character sound functions ===
 function playCharacterSound(characterKey) {
+  // Остановить предыдущий звук персонажа
   if (characterSound && !characterSound.paused) {
     characterSound.pause();
     characterSound.currentTime = 0;
   }
 
+  // Приглушить фоновую музыку
   if (!isFading) {
     music.volume = QUIET_MUSIC_VOLUME;
   }
@@ -172,6 +176,7 @@ function playCharacterSound(characterKey) {
     playSelectSound();
   });
 
+  // Восстановить громкость фоновой музыки, когда индивидуальный звук закончится
   characterSound.onended = () => {
     if (!isFading && isMusicPlaying) {
       music.volume = DEFAULT_MUSIC_VOLUME;
@@ -264,7 +269,7 @@ function fadeOut(audio) {
   }, FADE_INTERVAL);
 }
 
-// === Show step ===
+// === Show step (С КЛЮЧЕВЫМ ИСПРАВЛЕНИЕМ) ===
 function show(step, direction = 'next') {
   playClickSound();
   const current = document.querySelector('.card.active');
@@ -284,6 +289,7 @@ function show(step, direction = 'next') {
       next.classList.add('active');
       updateProgressBar(step);
 
+      // 🔥 КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: рендерим формы при входе на шаг
       if (step === STEP.FORM) {
         renderFormStep();
       }
@@ -379,269 +385,6 @@ function renderFormStep() {
   }
 }
 
-// === КЛАСС ДНЕВНИКА НАСТРОЕНИЯ ===
-class MoodDiary {
-    constructor() {
-        this.entries = this.loadEntries();
-        this.currentMood = null;
-        this.init();
-    }
-
-    init() {
-        this.setupEventListeners();
-        this.renderMoodCalendar();
-        this.updateStats();
-    }
-
-    setupEventListeners() {
-        document.querySelectorAll('.mood-option').forEach(option => {
-            option.addEventListener('click', () => {
-                this.selectMood(option.dataset.mood);
-            });
-        });
-
-        document.getElementById('save-mood').addEventListener('click', () => {
-            this.saveEntry();
-        });
-
-        document.getElementById('export-mood').addEventListener('click', () => {
-            this.exportData();
-        });
-
-        document.getElementById('import-mood').addEventListener('click', () => {
-            document.getElementById('import-file').click();
-        });
-
-        document.getElementById('import-file').addEventListener('change', (e) => {
-            this.importData(e.target.files[0]);
-        });
-    }
-
-    selectMood(mood) {
-        this.currentMood = parseInt(mood);
-        
-        document.querySelectorAll('.mood-option').forEach(opt => {
-            opt.classList.remove('selected');
-        });
-        
-        document.querySelector(`.mood-option[data-mood="${mood}"]`).classList.add('selected');
-        playSelectSound();
-    }
-
-    saveEntry() {
-        if (!this.currentMood) {
-            alert('Выбери настроение!');
-            return;
-        }
-
-        const note = document.getElementById('mood-note').value.trim();
-        
-        const entry = {
-            id: Date.now(),
-            date: new Date().toISOString(),
-            mood: this.currentMood,
-            note: note || '',
-            timestamp: Date.now()
-        };
-
-        this.entries.push(entry);
-        this.saveEntries();
-        this.renderMoodCalendar();
-        this.updateStats();
-        
-        const saveBtn = document.getElementById('save-mood');
-        saveBtn.textContent = '✅ Сохранено!';
-        saveBtn.classList.add('mood-saved');
-        
-        setTimeout(() => {
-            saveBtn.textContent = '💾 Сохранить запись';
-            saveBtn.classList.remove('mood-saved');
-        }, 2000);
-
-        document.getElementById('mood-note').value = '';
-        document.querySelectorAll('.mood-option').forEach(opt => {
-            opt.classList.remove('selected');
-        });
-        this.currentMood = null;
-
-        playMagicSound();
-    }
-
-    loadEntries() {
-        const stored = localStorage.getItem('moon_mood_diary');
-        return stored ? JSON.parse(stored) : [];
-    }
-
-    saveEntries() {
-        localStorage.setItem('moon_mood_diary', JSON.stringify(this.entries));
-    }
-
-    renderMoodCalendar() {
-        const container = document.getElementById('mood-calendar');
-        const today = new Date();
-        const last30Days = this.getLast30Days();
-        
-        container.innerHTML = last30Days.map(day => {
-            const entry = this.getEntryByDate(day);
-            const moodLevel = entry ? entry.mood : 0;
-            const dayNumber = new Date(day).getDate();
-            const isToday = this.isSameDay(day, today);
-            
-            return `
-                <div class="calendar-day ${isToday ? 'today' : ''}" 
-                     data-date="${day}" 
-                     data-mood="${moodLevel}"
-                     title="${entry ? `Настроение: ${moodLevel}/5` : 'Нет записи'}">
-                    <div class="day-mood mood-${moodLevel}"></div>
-                    <span class="day-number">${dayNumber}</span>
-                </div>
-            `;
-        }).join('');
-    }
-
-    getLast30Days() {
-        const days = [];
-        const today = new Date();
-        
-        for (let i = 29; i >= 0; i--) {
-            const date = new Date(today);
-            date.setDate(today.getDate() - i);
-            days.push(date.toISOString().split('T')[0]);
-        }
-        
-        return days;
-    }
-
-    getEntryByDate(dateString) {
-        return this.entries.find(entry => 
-            entry.date.startsWith(dateString)
-        );
-    }
-
-    isSameDay(dateString1, date2) {
-        return dateString1 === date2.toISOString().split('T')[0];
-    }
-
-    updateStats() {
-        if (this.entries.length === 0) {
-            document.getElementById('mood-average').textContent = '-';
-            document.getElementById('total-entries').textContent = '0';
-            document.getElementById('current-streak').textContent = '0';
-            document.getElementById('best-mood').textContent = '-';
-            return;
-        }
-
-        const average = this.entries.reduce((sum, entry) => sum + entry.mood, 0) / this.entries.length;
-        document.getElementById('mood-average').textContent = average.toFixed(1);
-        document.getElementById('total-entries').textContent = this.entries.length;
-        document.getElementById('current-streak').textContent = this.calculateCurrentStreak();
-        const bestMood = Math.max(...this.entries.map(entry => entry.mood));
-        document.getElementById('best-mood').textContent = bestMood;
-    }
-
-    calculateCurrentStreak() {
-        if (this.entries.length === 0) return 0;
-        
-        const sortedEntries = [...this.entries].sort((a, b) => new Date(b.date) - new Date(a.date));
-        let streak = 0;
-        let currentDate = new Date();
-        
-        for (let i = 0; i < sortedEntries.length; i++) {
-            const entryDate = new Date(sortedEntries[i].date);
-            if (this.isSameDay(entryDate.toISOString().split('T')[0], currentDate) || 
-                this.isConsecutiveDay(entryDate, currentDate)) {
-                streak++;
-                currentDate = new Date(entryDate);
-                currentDate.setDate(currentDate.getDate() - 1);
-            } else {
-                break;
-            }
-        }
-        
-        return streak;
-    }
-
-    isConsecutiveDay(date1, date2) {
-        const prevDay = new Date(date2);
-        prevDay.setDate(prevDay.getDate() - 1);
-        return date1.toISOString().split('T')[0] === prevDay.toISOString().split('T')[0];
-    }
-
-    exportData() {
-        const data = JSON.stringify(this.entries, null, 2);
-        const blob = new Blob([data], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `moon-diary-${new Date().toISOString().split('T')[0]}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-        
-        playClickSound();
-    }
-
-    importData(file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const imported = JSON.parse(e.target.result);
-                if (Array.isArray(imported)) {
-                    this.entries = imported;
-                    this.saveEntries();
-                    this.renderMoodCalendar();
-                    this.updateStats();
-                    alert('✅ Данные успешно импортированы!');
-                    playMagicSound();
-                } else {
-                    alert('❌ Неверный формат файла');
-                }
-            } catch (error) {
-                alert('❌ Ошибка при импорте файла');
-            }
-        };
-        reader.readAsText(file);
-    }
-}
-
-// === УПРАВЛЕНИЕ РЕЖИМАМИ ===
-function setupNavigation() {
-    const navButtons = document.querySelectorAll('.nav-btn');
-    const chatMode = document.getElementById('chat-mode');
-    const diaryMode = document.getElementById('diary-mode');
-    const progressContainer = document.getElementById('progress-container');
-    const subtitle = document.getElementById('main-subtitle');
-
-    navButtons.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const targetTab = this.dataset.tab;
-            
-            navButtons.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            
-            playClickSound();
-            
-            if (targetTab === 'chat') {
-                chatMode.classList.remove('hidden');
-                diaryMode.classList.add('hidden');
-                progressContainer.classList.remove('hidden');
-                subtitle.textContent = 'Воин в матроске всегда поможет!';
-            } else {
-                chatMode.classList.add('hidden');
-                diaryMode.classList.remove('hidden');
-                progressContainer.classList.add('hidden');
-                subtitle.textContent = 'Следи за своим настроением 🌈';
-                
-                if (!window.moodDiary) {
-                    window.moodDiary = new MoodDiary();
-                } else {
-                    window.moodDiary.renderMoodCalendar();
-                    window.moodDiary.updateStats();
-                }
-            }
-        });
-    });
-}
-
 // === Music ===
 const musicBtn = document.getElementById('music-toggle');
 let musicInitialized = false;
@@ -660,7 +403,6 @@ function initMusic() {
     }
   }, { once: true });
 }
-
 function toggleMusic() {
   if (isFading) return;
   if (isMusicPlaying) {
@@ -673,38 +415,39 @@ function toggleMusic() {
     isMusicPlaying = true;
   }
 }
+window.addEventListener('beforeunload', () => {
+  if (!music.paused) { music.volume = 0; music.pause(); }
+});
 
 // === Parallax & Stars ===
-function initParallax() {
-  document.addEventListener('mousemove', e => {
-    const x = (e.clientX / window.innerWidth - 0.5) * 25;
-    const y = (e.clientY / window.innerHeight - 0.5) * 25;
-    document.querySelectorAll('.parallax-layer').forEach((layer, i) => {
-      const f = 1 + i*0.2;
-      layer.style.transform = `translate(${x*f}px, ${y*f}px)`;
-    });
+document.addEventListener('mousemove', e => {
+  const x = (e.clientX / window.innerWidth - 0.5) * 25;
+  const y = (e.clientY / window.innerHeight - 0.5) * 25;
+  document.querySelectorAll('.parallax-layer').forEach((layer, i) => {
+    const f = 1 + i*0.2;
+    layer.style.transform = `translate(${x*f}px, ${y*f}px)`;
   });
-  
-  const starsContainer = document.querySelector('.stars');
-  for (let i = 0; i < 150; i++) {
-    const star = document.createElement('div');
-    star.classList.add('star');
-    star.style.top = Math.random() * 100 + '%';
-    star.style.left = Math.random() * 100 + '%';
-    star.style.width = star.style.height = Math.random() * 2 + 1 + 'px';
-    star.style.animationDelay = Math.random() * 5 + 's';
-    starsContainer.appendChild(star);
-    star.style.animation = `twinkle ${2 + Math.random()*3}s infinite ease-in-out, fall ${5 + Math.random()*5}s linear ${Math.random()*5}s infinite`;
-  }
-  
-  const moonLayer = document.getElementById('moon');
-  if(moonLayer){
-    moonLayer.style.animation = "pulse 4s infinite ease-in-out alternate";
-  }
+});
+const starsContainer = document.querySelector('.stars');
+for (let i = 0; i < 150; i++) {
+  const star = document.createElement('div');
+  star.classList.add('star');
+  star.style.top = Math.random() * 100 + '%';
+  star.style.left = Math.random() * 100 + '%';
+  star.style.width = star.style.height = Math.random() * 2 + 1 + 'px';
+  star.style.animationDelay = Math.random() * 5 + 's';
+  starsContainer.appendChild(star);
+  star.style.animation = `twinkle ${2 + Math.random()*3}s infinite ease-in-out, fall ${5 + Math.random()*5}s linear ${Math.random()*5}s infinite`;
+}
+const moonLayer = document.getElementById('moon');
+if(moonLayer){
+  moonLayer.style.animation = "pulse 4s infinite ease-in-out alternate";
 }
 
-// === Setup Character Selection ===
-function setupCharacterSelection() {
+// === DOMContentLoaded ===
+document.addEventListener('DOMContentLoaded', () => {
+  initMusic();
+
   document.querySelectorAll('.type-option').forEach(opt => {
     opt.addEventListener('click', () => {
       playSelectSound();
@@ -713,7 +456,8 @@ function setupCharacterSelection() {
       state.answerType = opt.dataset.type;
     });
   });
-  
+  document.querySelector('.type-option[data-type="single"]').classList.add('selected');
+
   const charContainer = document.getElementById('characters');
   for (const key in CHARACTERS) {
     const ch = CHARACTERS[key];
@@ -724,22 +468,13 @@ function setupCharacterSelection() {
     div.onclick = () => handleCharacterClick(key);
     charContainer.appendChild(div);
   }
-}
+  charContainer.querySelector('.char-card').classList.add('selected');
 
-// === ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ ===
-document.addEventListener('DOMContentLoaded', () => {
-  initMusic();
-  initParallax();
-  setupCharacterSelection();
-  setupNavigation();
-  
-  // Установка начальных значений
-  document.querySelector('.type-option[data-type="single"]').classList.add('selected');
-  document.querySelector('.char-card').classList.add('selected');
-  
-  // Обработчики кнопок
-  document.getElementById('btn-form-back').onclick = () => show(STEP.CHAR, 'prev');
+  document.getElementById('btn-form-back').onclick = () => {
+    show(STEP.CHAR, 'prev');
+  };
   document.getElementById('btn-form-next').onclick = () => {
+    // Остановить звук персонажа
     if (characterSound && !characterSound.paused) {
       characterSound.pause();
       characterSound.currentTime = 0;
@@ -762,16 +497,17 @@ document.addEventListener('DOMContentLoaded', () => {
     state.name = name;
     show(STEP.TYPE, 'next');
   };
-  
   document.getElementById('btn-type-back').onclick = () => show(STEP.NAME, 'prev');
   document.getElementById('btn-type-next').onclick = () => show(STEP.CHAR, 'next');
   document.getElementById('btn-char-back').onclick = () => show(STEP.TYPE, 'prev');
   document.getElementById('btn-char-next').onclick = () => {
     if (state.answerType === 'group') {
+      // Остановить текущий звук персонажа
       if (characterSound && !characterSound.paused) {
         characterSound.pause();
         characterSound.currentTime = 0;
       }
+      // Вернуть фоновую музыку
       if (isMusicPlaying && !isFading) {
         music.volume = DEFAULT_MUSIC_VOLUME;
       }
@@ -780,7 +516,6 @@ document.addEventListener('DOMContentLoaded', () => {
       alert('Выбери персонажа выше');
     }
   };
-  
   document.getElementById('btn-problem-back').onclick = () => {
     if (state.answerType === 'group') {
       show(STEP.CHAR, 'prev');
@@ -788,7 +523,6 @@ document.addEventListener('DOMContentLoaded', () => {
       show(STEP.FORM, 'prev');
     }
   };
-  
   document.getElementById('btn-problem-send').onclick = async () => {
     playMagicSound();
     const problem = document.getElementById('input-problem').value.trim();
@@ -813,6 +547,7 @@ document.addEventListener('DOMContentLoaded', () => {
     show(STEP.RES, 'zoom');
 
     try {
+      // ⚠️ Замените на ваш настоящий URL!
       const backend = 'https://sailormoonpsychohelp-7bkw.onrender.com';
       const resp = await fetch(`${backend}/ask`, {
         method: 'POST',
@@ -837,34 +572,26 @@ document.addEventListener('DOMContentLoaded', () => {
       resultBox.innerText = "Ошибка связи с сервером. Попробуй позже.";
     }
   };
-  
   document.getElementById('btn-result-again').onclick = () => {
     document.getElementById('input-problem').value = '';
     show(STEP.PROB, 'prev');
   };
-  
   document.getElementById('btn-result-close').onclick = () => tg.close();
 
   document.querySelectorAll('.btn').forEach(btn => {
     btn.addEventListener('click', playClickSound);
   });
 
-  // Автозаполнение имени из Telegram
+  show(STEP.NAME);
+
   try {
     const init = tg.initDataUnsafe || {};
     if (init.user && init.user.first_name) {
       document.getElementById('input-name').value = init.user.first_name;
     }
   } catch (e) { /* ignore */ }
-
-  // Показываем начальный экран
-  show(STEP.NAME);
-
-  // Предзагружаем дневник
-  window.moodDiary = new MoodDiary();
 });
 
-// Touch support for music
 document.addEventListener('touchstart', () => {
   if (!musicInitialized) {
     music.play().then(() => {
@@ -878,10 +605,7 @@ document.addEventListener('touchstart', () => {
   }
 }, { once: true });
 
-// Beforeunload cleanup
-window.addEventListener('beforeunload', () => {
-  if (!music.paused) { 
-    music.volume = 0; 
-    music.pause(); 
-  }
-});
+
+
+
+
