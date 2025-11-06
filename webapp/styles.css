@@ -768,3 +768,362 @@ footer{ text-align:center; color:#8c6fae; margin-top:8px; font-size:12px }
   color: var(--accent-2);
   font-weight: 700;
 }
+
+/* === НИЖНЯЯ НАВИГАЦИЯ === */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 250, 255, 0.98));
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(183, 138, 230, 0.2);
+  padding: 8px 0;
+  z-index: 1000;
+  box-shadow: 0 -4px 20px rgba(91, 64, 120, 0.1);
+}
+
+.nav-container {
+  display: flex;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.nav-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(183, 138, 230, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+.nav-btn:hover::before {
+  left: 100%;
+}
+
+.nav-btn.active {
+  background: linear-gradient(135deg, rgba(255, 176, 230, 0.15), rgba(183, 138, 230, 0.1));
+  transform: translateY(-2px);
+}
+
+.nav-btn.active .nav-icon {
+  transform: scale(1.2);
+  background: linear-gradient(135deg, #ff9ad8, #d58cf1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.nav-btn.active .nav-label {
+  color: var(--accent-2);
+  font-weight: 600;
+}
+
+.nav-icon {
+  font-size: 1.4rem;
+  transition: all 0.3s ease;
+}
+
+.nav-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6b4b7a;
+  transition: color 0.3s ease;
+}
+
+/* Адаптивность для навигации */
+@media (max-width: 600px) {
+  .nav-container {
+    padding: 0 16px;
+  }
+  
+  .nav-btn {
+    padding: 10px 6px;
+  }
+  
+  .nav-icon {
+    font-size: 1.3rem;
+  }
+  
+  .nav-label {
+    font-size: 0.7rem;
+  }
+}
+
+/* === СТИЛИ ДНЕВНИКА НАСТРОЕНИЯ === */
+.mood-input-section {
+  background: linear-gradient(180deg, #fffafc, #f8f0ff);
+  border-radius: 16px;
+  padding: 20px;
+  margin: 16px 0;
+  border: 2px solid rgba(183, 138, 230, 0.1);
+}
+
+.mood-selector {
+  display: flex;
+  justify-content: space-between;
+  margin: 20px 0;
+  gap: 8px;
+}
+
+.mood-option {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 8px;
+  border: 2px solid rgba(183, 138, 230, 0.2);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  background: white;
+}
+
+.mood-option:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent-2);
+  box-shadow: 0 8px 20px rgba(183, 138, 230, 0.15);
+}
+
+.mood-option.selected {
+  border-color: var(--accent-2);
+  background: linear-gradient(135deg, #fffafc, #f8f0ff);
+  box-shadow: 0 8px 25px rgba(183, 138, 230, 0.2);
+  transform: translateY(-2px) scale(1.05);
+}
+
+.mood-emoji {
+  font-size: 2rem;
+  margin-bottom: 8px;
+  transition: transform 0.3s ease;
+}
+
+.mood-option.selected .mood-emoji {
+  transform: scale(1.2);
+}
+
+.mood-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text);
+  text-align: center;
+}
+
+.mood-option.selected .mood-label {
+  color: var(--accent-2);
+}
+
+#mood-note {
+  width: 100%;
+  margin: 16px 0;
+  border-radius: 12px;
+  padding: 16px;
+  border: 2px solid rgba(183, 138, 230, 0.2);
+  font-size: 1rem;
+  resize: vertical;
+  transition: all 0.3s ease;
+}
+
+#mood-note:focus {
+  border-color: var(--accent-2);
+  box-shadow: 0 0 0 3px rgba(183, 138, 230, 0.1);
+}
+
+/* Визуализация настроения */
+.mood-visualization {
+  margin: 24px 0;
+}
+
+.section-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.section-title h3 {
+  margin: 0;
+  color: var(--text);
+}
+
+.mood-average {
+  font-size: 1.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #ff9ad8, #d58cf1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Календарь настроения */
+.mood-calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin: 20px 0;
+  padding: 16px;
+  background: linear-gradient(180deg, #fff, #fffafc);
+  border-radius: 16px;
+  border: 2px solid rgba(183, 138, 230, 0.1);
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.calendar-day:hover {
+  transform: scale(1.1);
+}
+
+.day-mood {
+  width: 100%;
+  height: 100%;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.day-number {
+  position: absolute;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Статистика */
+.mood-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.stat-card {
+  background: linear-gradient(135deg, #fffafc, #f8f0ff);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  border: 2px solid rgba(183, 138, 230, 0.1);
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent-2);
+  box-shadow: 0 8px 20px rgba(183, 138, 230, 0.15);
+}
+
+.stat-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #ff9ad8, #d58cf1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: #6b4b7a;
+  font-weight: 500;
+}
+
+/* Кнопки действий */
+.mood-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.mood-actions .btn {
+  flex: 1;
+  min-width: 140px;
+}
+
+/* Утилиты */
+.hidden {
+  display: none !important;
+}
+
+/* Анимации для дневника */
+@keyframes moodSave {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+.mood-saved {
+  animation: moodSave 0.6s ease;
+}
+
+/* Цвета для настроений */
+.mood-1 { background: linear-gradient(135deg, #ff6b6b, #ff8e8e); }
+.mood-2 { background: linear-gradient(135deg, #ffa500, #ffb733); }
+.mood-3 { background: linear-gradient(135deg, #ffd93d, #ffe066); }
+.mood-4 { background: linear-gradient(135deg, #6bcf7f, #85d894); }
+.mood-5 { background: linear-gradient(135deg, #4ecdc4, #6bd7cf); }
+.mood-0 { background: #f0f0f0; }
+
+/* Адаптивность для дневника */
+@media (max-width: 600px) {
+  .mood-selector {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .mood-option {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 12px 16px;
+  }
+  
+  .mood-emoji {
+    font-size: 1.8rem;
+    margin-bottom: 0;
+  }
+  
+  .mood-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .mood-actions {
+    flex-direction: column;
+  }
+  
+  .mood-actions .btn {
+    min-width: auto;
+  }
+}
+
