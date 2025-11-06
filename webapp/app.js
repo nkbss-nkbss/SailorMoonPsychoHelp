@@ -19,7 +19,7 @@ let state = {
   problem: ""
 };
 
-// === CHARACTER DATA WITH FORMS (без лишних пробелов в URL) ===
+// === CHARACTER DATA WITH FORMS ===
 const CHARACTERS = {
   "usagi": {
     label: "Усаги",
@@ -100,7 +100,6 @@ const CHARACTERS = {
       "sailor": { title: "Сейлор Стар Файтер ⭐", img: "https://i.pinimg.com/736x/7c/f6/11/7cf6111d7e826a5e8008310206683b1e.jpg" }
     }
   },
-
   "taiki": {
     label: "Тайки",
     forms: {
@@ -108,7 +107,6 @@ const CHARACTERS = {
       "sailor": { title: "Сейлор Стар Хилер 📚", img: "https://i.pinimg.com/736x/32/1f/c6/321fc67961d968c73c972616e53721af.jpg" }
     }
   },
-
   "yaten": {
     label: "Ятен",
     forms: {
@@ -152,13 +150,11 @@ const FADE_INTERVAL = FADE_DURATION / FADE_STEPS;
 
 // === Character sound functions ===
 function playCharacterSound(characterKey) {
-  // Остановить предыдущий звук персонажа
   if (characterSound && !characterSound.paused) {
     characterSound.pause();
     characterSound.currentTime = 0;
   }
 
-  // Приглушить фоновую музыку
   if (!isFading) {
     music.volume = QUIET_MUSIC_VOLUME;
   }
@@ -176,7 +172,6 @@ function playCharacterSound(characterKey) {
     playSelectSound();
   });
 
-  // Восстановить громкость фоновой музыки, когда индивидуальный звук закончится
   characterSound.onended = () => {
     if (!isFading && isMusicPlaying) {
       music.volume = DEFAULT_MUSIC_VOLUME;
@@ -269,7 +264,7 @@ function fadeOut(audio) {
   }, FADE_INTERVAL);
 }
 
-// === Show step (С КЛЮЧЕВЫМ ИСПРАВЛЕНИЕМ) ===
+// === Show step ===
 function show(step, direction = 'next') {
   playClickSound();
   const current = document.querySelector('.card.active');
@@ -289,7 +284,6 @@ function show(step, direction = 'next') {
       next.classList.add('active');
       updateProgressBar(step);
 
-      // 🔥 КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: рендерим формы при входе на шаг
       if (step === STEP.FORM) {
         renderFormStep();
       }
@@ -400,19 +394,16 @@ class MoodDiary {
     }
 
     setupEventListeners() {
-        // Выбор настроения
         document.querySelectorAll('.mood-option').forEach(option => {
             option.addEventListener('click', () => {
                 this.selectMood(option.dataset.mood);
             });
         });
 
-        // Сохранение записи
         document.getElementById('save-mood').addEventListener('click', () => {
             this.saveEntry();
         });
 
-        // Экспорт/импорт
         document.getElementById('export-mood').addEventListener('click', () => {
             this.exportData();
         });
@@ -458,7 +449,6 @@ class MoodDiary {
         this.renderMoodCalendar();
         this.updateStats();
         
-        // Анимация сохранения
         const saveBtn = document.getElementById('save-mood');
         saveBtn.textContent = '✅ Сохранено!';
         saveBtn.classList.add('mood-saved');
@@ -468,7 +458,6 @@ class MoodDiary {
             saveBtn.classList.remove('mood-saved');
         }, 2000);
 
-        // Очистка формы
         document.getElementById('mood-note').value = '';
         document.querySelectorAll('.mood-option').forEach(opt => {
             opt.classList.remove('selected');
@@ -542,17 +531,10 @@ class MoodDiary {
             return;
         }
 
-        // Среднее настроение
         const average = this.entries.reduce((sum, entry) => sum + entry.mood, 0) / this.entries.length;
         document.getElementById('mood-average').textContent = average.toFixed(1);
-
-        // Всего записей
         document.getElementById('total-entries').textContent = this.entries.length;
-
-        // Текущая серия
         document.getElementById('current-streak').textContent = this.calculateCurrentStreak();
-
-        // Лучшее настроение
         const bestMood = Math.max(...this.entries.map(entry => entry.mood));
         document.getElementById('best-mood').textContent = bestMood;
     }
@@ -633,13 +615,11 @@ function setupNavigation() {
         btn.addEventListener('click', function() {
             const targetTab = this.dataset.tab;
             
-            // Обновляем активную кнопку
             navButtons.forEach(b => b.classList.remove('active'));
             this.classList.add('active');
             
             playClickSound();
             
-            // Переключаем режимы
             if (targetTab === 'chat') {
                 chatMode.classList.remove('hidden');
                 diaryMode.classList.add('hidden');
@@ -651,7 +631,6 @@ function setupNavigation() {
                 progressContainer.classList.add('hidden');
                 subtitle.textContent = 'Следи за своим настроением 🌈';
                 
-                // Инициализируем дневник если еще не инициализирован
                 if (!window.moodDiary) {
                     window.moodDiary = new MoodDiary();
                 } else {
@@ -662,32 +641,6 @@ function setupNavigation() {
         });
     });
 }
-
-// === ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ ===
-document.addEventListener('DOMContentLoaded', () => {
-    // Инициализация существующего функционала
-    initMusic();
-    setupCharacterSelection();
-    setupNavigation(); // Добавляем инициализацию навигации
-    
-    // Показываем начальный экран
-    show(STEP.NAME);
-
-    // Предзагружаем дневник
-    window.moodDiary = new MoodDiary();
-});
-
-// Обнови функцию show чтобы скрывать прогресс-бар в режиме дневника
-const originalShow = show;
-show = function(step, direction = 'next') {
-    originalShow(step, direction);
-    
-    // Скрываем прогресс-бар в режиме дневника
-    const activeNav = document.querySelector('.nav-btn.active');
-    if (activeNav && activeNav.dataset.tab === 'diary') {
-        document.getElementById('progress-container').classList.add('hidden');
-    }
-};
 
 // === Music ===
 const musicBtn = document.getElementById('music-toggle');
@@ -707,6 +660,7 @@ function initMusic() {
     }
   }, { once: true });
 }
+
 function toggleMusic() {
   if (isFading) return;
   if (isMusicPlaying) {
@@ -719,39 +673,38 @@ function toggleMusic() {
     isMusicPlaying = true;
   }
 }
-window.addEventListener('beforeunload', () => {
-  if (!music.paused) { music.volume = 0; music.pause(); }
-});
 
 // === Parallax & Stars ===
-document.addEventListener('mousemove', e => {
-  const x = (e.clientX / window.innerWidth - 0.5) * 25;
-  const y = (e.clientY / window.innerHeight - 0.5) * 25;
-  document.querySelectorAll('.parallax-layer').forEach((layer, i) => {
-    const f = 1 + i*0.2;
-    layer.style.transform = `translate(${x*f}px, ${y*f}px)`;
+function initParallax() {
+  document.addEventListener('mousemove', e => {
+    const x = (e.clientX / window.innerWidth - 0.5) * 25;
+    const y = (e.clientY / window.innerHeight - 0.5) * 25;
+    document.querySelectorAll('.parallax-layer').forEach((layer, i) => {
+      const f = 1 + i*0.2;
+      layer.style.transform = `translate(${x*f}px, ${y*f}px)`;
+    });
   });
-});
-const starsContainer = document.querySelector('.stars');
-for (let i = 0; i < 150; i++) {
-  const star = document.createElement('div');
-  star.classList.add('star');
-  star.style.top = Math.random() * 100 + '%';
-  star.style.left = Math.random() * 100 + '%';
-  star.style.width = star.style.height = Math.random() * 2 + 1 + 'px';
-  star.style.animationDelay = Math.random() * 5 + 's';
-  starsContainer.appendChild(star);
-  star.style.animation = `twinkle ${2 + Math.random()*3}s infinite ease-in-out, fall ${5 + Math.random()*5}s linear ${Math.random()*5}s infinite`;
-}
-const moonLayer = document.getElementById('moon');
-if(moonLayer){
-  moonLayer.style.animation = "pulse 4s infinite ease-in-out alternate";
+  
+  const starsContainer = document.querySelector('.stars');
+  for (let i = 0; i < 150; i++) {
+    const star = document.createElement('div');
+    star.classList.add('star');
+    star.style.top = Math.random() * 100 + '%';
+    star.style.left = Math.random() * 100 + '%';
+    star.style.width = star.style.height = Math.random() * 2 + 1 + 'px';
+    star.style.animationDelay = Math.random() * 5 + 's';
+    starsContainer.appendChild(star);
+    star.style.animation = `twinkle ${2 + Math.random()*3}s infinite ease-in-out, fall ${5 + Math.random()*5}s linear ${Math.random()*5}s infinite`;
+  }
+  
+  const moonLayer = document.getElementById('moon');
+  if(moonLayer){
+    moonLayer.style.animation = "pulse 4s infinite ease-in-out alternate";
+  }
 }
 
-// === DOMContentLoaded ===
-document.addEventListener('DOMContentLoaded', () => {
-  initMusic();
-
+// === Setup Character Selection ===
+function setupCharacterSelection() {
   document.querySelectorAll('.type-option').forEach(opt => {
     opt.addEventListener('click', () => {
       playSelectSound();
@@ -760,8 +713,7 @@ document.addEventListener('DOMContentLoaded', () => {
       state.answerType = opt.dataset.type;
     });
   });
-  document.querySelector('.type-option[data-type="single"]').classList.add('selected');
-
+  
   const charContainer = document.getElementById('characters');
   for (const key in CHARACTERS) {
     const ch = CHARACTERS[key];
@@ -772,13 +724,22 @@ document.addEventListener('DOMContentLoaded', () => {
     div.onclick = () => handleCharacterClick(key);
     charContainer.appendChild(div);
   }
-  charContainer.querySelector('.char-card').classList.add('selected');
+}
 
-  document.getElementById('btn-form-back').onclick = () => {
-    show(STEP.CHAR, 'prev');
-  };
+// === ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ ===
+document.addEventListener('DOMContentLoaded', () => {
+  initMusic();
+  initParallax();
+  setupCharacterSelection();
+  setupNavigation();
+  
+  // Установка начальных значений
+  document.querySelector('.type-option[data-type="single"]').classList.add('selected');
+  document.querySelector('.char-card').classList.add('selected');
+  
+  // Обработчики кнопок
+  document.getElementById('btn-form-back').onclick = () => show(STEP.CHAR, 'prev');
   document.getElementById('btn-form-next').onclick = () => {
-    // Остановить звук персонажа
     if (characterSound && !characterSound.paused) {
       characterSound.pause();
       characterSound.currentTime = 0;
@@ -801,17 +762,16 @@ document.addEventListener('DOMContentLoaded', () => {
     state.name = name;
     show(STEP.TYPE, 'next');
   };
+  
   document.getElementById('btn-type-back').onclick = () => show(STEP.NAME, 'prev');
   document.getElementById('btn-type-next').onclick = () => show(STEP.CHAR, 'next');
   document.getElementById('btn-char-back').onclick = () => show(STEP.TYPE, 'prev');
   document.getElementById('btn-char-next').onclick = () => {
     if (state.answerType === 'group') {
-      // Остановить текущий звук персонажа
       if (characterSound && !characterSound.paused) {
         characterSound.pause();
         characterSound.currentTime = 0;
       }
-      // Вернуть фоновую музыку
       if (isMusicPlaying && !isFading) {
         music.volume = DEFAULT_MUSIC_VOLUME;
       }
@@ -820,6 +780,7 @@ document.addEventListener('DOMContentLoaded', () => {
       alert('Выбери персонажа выше');
     }
   };
+  
   document.getElementById('btn-problem-back').onclick = () => {
     if (state.answerType === 'group') {
       show(STEP.CHAR, 'prev');
@@ -827,6 +788,7 @@ document.addEventListener('DOMContentLoaded', () => {
       show(STEP.FORM, 'prev');
     }
   };
+  
   document.getElementById('btn-problem-send').onclick = async () => {
     playMagicSound();
     const problem = document.getElementById('input-problem').value.trim();
@@ -851,7 +813,6 @@ document.addEventListener('DOMContentLoaded', () => {
     show(STEP.RES, 'zoom');
 
     try {
-      // ⚠️ Замените на ваш настоящий URL!
       const backend = 'https://sailormoonpsychohelp-7bkw.onrender.com';
       const resp = await fetch(`${backend}/ask`, {
         method: 'POST',
@@ -876,26 +837,34 @@ document.addEventListener('DOMContentLoaded', () => {
       resultBox.innerText = "Ошибка связи с сервером. Попробуй позже.";
     }
   };
+  
   document.getElementById('btn-result-again').onclick = () => {
     document.getElementById('input-problem').value = '';
     show(STEP.PROB, 'prev');
   };
+  
   document.getElementById('btn-result-close').onclick = () => tg.close();
 
   document.querySelectorAll('.btn').forEach(btn => {
     btn.addEventListener('click', playClickSound);
   });
 
-  show(STEP.NAME);
-
+  // Автозаполнение имени из Telegram
   try {
     const init = tg.initDataUnsafe || {};
     if (init.user && init.user.first_name) {
       document.getElementById('input-name').value = init.user.first_name;
     }
   } catch (e) { /* ignore */ }
+
+  // Показываем начальный экран
+  show(STEP.NAME);
+
+  // Предзагружаем дневник
+  window.moodDiary = new MoodDiary();
 });
 
+// Touch support for music
 document.addEventListener('touchstart', () => {
   if (!musicInitialized) {
     music.play().then(() => {
@@ -909,8 +878,10 @@ document.addEventListener('touchstart', () => {
   }
 }, { once: true });
 
-
-
-
-
-
+// Beforeunload cleanup
+window.addEventListener('beforeunload', () => {
+  if (!music.paused) { 
+    music.volume = 0; 
+    music.pause(); 
+  }
+});
