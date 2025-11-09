@@ -1,3 +1,4 @@
+//index.html
 <!doctype html>
 <html lang="ru">
 <head>
@@ -5,15 +6,18 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Лунная поддержка</title>
   <link rel="stylesheet" href="styles.css" />
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://telegram.org/js/telegram-web-app.js "></script>
 </head>
 <body>
+
   <!-- ПАРАЛЛАКС-ФОН -->
   <div class="parallax">
     <div class="parallax-layer" id="moon"></div>
   </div>
+
   <!-- ЗВЁЗДЫ -->
   <div class="stars"></div>
+
   <!-- ОСНОВНОЙ КОНТЕНТ -->
   <div class="container">
     <!-- ПРОГРЕСС-БАР -->
@@ -32,10 +36,12 @@
         <div class="progress-fill" style="width: 20%"></div>
       </div>
     </div>
+
     <header>
       <h1>🌙 Лунная поддержка </h1>
       <p class="subtitle">Воин в матроске всегда поможет!</p>
     </header>
+
     <main>
       <!-- Step 1: Name -->
       <section id="step-name" class="card active">
@@ -45,6 +51,7 @@
           <button id="btn-name-next" class="btn">Дальше →</button>
         </div>
       </section>
+
       <!-- Step 2: Answer Type -->
       <section id="step-type" class="card">
         <h2>Выбери тип ответа</h2>
@@ -69,6 +76,7 @@
           <button id="btn-type-next" class="btn">Дальше →</button>
         </div>
       </section>
+
       <!-- Step 3: Character -->
       <section id="step-character" class="card">
         <h2 id="character-title">Выбери персонажа</h2>
@@ -78,6 +86,7 @@
           <button id="btn-char-next" class="btn">Дальше →</button>
         </div>
       </section>
+
       <!-- Step 3.5: Form -->
       <section id="step-form" class="card">
         <h2>Выбери форму персонажа</h2>
@@ -87,52 +96,66 @@
           <button id="btn-form-next" class="btn">Дальше →</button>
         </div>
       </section>
-      <!-- Step 4: FULL CHAT -->
+
+      <!-- Step 4: Problem -->
       <section id="step-problem" class="card">
-        <div class="chat-header">
-          <img id="chat-avatar" src="" alt="Аватар" class="chat-avatar" />
-          <div>
-            <h3 id="chat-character-name" class="chat-name">Сейлор Мун 🌙</h3>
-            <p class="chat-status">В сети</p>
-          </div>
+        <h2>Расскажи, что случилось</h2>
+        <textarea id="input-problem" rows="6" placeholder="Опиши проблему..."></textarea>
+        <div class="row">
+          <button id="btn-problem-back" class="btn outline">← Назад</button>
+          <button id="btn-problem-send" class="btn primary">Получить совет ✨</button>
         </div>
-        <div id="chat-messages" class="chat-messages"></div>
-        <button id="btn-new-chat" class="btn outline small">🔄 Новый чат</button>
-        <div class="chat-input-area">
-          <textarea id="input-problem" rows="2" placeholder="Напиши сообщение..."></textarea>
-          <div class="chat-controls">
-            <button id="btn-emoji" class="control-icon" title="Смайлики">😊</button>
-            <button id="btn-problem-send" class="btn send-btn">Отправить ✨</button>
-          </div>
+      </section>
+
+      <!-- Step 5: Result -->
+      <section id="step-result" class="card">
+        <h2>Совет</h2>
+        <div id="result-box" class="result">🌕 Обдумываю ответ... 💫</div>
+        <div id="loading" class="loading hidden">
+          <div class="moon-loader">🌙</div>
+          <div class="loading-text">Луна думает...</div>
+        </div>
+        <div class="row">
+          <button id="btn-result-again" class="btn outline">Задать ещё вопрос</button>
+          <button id="btn-result-close" class="btn">Закрыть</button>
         </div>
       </section>
     </main>
+
     <footer>
       <small>Лунная магия с тобой 🌙✨</small>
     </footer>
+
     <!-- КНОПКИ УПРАВЛЕНИЯ -->
     <div class="control-buttons">
       <button id="music-toggle" class="control-btn" title="Музыка">🔇</button>
     </div>
+    
     <!-- АУДИО ЭЛЕМЕНТЫ -->
     <audio id="bg-music" loop>
       <source src="./music/moonlight.mp3" type="audio/mpeg">
       <source src="./music/moonlight.ogg" type="audio/ogg">
       Ваш браузер не поддерживает аудио.
     </audio>
+    
     <audio id="click-sound" preload="auto">
       <source src="./music/click.mp3" type="audio/mpeg">
       <source src="./music/click.ogg" type="audio/ogg">
     </audio>
+    
     <audio id="magic-sound" preload="auto">
       <source src="./music/magic.mp3" type="audio/mpeg">
       <source src="./music/magic.ogg" type="audio/ogg">
     </audio>
+    
     <audio id="select-sound" preload="auto">
       <source src="./music/select.mp3" type="audio/mpeg">
       <source src="./music/select.ogg" type="audio/ogg">
     </audio>
   </div>
+
+  <!-- ОСНОВНОЙ СКРИПТ -->
   <script src="app.js"></script>
+
 </body>
 </html>
