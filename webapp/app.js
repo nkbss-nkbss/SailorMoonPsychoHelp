@@ -6,8 +6,7 @@ const STEP = {
   TYPE: 'step-type',
   CHAR: 'step-character',
   FORM: 'step-form',
-  PROB: 'step-problem',
-  RES: 'step-result'
+  PROB: 'step-problem'
 };
 let state = {
   name: "",
@@ -17,7 +16,7 @@ let state = {
   problem: ""
 };
 
-// === CHARACTER DATA WITH FORMS (без лишних пробелов в URL) ===
+// === CHARACTER DATA (убраны лишние пробелы в URL) ===
 const CHARACTERS = {
   "usagi": {
     label: "Усаги",
@@ -114,7 +113,7 @@ const CHARACTERS = {
   }
 };
 
-// === Character sounds ===
+// === Звуки ===
 const CHARACTER_SOUNDS = {
   "usagi": "./music/characters/usagi (1).mp3",
   "ami": "./music/characters/ami (1).mp3", 
@@ -125,12 +124,11 @@ const CHARACTER_SOUNDS = {
   "setsuna": "./music/characters/setsuna (1).mp3",
   "haruka": "./music/characters/haruka (1).mp3",
   "michiru": "./music/characters/michiru (1).mp3",
-  "chibiusa": "./music/characters/chibiusa (1).mp3",
-  "mamoru": "./music/characters/mamoru (1).mp3"
+  "chibiusa": "./music/characters/chibiusa (1).mp3"
 };
 let characterSound = null;
 
-// === Audio elements ===
+// === Аудио ===
 const music = document.getElementById('bg-music');
 const clickSound = document.getElementById('click-sound');
 const magicSound = document.getElementById('magic-sound');
@@ -138,245 +136,126 @@ const selectSound = document.getElementById('select-sound');
 const DEFAULT_MUSIC_VOLUME = 0.3;
 const QUIET_MUSIC_VOLUME = 0.1;
 
-// === Music fade variables ===
+// === Фейд ===
 let fadeInterval;
 let isFading = false;
 const FADE_DURATION = 1000;
 const FADE_STEPS = 20;
 const FADE_INTERVAL = FADE_DURATION / FADE_STEPS;
 
-// === UPDATE CHAT HEADER FUNCTION ===
+// === Функция добавления сообщения в чат ===
+function addMessage(text, isUser = false) {
+  const container = document.getElementById('chat-messages');
+  const el = document.createElement('div');
+  el.classList.add('chat-message', isUser ? 'user' : 'bot');
+  el.textContent = text;
+  container.appendChild(el);
+  container.scrollTop = container.scrollHeight;
+}
+
+// === Обновление заголовка чата ===
 function updateChatHeader() {
-  const chatAvatar = document.getElementById('chat-avatar');
-  const chatName = document.getElementById('chat-character-name');
+  const avatar = document.getElementById('chat-avatar');
+  const name = document.getElementById('chat-character-name');
 
   if (state.answerType === 'group') {
-    chatAvatar.src = 'https://i.pinimg.com/120x120/55/ff/32/55ff32a1d1a2e86ff41d76068672e108.jpg';
-    chatName.textContent = 'Команда Сейлор Воинов 💫';
+    avatar.src = 'https://i.pinimg.com/120x120/55/ff/32/55ff32a1d1a2e86ff41d76068672e108.jpg';
+    name.textContent = 'Команда Сейлор Воинов 💫';
   } else {
     const charKey = state.characters[0];
     const char = CHARACTERS[charKey];
     const form = char.forms[state.form];
-    chatAvatar.src = form.img;
-    chatName.textContent = form.title;
+    avatar.src = form.img;
+    name.textContent = form.title;
   }
 }
 
-// === Character sound functions ===
-function playCharacterSound(characterKey) {
-  if (characterSound && !characterSound.paused) {
-    characterSound.pause();
-    characterSound.currentTime = 0;
-  }
-  if (!isFading) {
-    music.volume = QUIET_MUSIC_VOLUME;
-  }
-  const soundFile = CHARACTER_SOUNDS[characterKey];
-  if (!soundFile) {
-    playSelectSound();
-    return;
-  }
-  characterSound = new Audio(soundFile);
-  characterSound.volume = 0.4;
-  characterSound.play().catch(e => {
-    console.log('Character sound error:', e);
-    playSelectSound();
-  });
-  characterSound.onended = () => {
-    if (!isFading && isMusicPlaying) {
-      music.volume = DEFAULT_MUSIC_VOLUME;
-    }
-  };
-}
-
-// === Progress bar ===
+// === Прогресс ===
 function updateProgressBar(step) {
-  const stepMap = {
+  const map = {
     'step-name': 1,
     'step-type': 2,
     'step-character': 3,
-    'step-form': 3.5,
-    'step-problem': 4,
-    'step-result': 5
+    'step-form': 3,
+    'step-problem': 4
   };
-  let currentStep = stepMap[step] || 1;
-  if (currentStep === 3.5) currentStep = 3;
-  const progressPercentage = ((currentStep - 1) / 4) * 100;
-  document.getElementById('current-step').textContent = Math.min(5, Math.ceil(currentStep));
-  document.querySelector('.progress-fill').style.width = `${progressPercentage}%`;
-  updateStepDots(Math.min(5, Math.ceil(currentStep)));
-}
-function updateStepDots(currentStep) {
-  const dots = document.querySelectorAll('.step-dot');
-  dots.forEach((dot, index) => {
-    const n = index + 1;
-    dot.classList.remove('active', 'completed');
-    if (n === currentStep) dot.classList.add('active');
-    else if (n < currentStep) dot.classList.add('completed');
+  const n = map[step] || 1;
+  document.getElementById('current-step').textContent = n;
+  document.querySelector('.progress-fill').style.width = `${((n - 1) / 4) * 100}%`;
+  document.querySelectorAll('.step-dot').forEach((dot, i) => {
+    dot.classList.toggle('active', i + 1 === n);
+    dot.classList.toggle('completed', i + 1 < n);
   });
 }
 
-// === Sound functions ===
-function playClickSound() {
-  if (clickSound) {
-    clickSound.volume = 0.3;
-    clickSound.currentTime = 0;
-    clickSound.play().catch(e => console.log('Click sound error:', e));
-  }
-}
-function playMagicSound() {
-  if (magicSound) {
-    magicSound.volume = 0.4;
-    magicSound.currentTime = 0;
-    magicSound.play().catch(e => console.log('Magic sound error:', e));
-  }
-}
-function playSelectSound() {
-  if (selectSound) {
-    selectSound.volume = 0.3;
-    selectSound.currentTime = 0;
-    selectSound.play().catch(e => console.log('Select sound error:', e));
-  }
-}
+// === СOUNDS ===
+function playClickSound() { if (clickSound) { clickSound.currentTime = 0; clickSound.play().catch(() => {}); } }
+function playMagicSound() { if (magicSound) { magicSound.currentTime = 0; magicSound.play().catch(() => {}); } }
+function playSelectSound() { if (selectSound) { selectSound.currentTime = 0; selectSound.play().catch(() => {}); } }
 
-// === Fade functions ===
-function fadeIn(audio, vol = 0.3) {
-  if (isFading) clearInterval(fadeInterval);
-  isFading = true;
-  audio.volume = 0;
-  audio.play().catch(e => console.log('Fade in error:', e));
-  let s = 0;
-  fadeInterval = setInterval(() => {
-    s++;
-    audio.volume = (s / FADE_STEPS) * vol;
-    if (s >= FADE_STEPS) {
-      clearInterval(fadeInterval);
-      audio.volume = vol;
-      isFading = false;
-    }
-  }, FADE_INTERVAL);
-}
-function fadeOut(audio) {
-  if (isFading) clearInterval(fadeInterval);
-  isFading = true;
-  const v = audio.volume;
-  let s = 0;
-  fadeInterval = setInterval(() => {
-    s++;
-    audio.volume = v * (1 - s / FADE_STEPS);
-    if (s >= FADE_STEPS) {
-      clearInterval(fadeInterval);
-      audio.pause();
-      audio.volume = 0.3;
-      isFading = false;
-    }
-  }, FADE_INTERVAL);
-}
-
-// === Show step ===
+// === SHOW STEP ===
 function show(step, direction = 'next') {
-  playClickSound();
   const current = document.querySelector('.card.active');
   const next = document.getElementById(step);
-  if (current && next) {
-    current.classList.remove('active');
-    if (direction === 'next') {
-      current.classList.add('slide-in-prev');
-      next.classList.add('slide-in-next');
-    } else if (direction === 'prev') {
-      current.classList.add('slide-in-next');
-      next.classList.add('slide-in-prev');
-    } else if (direction === 'zoom') {
-      next.classList.add('zoom-in');
-    }
-    setTimeout(() => {
-      next.classList.add('active');
-      updateProgressBar(step);
-      if (step === STEP.FORM) {
-        renderFormStep();
-      }
-      if (step === STEP.PROB) {
-        updateChatHeader();
-      }
-      setTimeout(() => {
-        current.classList.remove('slide-in-prev', 'slide-in-next', 'zoom-in');
-        next.classList.remove('slide-in-prev', 'slide-in-next', 'zoom-in');
-      }, 400);
-    }, 50);
-  } else {
-    document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
-    next.classList.add('active');
-    updateProgressBar(step);
-    if (step === STEP.FORM) {
-      renderFormStep();
-    }
-    if (step === STEP.PROB) {
-      updateChatHeader();
-    }
-  }
+  current?.classList.remove('active');
+  next.classList.add('active');
+  updateProgressBar(step);
+  if (step === STEP.FORM) renderFormStep();
+  if (step === STEP.PROB) updateChatHeader();
 }
 
-// === Handle character click ===
+// === Персонажи и формы ===
 function handleCharacterClick(charKey) {
   playSelectSound();
-  playCharacterSound(charKey);
   if (state.answerType === 'group') {
     const i = state.characters.indexOf(charKey);
-    if (i > -1) {
-      state.characters.splice(i, 1);
-      if (state.characters.length === 0) state.characters.push('usagi');
-    } else {
-      if (state.characters.length < 4) state.characters.push(charKey);
-      else { alert('Можно выбрать до 4 персонажей'); return; }
-    }
+    if (i > -1) state.characters.splice(i, 1);
+    else if (state.characters.length < 4) state.characters.push(charKey);
+    if (state.characters.length === 0) state.characters = ['usagi'];
     updateCharacterSelectionUI();
   } else {
     state.characters = [charKey];
     updateCharacterSelectionUI();
     if (Object.keys(CHARACTERS[charKey].forms).length > 1) {
-      show(STEP.FORM, 'next');
+      show(STEP.FORM);
     } else {
       state.form = Object.keys(CHARACTERS[charKey].forms)[0];
-      show(STEP.PROB, 'next');
+      show(STEP.PROB);
     }
   }
 }
 function updateCharacterSelectionUI() {
   const title = document.getElementById('character-title');
-  const container = document.getElementById('characters');
   if (state.answerType === 'group') {
     title.innerHTML = `Выбери персонажей <span class="selected-count">${state.characters.length}</span>`;
-    document.querySelectorAll('.char-card').forEach(card => {
-      card.classList.add('multiple');
-      const k = card.dataset.key;
-      if (state.characters.includes(k)) card.classList.add('selected');
-      else card.classList.remove('selected');
+    document.querySelectorAll('.char-card').forEach(c => {
+      c.classList.add('multiple');
+      const k = c.dataset.key;
+      if (state.characters.includes(k)) c.classList.add('selected');
+      else c.classList.remove('selected');
     });
   } else {
     title.textContent = 'Выбери персонажа';
-    document.querySelectorAll('.char-card').forEach(card => {
-      card.classList.remove('multiple');
-      const k = card.dataset.key;
-      if (state.characters[0] === k) card.classList.add('selected');
-      else card.classList.remove('selected');
+    document.querySelectorAll('.char-card').forEach(c => {
+      c.classList.remove('multiple');
+      const k = c.dataset.key;
+      if (state.characters[0] === k) c.classList.add('selected');
     });
   }
 }
-
-// === FORM STEP UI ===
 function renderFormStep() {
-  const charKey = state.characters[0];
+  const key = state.characters[0];
   const container = document.getElementById('form-options');
   container.innerHTML = '';
-  const char = CHARACTERS[charKey];
-  for (const formKey in char.forms) {
-    const form = char.forms[formKey];
+  const char = CHARACTERS[key];
+  for (const f in char.forms) {
+    const form = char.forms[f];
     const div = document.createElement('div');
     div.className = 'form-card';
-    div.dataset.form = formKey;
-    div.innerHTML = `<img src="${form.img}" alt="${form.title}" /><div class="label">${form.title}</div>`;
+    div.dataset.form = f;
+    div.innerHTML = `<img src="${form.img}" /><div class="label">${form.title}</div>`;
     div.onclick = () => {
-      state.form = formKey;
+      state.form = f;
       document.querySelectorAll('.form-card').forEach(c => c.classList.remove('selected'));
       div.classList.add('selected');
       playSelectSound();
@@ -390,160 +269,130 @@ function renderFormStep() {
   }
 }
 
-// === Music ===
-const musicBtn = document.getElementById('music-toggle');
+// === Музыка ===
 let musicInitialized = false;
 let isMusicPlaying = false;
 function initMusic() {
   if (musicInitialized) return;
   music.volume = 0;
-  musicBtn.addEventListener('click', () => { playClickSound(); toggleMusic(); });
   document.addEventListener('click', () => {
     if (!musicInitialized) {
-      fadeIn(music, 0.3);
-      musicBtn.textContent = '🔊';
-      musicInitialized = true;
-      isMusicPlaying = true;
+      music.play().then(() => {
+        musicInitialized = true;
+        isMusicPlaying = true;
+        document.getElementById('music-toggle').textContent = '🔊';
+      });
     }
   }, { once: true });
 }
-function toggleMusic() {
-  if (isFading) return;
+document.getElementById('music-toggle').onclick = () => {
+  playClickSound();
   if (isMusicPlaying) {
-    fadeOut(music);
-    musicBtn.textContent = '🔇';
+    music.pause();
+    document.getElementById('music-toggle').textContent = '🔇';
     isMusicPlaying = false;
   } else {
-    fadeIn(music, 0.3);
-    musicBtn.textContent = '🔊';
+    music.play();
+    document.getElementById('music-toggle').textContent = '🔊';
     isMusicPlaying = true;
   }
-}
-window.addEventListener('beforeunload', () => {
-  if (!music.paused) { music.volume = 0; music.pause(); }
-});
+};
 
-// === Parallax & Stars ===
+// === Звёзды и параллакс (минимум для совместимости) ===
 document.addEventListener('mousemove', e => {
-  const x = (e.clientX / window.innerWidth - 0.5) * 25;
-  const y = (e.clientY / window.innerHeight - 0.5) * 25;
-  document.querySelectorAll('.parallax-layer').forEach((layer, i) => {
-    const f = 1 + i*0.2;
-    layer.style.transform = `translate(${x*f}px, ${y*f}px)`;
+  const x = (e.clientX / window.innerWidth - 0.5) * 15;
+  const y = (e.clientY / window.innerHeight - 0.5) * 15;
+  document.querySelectorAll('.parallax-layer').forEach((l, i) => {
+    l.style.transform = `translate(${x * (1 + i * 0.2)}px, ${y * (1 + i * 0.2)}px)`;
   });
 });
-const starsContainer = document.querySelector('.stars');
-for (let i = 0; i < 150; i++) {
-  const star = document.createElement('div');
-  star.classList.add('star');
-  star.style.top = Math.random() * 100 + '%';
-  star.style.left = Math.random() * 100 + '%';
-  star.style.width = star.style.height = Math.random() * 2 + 1 + 'px';
-  star.style.animationDelay = Math.random() * 5 + 's';
-  starsContainer.appendChild(star);
-  star.style.animation = `twinkle ${2 + Math.random()*3}s infinite ease-in-out, fall ${5 + Math.random()*5}s linear ${Math.random()*5}s infinite`;
-}
-const moonLayer = document.getElementById('moon');
-if(moonLayer){
-  moonLayer.style.animation = "pulse 4s infinite ease-in-out alternate";
+const stars = document.querySelector('.stars');
+for (let i = 0; i < 100; i++) {
+  const s = document.createElement('div');
+  s.classList.add('star');
+  s.style.top = Math.random() * 100 + '%';
+  s.style.left = Math.random() * 100 + '%';
+  s.style.width = s.style.height = Math.random() * 2 + 1 + 'px';
+  stars.appendChild(s);
 }
 
-// === DOMContentLoaded ===
+// === Инициализация ===
 document.addEventListener('DOMContentLoaded', () => {
   initMusic();
+
+  // Выбор типа
   document.querySelectorAll('.type-option').forEach(opt => {
-    opt.addEventListener('click', () => {
+    opt.onclick = () => {
       playSelectSound();
       document.querySelectorAll('.type-option').forEach(o => o.classList.remove('selected'));
       opt.classList.add('selected');
       state.answerType = opt.dataset.type;
-    });
+    };
   });
   document.querySelector('.type-option[data-type="single"]').classList.add('selected');
+
+  // Генерация персонажей
   const charContainer = document.getElementById('characters');
   for (const key in CHARACTERS) {
-    const ch = CHARACTERS[key];
+    const char = CHARACTERS[key];
     const div = document.createElement('div');
     div.className = 'char-card';
     div.dataset.key = key;
-    div.innerHTML = `<img src="${Object.values(ch.forms)[0].img}" alt="${ch.label}" /><div class="label">${ch.label}</div>`;
+    div.innerHTML = `<img src="${Object.values(char.forms)[0].img}" alt="${char.label}" /><div class="label">${char.label}</div>`;
     div.onclick = () => handleCharacterClick(key);
     charContainer.appendChild(div);
   }
-  charContainer.querySelector('.char-card').classList.add('selected');
+  charContainer.firstElementChild.classList.add('selected');
 
-  document.getElementById('btn-form-back').onclick = () => {
-    show(STEP.CHAR, 'prev');
-  };
-  document.getElementById('btn-form-next').onclick = () => {
-    if (characterSound && !characterSound.paused) {
-      characterSound.pause();
-      characterSound.currentTime = 0;
-    }
-    if (isMusicPlaying && !isFading) {
-      music.volume = DEFAULT_MUSIC_VOLUME;
-    }
-    show(STEP.PROB, 'next');
-  };
+  // Кнопки навигации
   document.getElementById('btn-name-next').onclick = () => {
     const name = document.getElementById('input-name').value.trim();
-    if (!name || name.length < 2) {
-      const input = document.getElementById('input-name');
-      input.style.animation = 'shake 0.5s ease-in-out';
-      setTimeout(() => input.style.animation = '', 500);
-      alert('Введите имя минимум из 2 символов');
-      return;
-    }
+    if (name.length < 2) return alert('Имя должно быть от 2 символов');
     state.name = name;
-    show(STEP.TYPE, 'next');
+    show(STEP.TYPE);
   };
-  document.getElementById('btn-type-back').onclick = () => show(STEP.NAME, 'prev');
-  document.getElementById('btn-type-next').onclick = () => show(STEP.CHAR, 'next');
-  document.getElementById('btn-char-back').onclick = () => show(STEP.TYPE, 'prev');
+  document.getElementById('btn-type-back').onclick = () => show(STEP.NAME);
+  document.getElementById('btn-type-next').onclick = () => show(STEP.CHAR);
+  document.getElementById('btn-char-back').onclick = () => show(STEP.TYPE);
   document.getElementById('btn-char-next').onclick = () => {
-    if (state.answerType === 'group') {
-      if (characterSound && !characterSound.paused) {
-        characterSound.pause();
-        characterSound.currentTime = 0;
-      }
-      if (isMusicPlaying && !isFading) {
-        music.volume = DEFAULT_MUSIC_VOLUME;
-      }
-      show(STEP.PROB, 'next');
-    } else {
-      alert('Выбери персонажа выше');
-    }
+    if (state.answerType === 'single') return alert('Выбери персонажа!');
+    show(STEP.PROB);
   };
+  document.getElementById('btn-form-back').onclick = () => show(STEP.CHAR);
+  document.getElementById('btn-form-next').onclick = () => show(STEP.PROB);
   document.getElementById('btn-problem-back').onclick = () => {
-    if (state.answerType === 'group') {
-      show(STEP.CHAR, 'prev');
-    } else {
-      show(STEP.FORM, 'prev');
-    }
+    if (state.answerType === 'group') show(STEP.CHAR);
+    else show(STEP.FORM);
   };
+
+  // Новый чат
+  document.getElementById('btn-new-chat').onclick = () => {
+    document.getElementById('chat-messages').innerHTML = '';
+    document.getElementById('input-problem').value = '';
+    show(STEP.NAME);
+  };
+
+  // Отправка в чат
   document.getElementById('btn-problem-send').onclick = async () => {
-    playMagicSound();
-    const problem = document.getElementById('input-problem').value.trim();
-    if (!problem) {
-      const textarea = document.getElementById('input-problem');
-      textarea.style.animation = 'shake 0.5s ease-in-out';
-      setTimeout(() => textarea.style.animation = '', 500);
-      alert('Опиши проблему, пожалуйста');
-      return;
-    }
-    state.problem = problem;
+    const input = document.getElementById('input-problem');
+    const text = input.value.trim();
+    if (!text) return;
+
+    addMessage(text, true);
+    input.value = '';
+    input.disabled = true;
+    document.getElementById('btn-problem-send').disabled = true;
+
     const init = tg.initDataUnsafe || {};
     const user = init.user || {};
     const chat_id = user.id || null;
     const username = state.name || user.first_name || "друг";
-    const resultBox = document.getElementById('result-box');
-    const loader = document.getElementById('loading');
-    resultBox.innerText = "";
-    loader.classList.remove('hidden');
-    show(STEP.RES, 'zoom');
+
+    addMessage('Собирает мысли... 💫', false);
+    const thinkingEl = document.querySelector('.chat-message:last-child');
+
     try {
-      const backend = 'https://sailormoonpsychohelp-7bkw.onrender.com';
-      const resp = await fetch(`${backend}/ask`, {
+      const resp = await fetch('https://sailormoonpsychohelp-7bkw.onrender.com/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -552,45 +401,25 @@ document.addEventListener('DOMContentLoaded', () => {
           character: state.answerType === 'single' ? state.characters[0] : state.characters.join(','),
           form: state.answerType === 'single' ? state.form : undefined,
           answer_type: state.answerType,
-          problem: state.problem
+          problem: text
         })
       });
       const data = await resp.json();
-      loader.classList.add('hidden');
-      resultBox.classList.add('fade-in');
-      resultBox.innerText = data.ok ? (data.advice || "Пустой ответ") : "Ошибка: " + (data.error || JSON.stringify(data));
-      setTimeout(() => resultBox.classList.remove('fade-in'), 600);
-    } catch (err) {
-      console.error(err);
-      loader.classList.add('hidden');
-      resultBox.innerText = "Ошибка связи с сервером. Попробуй позже.";
+      thinkingEl.remove();
+      if (data.ok && data.advice) {
+        addMessage(data.advice, false);
+      } else {
+        addMessage("🌙 Что-то пошло не так... Попробуй позже!", false);
+      }
+    } catch (e) {
+      console.error(e);
+      thinkingEl.remove();
+      addMessage("💔 Не удалось связаться с Луной. Проверь соединение.", false);
+    } finally {
+      input.disabled = false;
+      document.getElementById('btn-problem-send').disabled = false;
     }
   };
-  document.getElementById('btn-result-again').onclick = () => {
-    document.getElementById('input-problem').value = '';
-    show(STEP.PROB, 'prev');
-  };
-  document.getElementById('btn-result-close').onclick = () => tg.close();
-  document.querySelectorAll('.btn').forEach(btn => {
-    btn.addEventListener('click', playClickSound);
-  });
+
   show(STEP.NAME);
-  try {
-    const init = tg.initDataUnsafe || {};
-    if (init.user && init.user.first_name) {
-      document.getElementById('input-name').value = init.user.first_name;
-    }
-  } catch (e) { /* ignore */ }
 });
-document.addEventListener('touchstart', () => {
-  if (!musicInitialized) {
-    music.play().then(() => {
-      musicBtn.textContent = '🔊';
-      musicInitialized = true;
-      isMusicPlaying = true;
-    }).catch(() => {
-      musicBtn.textContent = '🔇';
-      musicInitialized = true;
-    });
-  }
-}, { once: true });
