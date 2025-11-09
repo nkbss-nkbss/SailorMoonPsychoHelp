@@ -1,7 +1,6 @@
 //app.js
 const tg = window.Telegram.WebApp;
 tg.expand();
-
 const STEP = {
   NAME: 'step-name',
   TYPE: 'step-type',
@@ -10,7 +9,6 @@ const STEP = {
   PROB: 'step-problem',
   RES: 'step-result'
 };
-
 let state = {
   name: "",
   answerType: "single",
@@ -100,7 +98,6 @@ const CHARACTERS = {
       "sailor": { title: "Сейлор Стар Файтер ⭐", img: "https://i.pinimg.com/736x/7c/f6/11/7cf6111d7e826a5e8008310206683b1e.jpg" }
     }
   },
-
   "taiki": {
     label: "Тайки",
     forms: {
@@ -108,7 +105,6 @@ const CHARACTERS = {
       "sailor": { title: "Сейлор Стар Хилер 📚", img: "https://i.pinimg.com/736x/32/1f/c6/321fc67961d968c73c972616e53721af.jpg" }
     }
   },
-
   "yaten": {
     label: "Ятен",
     forms: {
@@ -132,7 +128,6 @@ const CHARACTER_SOUNDS = {
   "chibiusa": "./music/characters/chibiusa (1).mp3",
   "mamoru": "./music/characters/mamoru (1).mp3"
 };
-
 let characterSound = null;
 
 // === Audio elements ===
@@ -150,33 +145,43 @@ const FADE_DURATION = 1000;
 const FADE_STEPS = 20;
 const FADE_INTERVAL = FADE_DURATION / FADE_STEPS;
 
+// === UPDATE CHAT HEADER FUNCTION ===
+function updateChatHeader() {
+  const chatAvatar = document.getElementById('chat-avatar');
+  const chatName = document.getElementById('chat-character-name');
+
+  if (state.answerType === 'group') {
+    chatAvatar.src = 'https://i.pinimg.com/120x120/55/ff/32/55ff32a1d1a2e86ff41d76068672e108.jpg';
+    chatName.textContent = 'Команда Сейлор Воинов 💫';
+  } else {
+    const charKey = state.characters[0];
+    const char = CHARACTERS[charKey];
+    const form = char.forms[state.form];
+    chatAvatar.src = form.img;
+    chatName.textContent = form.title;
+  }
+}
+
 // === Character sound functions ===
 function playCharacterSound(characterKey) {
-  // Остановить предыдущий звук персонажа
   if (characterSound && !characterSound.paused) {
     characterSound.pause();
     characterSound.currentTime = 0;
   }
-
-  // Приглушить фоновую музыку
   if (!isFading) {
     music.volume = QUIET_MUSIC_VOLUME;
   }
-
   const soundFile = CHARACTER_SOUNDS[characterKey];
   if (!soundFile) {
     playSelectSound();
     return;
   }
-
   characterSound = new Audio(soundFile);
   characterSound.volume = 0.4;
   characterSound.play().catch(e => {
     console.log('Character sound error:', e);
     playSelectSound();
   });
-
-  // Восстановить громкость фоновой музыки, когда индивидуальный звук закончится
   characterSound.onended = () => {
     if (!isFading && isMusicPlaying) {
       music.volume = DEFAULT_MUSIC_VOLUME;
@@ -201,7 +206,6 @@ function updateProgressBar(step) {
   document.querySelector('.progress-fill').style.width = `${progressPercentage}%`;
   updateStepDots(Math.min(5, Math.ceil(currentStep)));
 }
-
 function updateStepDots(currentStep) {
   const dots = document.querySelectorAll('.step-dot');
   dots.forEach((dot, index) => {
@@ -269,7 +273,7 @@ function fadeOut(audio) {
   }, FADE_INTERVAL);
 }
 
-// === Show step (С КЛЮЧЕВЫМ ИСПРАВЛЕНИЕМ) ===
+// === Show step ===
 function show(step, direction = 'next') {
   playClickSound();
   const current = document.querySelector('.card.active');
@@ -288,12 +292,12 @@ function show(step, direction = 'next') {
     setTimeout(() => {
       next.classList.add('active');
       updateProgressBar(step);
-
-      // 🔥 КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: рендерим формы при входе на шаг
       if (step === STEP.FORM) {
         renderFormStep();
       }
-
+      if (step === STEP.PROB) {
+        updateChatHeader();
+      }
       setTimeout(() => {
         current.classList.remove('slide-in-prev', 'slide-in-next', 'zoom-in');
         next.classList.remove('slide-in-prev', 'slide-in-next', 'zoom-in');
@@ -303,9 +307,11 @@ function show(step, direction = 'next') {
     document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
     next.classList.add('active');
     updateProgressBar(step);
-
     if (step === STEP.FORM) {
       renderFormStep();
+    }
+    if (step === STEP.PROB) {
+      updateChatHeader();
     }
   }
 }
@@ -335,7 +341,6 @@ function handleCharacterClick(charKey) {
     }
   }
 }
-
 function updateCharacterSelectionUI() {
   const title = document.getElementById('character-title');
   const container = document.getElementById('characters');
@@ -389,7 +394,6 @@ function renderFormStep() {
 const musicBtn = document.getElementById('music-toggle');
 let musicInitialized = false;
 let isMusicPlaying = false;
-
 function initMusic() {
   if (musicInitialized) return;
   music.volume = 0;
@@ -447,7 +451,6 @@ if(moonLayer){
 // === DOMContentLoaded ===
 document.addEventListener('DOMContentLoaded', () => {
   initMusic();
-
   document.querySelectorAll('.type-option').forEach(opt => {
     opt.addEventListener('click', () => {
       playSelectSound();
@@ -457,7 +460,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
   document.querySelector('.type-option[data-type="single"]').classList.add('selected');
-
   const charContainer = document.getElementById('characters');
   for (const key in CHARACTERS) {
     const ch = CHARACTERS[key];
@@ -474,7 +476,6 @@ document.addEventListener('DOMContentLoaded', () => {
     show(STEP.CHAR, 'prev');
   };
   document.getElementById('btn-form-next').onclick = () => {
-    // Остановить звук персонажа
     if (characterSound && !characterSound.paused) {
       characterSound.pause();
       characterSound.currentTime = 0;
@@ -484,7 +485,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     show(STEP.PROB, 'next');
   };
-
   document.getElementById('btn-name-next').onclick = () => {
     const name = document.getElementById('input-name').value.trim();
     if (!name || name.length < 2) {
@@ -502,12 +502,10 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-char-back').onclick = () => show(STEP.TYPE, 'prev');
   document.getElementById('btn-char-next').onclick = () => {
     if (state.answerType === 'group') {
-      // Остановить текущий звук персонажа
       if (characterSound && !characterSound.paused) {
         characterSound.pause();
         characterSound.currentTime = 0;
       }
-      // Вернуть фоновую музыку
       if (isMusicPlaying && !isFading) {
         music.volume = DEFAULT_MUSIC_VOLUME;
       }
@@ -534,20 +532,16 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     state.problem = problem;
-
     const init = tg.initDataUnsafe || {};
     const user = init.user || {};
     const chat_id = user.id || null;
     const username = state.name || user.first_name || "друг";
-
     const resultBox = document.getElementById('result-box');
     const loader = document.getElementById('loading');
     resultBox.innerText = "";
     loader.classList.remove('hidden');
     show(STEP.RES, 'zoom');
-
     try {
-      // ⚠️ Замените на ваш настоящий URL!
       const backend = 'https://sailormoonpsychohelp-7bkw.onrender.com';
       const resp = await fetch(`${backend}/ask`, {
         method: 'POST',
@@ -577,13 +571,10 @@ document.addEventListener('DOMContentLoaded', () => {
     show(STEP.PROB, 'prev');
   };
   document.getElementById('btn-result-close').onclick = () => tg.close();
-
   document.querySelectorAll('.btn').forEach(btn => {
     btn.addEventListener('click', playClickSound);
   });
-
   show(STEP.NAME);
-
   try {
     const init = tg.initDataUnsafe || {};
     if (init.user && init.user.first_name) {
@@ -591,7 +582,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   } catch (e) { /* ignore */ }
 });
-
 document.addEventListener('touchstart', () => {
   if (!musicInitialized) {
     music.play().then(() => {
@@ -604,8 +594,3 @@ document.addEventListener('touchstart', () => {
     });
   }
 }, { once: true });
-
-
-
-
-
