@@ -507,9 +507,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('btn-char-back').onclick = () => show(STEP.TYPE, 'prev');
   document.getElementById('btn-char-next').onclick = () => {
-    if (state.answerType === 'group') {
-      // Для группы — просто идём к проблеме
-      // Останавливаем звук и восстанавливаем музыку
+    if (state.answerType === 'single') {
+      if (!state.characters || state.characters.length === 0) {
+        alert('Выбери персонажа выше');
+        return;
+      }
+      const charKey = state.characters[0];
+      if (Object.keys(CHARACTERS[charKey].forms).length > 1) {
+        show(STEP.FORM, 'next');
+      } else {
+        // Если форм нет — установить первую и сразу к проблеме
+        state.form = Object.keys(CHARACTERS[charKey].forms)[0];
+        show(STEP.PROB, 'next');
+      }
+    } else {
+      // Групповой режим
+      if (state.characters.length === 0) {
+        alert('Выбери хотя бы одного персонажа');
+        return;
+      }
       if (characterSound && !characterSound.paused) {
         characterSound.pause();
         characterSound.currentTime = 0;
@@ -518,20 +534,6 @@ document.addEventListener('DOMContentLoaded', () => {
         music.volume = DEFAULT_MUSIC_VOLUME;
       }
       show(STEP.PROB, 'next');
-    } else {
-      // Для одного — проверяем, выбран ли персонаж
-      if (!state.characters || state.characters.length === 0) {
-        alert('Выбери персонажа');
-        return;
-      }
-      const charKey = state.characters[0];
-      if (Object.keys(CHARACTERS[charKey].forms).length > 1) {
-        // Если есть формы — переходим к выбору формы
-        show(STEP.FORM, 'next');
-      } else {
-        // Иначе — сразу к проблеме
-        show(STEP.PROB, 'next');
-      }
     }
   };
 
@@ -843,8 +845,6 @@ document.addEventListener('touchstart', () => {
     });
   }
 }, { once: true });
-
-
 
 
 
