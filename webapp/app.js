@@ -1,4 +1,4 @@
-//app.js
+// app.js — с памятью персонажа (контекст диалога)
 const tg = window.Telegram.WebApp;
 tg.expand();
 
@@ -16,10 +16,10 @@ let state = {
   answerType: "single",
   characters: ["usagi"],
   form: "human",
-  problem: ""
+  problem: "",
+  conversationHistory: []
 };
 
-// === CHARACTER DATA WITH FORMS (без лишних пробелов в URL) ===
 const CHARACTERS = {
   "usagi": {
     label: "Усаги",
@@ -116,7 +116,6 @@ const CHARACTERS = {
   }
 };
 
-// === Character sounds ===
 const CHARACTER_SOUNDS = {
   "usagi": "./music/characters/usagi (1).mp3",
   "ami": "./music/characters/ami (1).mp3", 
@@ -132,46 +131,34 @@ const CHARACTER_SOUNDS = {
 };
 
 let characterSound = null;
-
-// === Audio elements ===
 const music = document.getElementById('bg-music');
 const clickSound = document.getElementById('click-sound');
 const magicSound = document.getElementById('magic-sound');
 const selectSound = document.getElementById('select-sound');
 const DEFAULT_MUSIC_VOLUME = 0.3;
 const QUIET_MUSIC_VOLUME = 0.1;
+let fadeInterval, isFading = false;
+const FADE_DURATION = 1000, FADE_STEPS = 20, FADE_INTERVAL = FADE_DURATION / FADE_STEPS;
 
-// === Music fade variables ===
-let fadeInterval;
-let isFading = false;
-const FADE_DURATION = 1000;
-const FADE_STEPS = 20;
-const FADE_INTERVAL = FADE_DURATION / FADE_STEPS;
-
-// === Character sound functions ===
 function playCharacterSound(characterKey) {
   if (characterSound && !characterSound.paused) {
     characterSound.pause();
     characterSound.currentTime = 0;
   }
-
   if (!isFading) {
     music.volume = QUIET_MUSIC_VOLUME;
   }
-
   const soundFile = CHARACTER_SOUNDS[characterKey];
   if (!soundFile) {
     playSelectSound();
     return;
   }
-
   characterSound = new Audio(soundFile);
   characterSound.volume = 0.4;
   characterSound.play().catch(e => {
     console.log('Character sound error:', e);
     playSelectSound();
   });
-
   characterSound.onended = () => {
     if (!isFading && isMusicPlaying) {
       music.volume = DEFAULT_MUSIC_VOLUME;
@@ -179,7 +166,6 @@ function playCharacterSound(characterKey) {
   };
 }
 
-// === Progress bar ===
 function updateProgressBar(step) {
   const stepMap = {
     'step-name': 1,
@@ -207,7 +193,6 @@ function updateStepDots(currentStep) {
   });
 }
 
-// === Sound functions ===
 function playClickSound() {
   if (clickSound) {
     clickSound.volume = 0.3;
@@ -230,7 +215,6 @@ function playSelectSound() {
   }
 }
 
-// === Fade functions ===
 function fadeIn(audio, vol = 0.3) {
   if (isFading) clearInterval(fadeInterval);
   isFading = true;
@@ -264,7 +248,6 @@ function fadeOut(audio) {
   }, FADE_INTERVAL);
 }
 
-// === Show step ===
 function show(step, direction = 'next') {
   playClickSound();
   const current = document.querySelector('.card.active');
@@ -301,7 +284,6 @@ function show(step, direction = 'next') {
   }
 }
 
-// === Handle character click ===
 function handleCharacterClick(charKey) {
   playSelectSound();
   playCharacterSound(charKey);
@@ -348,7 +330,6 @@ function updateCharacterSelectionUI() {
   }
 }
 
-// === FORM STEP UI ===
 function renderFormStep() {
   const charKey = state.characters[0];
   const container = document.getElementById('form-options');
@@ -375,11 +356,8 @@ function renderFormStep() {
   }
 }
 
-// === Music ===
 const musicBtn = document.getElementById('music-toggle');
-let musicInitialized = false;
-let isMusicPlaying = false;
-
+let musicInitialized = false, isMusicPlaying = false;
 function initMusic() {
   if (musicInitialized) return;
   music.volume = 0;
@@ -405,11 +383,7 @@ function toggleMusic() {
     isMusicPlaying = true;
   }
 }
-window.addEventListener('beforeunload', () => {
-  if (!music.paused) { music.volume = 0; music.pause(); }
-});
 
-// === Parallax & Stars ===
 document.addEventListener('mousemove', e => {
   const x = (e.clientX / window.innerWidth - 0.5) * 25;
   const y = (e.clientY / window.innerHeight - 0.5) * 25;
@@ -418,6 +392,7 @@ document.addEventListener('mousemove', e => {
     layer.style.transform = `translate(${x*f}px, ${y*f}px)`;
   });
 });
+
 const starsContainer = document.querySelector('.stars');
 for (let i = 0; i < 150; i++) {
   const star = document.createElement('div');
@@ -429,12 +404,12 @@ for (let i = 0; i < 150; i++) {
   starsContainer.appendChild(star);
   star.style.animation = `twinkle ${2 + Math.random()*3}s infinite ease-in-out, fall ${5 + Math.random()*5}s linear ${Math.random()*5}s infinite`;
 }
+
 const moonLayer = document.getElementById('moon');
 if(moonLayer){
   moonLayer.style.animation = "pulse 4s infinite ease-in-out alternate";
 }
 
-// === DOMContentLoaded ===
 document.addEventListener('DOMContentLoaded', () => {
   initMusic();
 
@@ -460,19 +435,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   charContainer.querySelector('.char-card').classList.add('selected');
 
-  // === Navigation handlers ===
-  document.getElementById('btn-form-back').onclick = () => {
-    show(STEP.CHAR, 'prev');
-  };
-  
+  document.getElementById('btn-form-back').onclick = () => show(STEP.CHAR, 'prev');
   document.getElementById('btn-form-next').onclick = () => {
     if (characterSound && !characterSound.paused) {
       characterSound.pause();
       characterSound.currentTime = 0;
     }
-    if (isMusicPlaying && !isFading) {
-      music.volume = DEFAULT_MUSIC_VOLUME;
-    }
+    if (isMusicPlaying && !isFading) music.volume = DEFAULT_MUSIC_VOLUME;
     show(STEP.PROB, 'next');
   };
 
@@ -480,25 +449,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const name = document.getElementById('input-name').value.trim();
     if (!name || name.length < 2) {
       const input = document.getElementById('input-name');
-      input.style.animation = 'shake 0.5s ease-in-out';
+      input.style.animation = 'shake 0.5s';
       setTimeout(() => input.style.animation = '', 500);
-      alert('Введите имя минимум из 2 символов');
+      alert('Имя от 2 букв');
       return;
     }
     state.name = name;
     show(STEP.TYPE, 'next');
   };
-
   document.getElementById('btn-type-back').onclick = () => show(STEP.NAME, 'prev');
   document.getElementById('btn-type-next').onclick = () => show(STEP.CHAR, 'next');
-
   document.getElementById('btn-char-back').onclick = () => show(STEP.TYPE, 'prev');
+
   document.getElementById('btn-char-next').onclick = () => {
     if (state.answerType === 'single') {
-      if (!state.characters || state.characters.length === 0) {
-        alert('Выбери персонажа выше');
-        return;
-      }
+      if (!state.characters.length) return alert('Выбери персонажа');
       const charKey = state.characters[0];
       if (Object.keys(CHARACTERS[charKey].forms).length > 1) {
         show(STEP.FORM, 'next');
@@ -507,47 +472,35 @@ document.addEventListener('DOMContentLoaded', () => {
         show(STEP.PROB, 'next');
       }
     } else {
-      if (state.characters.length === 0) {
-        alert('Выбери хотя бы одного персонажа');
-        return;
-      }
+      if (state.characters.length === 0) return alert('Выбери хотя бы одного');
       if (characterSound && !characterSound.paused) {
-        characterSound.pause();
-        characterSound.currentTime = 0;
+        characterSound.pause(); characterSound.currentTime = 0;
       }
-      if (isMusicPlaying && !isFading) {
-        music.volume = DEFAULT_MUSIC_VOLUME;
-      }
+      if (isMusicPlaying && !isFading) music.volume = DEFAULT_MUSIC_VOLUME;
       show(STEP.PROB, 'next');
     }
   };
 
   document.getElementById('btn-problem-back').onclick = () => {
-    if (state.answerType === 'group') {
-      show(STEP.CHAR, 'prev');
-    } else {
-      show(STEP.FORM, 'prev');
-    }
+    if (state.answerType === 'group') show(STEP.CHAR, 'prev');
+    else show(STEP.FORM, 'prev');
   };
 
   document.getElementById('btn-problem-send').onclick = async () => {
     playMagicSound();
     const problem = document.getElementById('input-problem').value.trim();
-    if (!problem) {
-      const textarea = document.getElementById('input-problem');
-      textarea.style.animation = 'shake 0.5s ease-in-out';
-      setTimeout(() => textarea.style.animation = '', 500);
-      alert('Опиши проблему, пожалуйста');
-      return;
-    }
+    if (!problem) return alert('Опиши проблему');
     state.problem = problem;
+
     const init = tg.initDataUnsafe || {};
     const user = init.user || {};
     const chat_id = user.id || null;
     const username = state.name || user.first_name || "друг";
 
-    let characterAvatar = "";
-    let characterName = "";
+    let conversation_history = [{ role: "user", content: `Пользователь ${username} делится ситуацией: ${problem}` }];
+    state.conversationHistory = [{ role: "user", text: problem }];
+
+    let characterAvatar = "", characterName = "";
     if (state.answerType === 'single') {
       const charData = CHARACTERS[state.characters[0]];
       const formData = charData.forms[state.form];
@@ -557,17 +510,16 @@ document.addEventListener('DOMContentLoaded', () => {
       characterAvatar = CHARACTERS[state.characters[0]].forms["sailor" in CHARACTERS[state.characters[0]].forms ? "sailor" : "human"].img;
       characterName = "Команда Сейлор Воинов";
     }
-
     document.getElementById('result-avatar').src = characterAvatar;
     document.getElementById('result-name').textContent = characterName;
-    document.getElementById('user-message-text').textContent = state.problem;
+    document.getElementById('user-message-text').textContent = problem;
 
     const loader = document.getElementById('loading');
     loader.classList.remove('hidden');
     show(STEP.RES, 'zoom');
 
     try {
-      const backend = 'https://sailormoonpsychohelp-7bkw.onrender.com'; // ✅ УБРАНЫ ПРОБЕЛЫ
+      const backend = 'https://sailormoonpsychohelp-7bkw.onrender.com';
       const resp = await fetch(`${backend}/ask`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -577,27 +529,25 @@ document.addEventListener('DOMContentLoaded', () => {
           character: state.answerType === 'single' ? state.characters[0] : state.characters.join(','),
           form: state.answerType === 'single' ? state.form : undefined,
           answer_type: state.answerType,
-          problem: state.problem
+          conversation_history
         })
       });
       const data = await resp.json();
       loader.classList.add('hidden');
-      const resultText = data.ok ? (data.advice || "Пустой ответ") : "Ошибка: " + (data.error || JSON.stringify(data));
-      const resultElement = document.getElementById('character-message-text');
-      resultElement.innerText = resultText;
-      resultElement.classList.add('fade-in');
-      setTimeout(() => resultElement.classList.remove('fade-in'), 600);
+
+      const resultText = data.ok ? (data.advice || "Пустой ответ") : "Ошибка: " + (data.error || "сервер молчит");
+      document.getElementById('character-message-text').innerText = resultText;
+      state.conversationHistory.push({ role: "assistant", text: resultText });
 
       document.getElementById('new-message-input').disabled = false;
       document.getElementById('send-new-message').disabled = false;
     } catch (err) {
       console.error(err);
       loader.classList.add('hidden');
-      document.getElementById('character-message-text').innerText = "Ошибка связи с сервером. Попробуй позже.";
+      document.getElementById('character-message-text').innerText = "Ошибка связи. Попробуй позже.";
     }
   };
 
-  // === Продолжение диалога ===
   document.getElementById('send-new-message').onclick = async () => {
     const newMessage = document.getElementById('new-message-input').value.trim();
     if (!newMessage) return;
@@ -606,6 +556,7 @@ document.addEventListener('DOMContentLoaded', () => {
     userBubble.className = 'message-bubble user-bubble';
     userBubble.innerHTML = `<div class="message-text">${newMessage}</div>`;
     document.querySelector('.chat-messages').appendChild(userBubble);
+    state.conversationHistory.push({ role: "user", text: newMessage });
 
     document.getElementById('new-message-input').value = '';
     document.getElementById('send-new-message').disabled = true;
@@ -616,8 +567,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const chat_id = user.id || null;
     const username = state.name || user.first_name || "друг";
 
+    const conversation_history = state.conversationHistory.map(msg => ({
+      role: msg.role,
+      content: msg.role === "user"
+        ? `Пользователь ${username} говорит: ${msg.text}`
+        : msg.text
+    }));
+
     try {
-      const backend = 'https://sailormoonpsychohelp-7bkw.onrender.com'; // ✅ УБРАНЫ ПРОБЕЛЫ
+      const backend = 'https://sailormoonpsychohelp-7bkw.onrender.com';
       const resp = await fetch(`${backend}/ask`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -627,37 +585,38 @@ document.addEventListener('DOMContentLoaded', () => {
           character: state.answerType === 'single' ? state.characters[0] : state.characters.join(','),
           form: state.answerType === 'single' ? state.form : undefined,
           answer_type: state.answerType,
-          problem: newMessage
+          conversation_history
         })
       });
       const data = await resp.json();
 
+      const adviceText = data.ok ? (data.advice || "Молчу...") : "Не получилось ответить...";
       const charBubble = document.createElement('div');
       charBubble.className = 'message-bubble character-bubble';
-      charBubble.innerHTML = `<div class="message-text">${data.ok ? (data.advice || "Пустой ответ") : "Ошибка: " + (data.error || "сервер не ответил")}</div>`;
+      charBubble.innerHTML = `<div class="message-text">${adviceText}</div>`;
       document.querySelector('.chat-messages').appendChild(charBubble);
+      state.conversationHistory.push({ role: "assistant", text: adviceText });
+
       document.querySelector('.chat-messages').scrollTop = document.querySelector('.chat-messages').scrollHeight;
     } catch (err) {
       console.error(err);
       const charBubble = document.createElement('div');
       charBubble.className = 'message-bubble character-bubble';
-      charBubble.innerHTML = `<div class="message-text">Ошибка связи. Попробуй ещё раз.</div>`;
+      charBubble.innerHTML = `<div class="message-text">Ошибка. Попробуй ещё.</div>`;
       document.querySelector('.chat-messages').appendChild(charBubble);
     } finally {
       document.getElementById('send-new-message').disabled = false;
     }
   };
 
-  // === Result buttons ===
   document.getElementById('btn-result-again').onclick = () => {
     document.getElementById('input-problem').value = '';
+    state.conversationHistory = [];
     show(STEP.PROB, 'prev');
   };
   document.getElementById('btn-result-close').onclick = () => tg.close();
 
-  document.querySelectorAll('.btn').forEach(btn => {
-    btn.addEventListener('click', playClickSound);
-  });
+  document.querySelectorAll('.btn').forEach(btn => btn.addEventListener('click', playClickSound));
 
   show(STEP.NAME);
 
@@ -666,7 +625,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (init.user && init.user.first_name) {
       document.getElementById('input-name').value = init.user.first_name;
     }
-  } catch (e) { /* ignore */ }
+  } catch (e) {}
 });
 
 document.addEventListener('touchstart', () => {
