@@ -1,4 +1,4 @@
-// app.js — с памятью персонажа (контекст диалога)
+// app.js — с памятью персонажа и живым диалогом
 const tg = window.Telegram.WebApp;
 tg.expand();
 
@@ -17,7 +17,8 @@ let state = {
   characters: ["usagi"],
   form: "human",
   problem: "",
-  conversationHistory: []
+  conversationHistory: [],
+  isFirstMessage: true
 };
 
 const CHARACTERS = {
@@ -472,7 +473,7 @@ document.addEventListener('DOMContentLoaded', () => {
         show(STEP.PROB, 'next');
       }
     } else {
-      if (state.characters.length === 0) return alert('Выбери хотя бы одного');
+      if (!state.characters.length) return alert('Выбери хотя бы одного');
       if (characterSound && !characterSound.paused) {
         characterSound.pause(); characterSound.currentTime = 0;
       }
@@ -499,6 +500,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let conversation_history = [{ role: "user", content: `Пользователь ${username} делится ситуацией: ${problem}` }];
     state.conversationHistory = [{ role: "user", text: problem }];
+    state.isFirstMessage = true;
 
     let characterAvatar = "", characterName = "";
     if (state.answerType === 'single') {
@@ -529,7 +531,8 @@ document.addEventListener('DOMContentLoaded', () => {
           character: state.answerType === 'single' ? state.characters[0] : state.characters.join(','),
           form: state.answerType === 'single' ? state.form : undefined,
           answer_type: state.answerType,
-          conversation_history
+          conversation_history,
+          is_first_message: true
         })
       });
       const data = await resp.json();
@@ -538,6 +541,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const resultText = data.ok ? (data.advice || "Пустой ответ") : "Ошибка: " + (data.error || "сервер молчит");
       document.getElementById('character-message-text').innerText = resultText;
       state.conversationHistory.push({ role: "assistant", text: resultText });
+      state.isFirstMessage = false;
 
       document.getElementById('new-message-input').disabled = false;
       document.getElementById('send-new-message').disabled = false;
@@ -585,7 +589,8 @@ document.addEventListener('DOMContentLoaded', () => {
           character: state.answerType === 'single' ? state.characters[0] : state.characters.join(','),
           form: state.answerType === 'single' ? state.form : undefined,
           answer_type: state.answerType,
-          conversation_history
+          conversation_history,
+          is_first_message: false
         })
       });
       const data = await resp.json();
@@ -612,6 +617,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-result-again').onclick = () => {
     document.getElementById('input-problem').value = '';
     state.conversationHistory = [];
+    state.isFirstMessage = true;
     show(STEP.PROB, 'prev');
   };
   document.getElementById('btn-result-close').onclick = () => tg.close();
