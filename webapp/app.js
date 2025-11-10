@@ -100,7 +100,6 @@ const CHARACTERS = {
       "sailor": { title: "Сейлор Стар Файтер ⭐", img: "https://i.pinimg.com/736x/7c/f6/11/7cf6111d7e826a5e8008310206683b1e.jpg" }
     }
   },
-
   "taiki": {
     label: "Тайки",
     forms: {
@@ -108,7 +107,6 @@ const CHARACTERS = {
       "sailor": { title: "Сейлор Стар Хилер 📚", img: "https://i.pinimg.com/736x/32/1f/c6/321fc67961d968c73c972616e53721af.jpg" }
     }
   },
-
   "yaten": {
     label: "Ятен",
     forms: {
@@ -152,13 +150,11 @@ const FADE_INTERVAL = FADE_DURATION / FADE_STEPS;
 
 // === Character sound functions ===
 function playCharacterSound(characterKey) {
-  // Остановить предыдущий звук персонажа
   if (characterSound && !characterSound.paused) {
     characterSound.pause();
     characterSound.currentTime = 0;
   }
 
-  // Приглушить фоновую музыку
   if (!isFading) {
     music.volume = QUIET_MUSIC_VOLUME;
   }
@@ -176,7 +172,6 @@ function playCharacterSound(characterKey) {
     playSelectSound();
   });
 
-  // Восстановить громкость фоновой музыки, когда индивидуальный звук закончится
   characterSound.onended = () => {
     if (!isFading && isMusicPlaying) {
       music.volume = DEFAULT_MUSIC_VOLUME;
@@ -269,7 +264,7 @@ function fadeOut(audio) {
   }, FADE_INTERVAL);
 }
 
-// === Show step (С КЛЮЧЕВЫМ ИСПРАВЛЕНИЕМ) ===
+// === Show step ===
 function show(step, direction = 'next') {
   playClickSound();
   const current = document.querySelector('.card.active');
@@ -288,12 +283,9 @@ function show(step, direction = 'next') {
     setTimeout(() => {
       next.classList.add('active');
       updateProgressBar(step);
-
-      // 🔥 КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: рендерим формы при входе на шаг
       if (step === STEP.FORM) {
         renderFormStep();
       }
-
       setTimeout(() => {
         current.classList.remove('slide-in-prev', 'slide-in-next', 'zoom-in');
         next.classList.remove('slide-in-prev', 'slide-in-next', 'zoom-in');
@@ -303,7 +295,6 @@ function show(step, direction = 'next') {
     document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
     next.classList.add('active');
     updateProgressBar(step);
-
     if (step === STEP.FORM) {
       renderFormStep();
     }
@@ -325,12 +316,10 @@ function handleCharacterClick(charKey) {
     }
     updateCharacterSelectionUI();
   } else {
-    // Только выделяем персонажа, НЕ переходим
     state.characters = [charKey];
     updateCharacterSelectionUI();
-    // Проверяем, есть ли формы — если да, рендерим их, но НЕ переходим
     if (Object.keys(CHARACTERS[charKey].forms).length > 1) {
-      renderFormStep(); // предзагружаем формы, но шаг остаётся тем же
+      renderFormStep();
     } else {
       state.form = Object.keys(CHARACTERS[charKey].forms)[0];
     }
@@ -449,7 +438,6 @@ if(moonLayer){
 document.addEventListener('DOMContentLoaded', () => {
   initMusic();
 
-  // === Выбор типа ответа ===
   document.querySelectorAll('.type-option').forEach(opt => {
     opt.addEventListener('click', () => {
       playSelectSound();
@@ -460,7 +448,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   document.querySelector('.type-option[data-type="single"]').classList.add('selected');
 
-  // === Генерация карточек персонажей ===
   const charContainer = document.getElementById('characters');
   for (const key in CHARACTERS) {
     const ch = CHARACTERS[key];
@@ -473,7 +460,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   charContainer.querySelector('.char-card').classList.add('selected');
 
-  // === Навигация шагов ===
+  // === Navigation handlers ===
   document.getElementById('btn-form-back').onclick = () => {
     show(STEP.CHAR, 'prev');
   };
@@ -516,12 +503,10 @@ document.addEventListener('DOMContentLoaded', () => {
       if (Object.keys(CHARACTERS[charKey].forms).length > 1) {
         show(STEP.FORM, 'next');
       } else {
-        // Если форм нет — установить первую и сразу к проблеме
         state.form = Object.keys(CHARACTERS[charKey].forms)[0];
         show(STEP.PROB, 'next');
       }
     } else {
-      // Групповой режим
       if (state.characters.length === 0) {
         alert('Выбери хотя бы одного персонажа');
         return;
@@ -561,7 +546,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const chat_id = user.id || null;
     const username = state.name || user.first_name || "друг";
 
-    // --- Подготовка данных для чата ---
     let characterAvatar = "";
     let characterName = "";
     if (state.answerType === 'single') {
@@ -583,7 +567,7 @@ document.addEventListener('DOMContentLoaded', () => {
     show(STEP.RES, 'zoom');
 
     try {
-      const backend = 'https://sailormoonpsychohelp-7bkw.onrender.com'; // ⚠️ Без пробелов!
+      const backend = 'https://sailormoonpsychohelp-7bkw.onrender.com'; // ✅ УБРАНЫ ПРОБЕЛЫ
       const resp = await fetch(`${backend}/ask`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -604,7 +588,6 @@ document.addEventListener('DOMContentLoaded', () => {
       resultElement.classList.add('fade-in');
       setTimeout(() => resultElement.classList.remove('fade-in'), 600);
 
-      // === Активируем поле для продолжения диалога ===
       document.getElementById('new-message-input').disabled = false;
       document.getElementById('send-new-message').disabled = false;
     } catch (err) {
@@ -614,30 +597,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // === Продолжение диалога в чате (правильное место!) ===
+  // === Продолжение диалога ===
   document.getElementById('send-new-message').onclick = async () => {
     const newMessage = document.getElementById('new-message-input').value.trim();
     if (!newMessage) return;
 
-    // Добавляем сообщение пользователя
     const userBubble = document.createElement('div');
     userBubble.className = 'message-bubble user-bubble';
     userBubble.innerHTML = `<div class="message-text">${newMessage}</div>`;
     document.querySelector('.chat-messages').appendChild(userBubble);
 
-    // Очистка и блокировка
     document.getElementById('new-message-input').value = '';
     document.getElementById('send-new-message').disabled = true;
     document.querySelector('.chat-messages').scrollTop = document.querySelector('.chat-messages').scrollHeight;
 
-    // Подготовка данных
     const init = tg.initDataUnsafe || {};
     const user = init.user || {};
     const chat_id = user.id || null;
     const username = state.name || user.first_name || "друг";
 
     try {
-      const backend = 'https://sailormoonpsychohelp-7bkw.onrender.com'; // ⚠️ Без пробелов!
+      const backend = 'https://sailormoonpsychohelp-7bkw.onrender.com'; // ✅ УБРАНЫ ПРОБЕЛЫ
       const resp = await fetch(`${backend}/ask`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -668,151 +648,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // === Кнопки результата ===
-  document.getElementById('btn-result-again').onclick = () => {
-    document.getElementById('input-problem').value = '';
-    show(STEP.PROB, 'prev');
-  };
-  document.getElementById('btn-result-close').onclick = () => tg.close();
-
-  // === Звук при нажатии на любую кнопку ===
-  document.querySelectorAll('.btn').forEach(btn => {
-    btn.addEventListener('click', playClickSound);
-  });
-
-  // === Запуск с первого шага ===
-  show(STEP.NAME);
-
-  // === Автозаполнение имени из Telegram ===
-  try {
-    const init = tg.initDataUnsafe || {};
-    if (init.user && init.user.first_name) {
-      document.getElementById('input-name').value = init.user.first_name;
-    }
-  } catch (e) { /* ignore */ }
-});
-
-  document.getElementById('btn-name-next').onclick = () => {
-    const name = document.getElementById('input-name').value.trim();
-    if (!name || name.length < 2) {
-      const input = document.getElementById('input-name');
-      input.style.animation = 'shake 0.5s ease-in-out';
-      setTimeout(() => input.style.animation = '', 500);
-      alert('Введите имя минимум из 2 символов');
-      return;
-    }
-    state.name = name;
-    show(STEP.TYPE, 'next');
-  };
-  document.getElementById('btn-type-back').onclick = () => show(STEP.NAME, 'prev');
-  document.getElementById('btn-type-next').onclick = () => show(STEP.CHAR, 'next');
-  document.getElementById('btn-char-back').onclick = () => show(STEP.TYPE, 'prev');
-  document.getElementById('btn-char-next').onclick = () => {
-    if (state.answerType === 'group') {
-      // Остановить текущий звук персонажа
-      if (characterSound && !characterSound.paused) {
-        characterSound.pause();
-        characterSound.currentTime = 0;
-      }
-      // Вернуть фоновую музыку
-      if (isMusicPlaying && !isFading) {
-        music.volume = DEFAULT_MUSIC_VOLUME;
-      }
-      show(STEP.PROB, 'next');
-    } else {
-      alert('Выбери персонажа выше');
-    }
-  };
-  document.getElementById('btn-problem-back').onclick = () => {
-    if (state.answerType === 'group') {
-      show(STEP.CHAR, 'prev');
-    } else {
-      show(STEP.FORM, 'prev');
-    }
-  };
-document.getElementById('btn-problem-send').onclick = async () => {
-  playMagicSound();
-  const problem = document.getElementById('input-problem').value.trim();
-  if (!problem) {
-    const textarea = document.getElementById('input-problem');
-    textarea.style.animation = 'shake 0.5s ease-in-out';
-    setTimeout(() => textarea.style.animation = '', 500);
-    alert('Опиши проблему, пожалуйста');
-    return;
-  }
-  // Сохраняем проблему для отображения в чате
-  state.problem = problem;
-
-  const init = tg.initDataUnsafe || {};
-  const user = init.user || {};
-  const chat_id = user.id || null;
-  const username = state.name || user.first_name || "друг";
-
-  // --- Подготовка данных для чата ---
-  // 1. Получаем аватар и имя персонажа для шапки
-  let characterAvatar = "";
-  let characterName = "";
-  if (state.answerType === 'single') {
-    const charData = CHARACTERS[state.characters[0]];
-    const formData = charData.forms[state.form];
-    characterAvatar = formData.img;
-    characterName = formData.title;
-  } else {
-    // Для группового ответа используем аватар первого персонажа и общее название
-    characterAvatar = CHARACTERS[state.characters[0]].forms["sailor" in CHARACTERS[state.characters[0]].forms ? "sailor" : "human"].img;
-    characterName = "Команда Сейлор Воинов";
-  }
-
-  // 2. Заполняем шапку чата
-  document.getElementById('result-avatar').src = characterAvatar;
-  document.getElementById('result-name').textContent = characterName;
-
-  // 3. Заполняем сообщение пользователя
-  document.getElementById('user-message-text').textContent = state.problem;
-
-  // 4. Скрываем стандартный блок результата
-  // document.getElementById('result-box').innerText = ""; // Больше не нужно
-  const loader = document.getElementById('loading');
-  loader.classList.remove('hidden');
-
-  // Показываем шаг результата с анимацией
-  show(STEP.RES, 'zoom');
-
-  try {
-    const backend = 'https://sailormoonpsychohelp-7bkw.onrender.com';
-    const resp = await fetch(`${backend}/ask`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id,
-        username,
-        character: state.answerType === 'single' ? state.characters[0] : state.characters.join(','),
-        form: state.answerType === 'single' ? state.form : undefined,
-        answer_type: state.answerType,
-        problem: state.problem
-      })
-    });
-    const data = await resp.json();
-    loader.classList.add('hidden');
-    
-    // 5. Заполняем сообщение персонажа
-    const resultText = data.ok ? (data.advice || "Пустой ответ") : "Ошибка: " + (data.error || JSON.stringify(data));
-    const resultElement = document.getElementById('character-message-text');
-    resultElement.innerText = resultText;
-    resultElement.classList.add('fade-in');
-    setTimeout(() => resultElement.classList.remove('fade-in'), 600);
-
-    // (Опционально) Разблокировать поле ввода для нового сообщения
-    document.getElementById('new-message-input').disabled = false;
-    document.getElementById('send-new-message').disabled = false;
-
-  } catch (err) {
-    console.error(err);
-    loader.classList.add('hidden');
-    document.getElementById('character-message-text').innerText = "Ошибка связи с сервером. Попробуй позже.";
-  }
-};
-  
+  // === Result buttons ===
   document.getElementById('btn-result-again').onclick = () => {
     document.getElementById('input-problem').value = '';
     show(STEP.PROB, 'prev');
@@ -845,11 +681,3 @@ document.addEventListener('touchstart', () => {
     });
   }
 }, { once: true });
-
-
-
-
-
-
-
-
