@@ -596,8 +596,8 @@ document.getElementById('btn-problem-send').onclick = async () => {
     setTimeout(() => resultElement.classList.remove('fade-in'), 600);
 
     // (Опционально) Разблокировать поле ввода для нового сообщения
-    // document.getElementById('new-message-input').disabled = false;
-    // document.getElementById('send-new-message').disabled = false;
+    document.getElementById('new-message-input').disabled = false;
+    document.getElementById('send-new-message').disabled = false;
 
   } catch (err) {
     console.error(err);
@@ -638,6 +638,7 @@ document.addEventListener('touchstart', () => {
     });
   }
 }, { once: true });
+
 
 
 
