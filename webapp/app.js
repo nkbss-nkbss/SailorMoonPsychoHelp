@@ -325,13 +325,14 @@ function handleCharacterClick(charKey) {
     }
     updateCharacterSelectionUI();
   } else {
+    // Только выделяем персонажа, НЕ переходим
     state.characters = [charKey];
     updateCharacterSelectionUI();
+    // Проверяем, есть ли формы — если да, рендерим их, но НЕ переходим
     if (Object.keys(CHARACTERS[charKey].forms).length > 1) {
-      show(STEP.FORM, 'next');
+      renderFormStep(); // предзагружаем формы, но шаг остаётся тем же
     } else {
       state.form = Object.keys(CHARACTERS[charKey].forms)[0];
-      show(STEP.PROB, 'next');
     }
   }
 }
@@ -844,6 +845,7 @@ document.addEventListener('touchstart', () => {
     });
   }
 }, { once: true });
+
 
 
 
