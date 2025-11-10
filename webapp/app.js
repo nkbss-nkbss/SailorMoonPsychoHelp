@@ -448,6 +448,7 @@ if(moonLayer){
 document.addEventListener('DOMContentLoaded', () => {
   initMusic();
 
+  // === Выбор типа ответа ===
   document.querySelectorAll('.type-option').forEach(opt => {
     opt.addEventListener('click', () => {
       playSelectSound();
@@ -458,6 +459,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   document.querySelector('.type-option[data-type="single"]').classList.add('selected');
 
+  // === Генерация карточек персонажей ===
   const charContainer = document.getElementById('characters');
   for (const key in CHARACTERS) {
     const ch = CHARACTERS[key];
@@ -470,11 +472,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   charContainer.querySelector('.char-card').classList.add('selected');
 
+  // === Навигация шагов ===
   document.getElementById('btn-form-back').onclick = () => {
     show(STEP.CHAR, 'prev');
   };
+  
   document.getElementById('btn-form-next').onclick = () => {
-    // Остановить звук персонажа
     if (characterSound && !characterSound.paused) {
       characterSound.pause();
       characterSound.currentTime = 0;
@@ -484,6 +487,209 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     show(STEP.PROB, 'next');
   };
+
+  document.getElementById('btn-name-next').onclick = () => {
+    const name = document.getElementById('input-name').value.trim();
+    if (!name || name.length < 2) {
+      const input = document.getElementById('input-name');
+      input.style.animation = 'shake 0.5s ease-in-out';
+      setTimeout(() => input.style.animation = '', 500);
+      alert('Введите имя минимум из 2 символов');
+      return;
+    }
+    state.name = name;
+    show(STEP.TYPE, 'next');
+  };
+
+  document.getElementById('btn-type-back').onclick = () => show(STEP.NAME, 'prev');
+  document.getElementById('btn-type-next').onclick = () => show(STEP.CHAR, 'next');
+
+  document.getElementById('btn-char-back').onclick = () => show(STEP.TYPE, 'prev');
+  document.getElementById('btn-char-next').onclick = () => {
+    if (state.answerType === 'single') {
+      if (!state.characters || state.characters.length === 0) {
+        alert('Выбери персонажа выше');
+        return;
+      }
+      const charKey = state.characters[0];
+      if (Object.keys(CHARACTERS[charKey].forms).length > 1) {
+        show(STEP.FORM, 'next');
+      } else {
+        // Если форм нет — установить первую и сразу к проблеме
+        state.form = Object.keys(CHARACTERS[charKey].forms)[0];
+        show(STEP.PROB, 'next');
+      }
+    } else {
+      // Групповой режим
+      if (state.characters.length === 0) {
+        alert('Выбери хотя бы одного персонажа');
+        return;
+      }
+      if (characterSound && !characterSound.paused) {
+        characterSound.pause();
+        characterSound.currentTime = 0;
+      }
+      if (isMusicPlaying && !isFading) {
+        music.volume = DEFAULT_MUSIC_VOLUME;
+      }
+      show(STEP.PROB, 'next');
+    }
+  };
+
+  document.getElementById('btn-problem-back').onclick = () => {
+    if (state.answerType === 'group') {
+      show(STEP.CHAR, 'prev');
+    } else {
+      show(STEP.FORM, 'prev');
+    }
+  };
+
+  document.getElementById('btn-problem-send').onclick = async () => {
+    playMagicSound();
+    const problem = document.getElementById('input-problem').value.trim();
+    if (!problem) {
+      const textarea = document.getElementById('input-problem');
+      textarea.style.animation = 'shake 0.5s ease-in-out';
+      setTimeout(() => textarea.style.animation = '', 500);
+      alert('Опиши проблему, пожалуйста');
+      return;
+    }
+    state.problem = problem;
+    const init = tg.initDataUnsafe || {};
+    const user = init.user || {};
+    const chat_id = user.id || null;
+    const username = state.name || user.first_name || "друг";
+
+    // --- Подготовка данных для чата ---
+    let characterAvatar = "";
+    let characterName = "";
+    if (state.answerType === 'single') {
+      const charData = CHARACTERS[state.characters[0]];
+      const formData = charData.forms[state.form];
+      characterAvatar = formData.img;
+      characterName = formData.title;
+    } else {
+      characterAvatar = CHARACTERS[state.characters[0]].forms["sailor" in CHARACTERS[state.characters[0]].forms ? "sailor" : "human"].img;
+      characterName = "Команда Сейлор Воинов";
+    }
+
+    document.getElementById('result-avatar').src = characterAvatar;
+    document.getElementById('result-name').textContent = characterName;
+    document.getElementById('user-message-text').textContent = state.problem;
+
+    const loader = document.getElementById('loading');
+    loader.classList.remove('hidden');
+    show(STEP.RES, 'zoom');
+
+    try {
+      const backend = 'https://sailormoonpsychohelp-7bkw.onrender.com'; // ⚠️ Без пробелов!
+      const resp = await fetch(`${backend}/ask`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id,
+          username,
+          character: state.answerType === 'single' ? state.characters[0] : state.characters.join(','),
+          form: state.answerType === 'single' ? state.form : undefined,
+          answer_type: state.answerType,
+          problem: state.problem
+        })
+      });
+      const data = await resp.json();
+      loader.classList.add('hidden');
+      const resultText = data.ok ? (data.advice || "Пустой ответ") : "Ошибка: " + (data.error || JSON.stringify(data));
+      const resultElement = document.getElementById('character-message-text');
+      resultElement.innerText = resultText;
+      resultElement.classList.add('fade-in');
+      setTimeout(() => resultElement.classList.remove('fade-in'), 600);
+
+      // === Активируем поле для продолжения диалога ===
+      document.getElementById('new-message-input').disabled = false;
+      document.getElementById('send-new-message').disabled = false;
+    } catch (err) {
+      console.error(err);
+      loader.classList.add('hidden');
+      document.getElementById('character-message-text').innerText = "Ошибка связи с сервером. Попробуй позже.";
+    }
+  };
+
+  // === Продолжение диалога в чате (правильное место!) ===
+  document.getElementById('send-new-message').onclick = async () => {
+    const newMessage = document.getElementById('new-message-input').value.trim();
+    if (!newMessage) return;
+
+    // Добавляем сообщение пользователя
+    const userBubble = document.createElement('div');
+    userBubble.className = 'message-bubble user-bubble';
+    userBubble.innerHTML = `<div class="message-text">${newMessage}</div>`;
+    document.querySelector('.chat-messages').appendChild(userBubble);
+
+    // Очистка и блокировка
+    document.getElementById('new-message-input').value = '';
+    document.getElementById('send-new-message').disabled = true;
+    document.querySelector('.chat-messages').scrollTop = document.querySelector('.chat-messages').scrollHeight;
+
+    // Подготовка данных
+    const init = tg.initDataUnsafe || {};
+    const user = init.user || {};
+    const chat_id = user.id || null;
+    const username = state.name || user.first_name || "друг";
+
+    try {
+      const backend = 'https://sailormoonpsychohelp-7bkw.onrender.com'; // ⚠️ Без пробелов!
+      const resp = await fetch(`${backend}/ask`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id,
+          username,
+          character: state.answerType === 'single' ? state.characters[0] : state.characters.join(','),
+          form: state.answerType === 'single' ? state.form : undefined,
+          answer_type: state.answerType,
+          problem: newMessage
+        })
+      });
+      const data = await resp.json();
+
+      const charBubble = document.createElement('div');
+      charBubble.className = 'message-bubble character-bubble';
+      charBubble.innerHTML = `<div class="message-text">${data.ok ? (data.advice || "Пустой ответ") : "Ошибка: " + (data.error || "сервер не ответил")}</div>`;
+      document.querySelector('.chat-messages').appendChild(charBubble);
+      document.querySelector('.chat-messages').scrollTop = document.querySelector('.chat-messages').scrollHeight;
+    } catch (err) {
+      console.error(err);
+      const charBubble = document.createElement('div');
+      charBubble.className = 'message-bubble character-bubble';
+      charBubble.innerHTML = `<div class="message-text">Ошибка связи. Попробуй ещё раз.</div>`;
+      document.querySelector('.chat-messages').appendChild(charBubble);
+    } finally {
+      document.getElementById('send-new-message').disabled = false;
+    }
+  };
+
+  // === Кнопки результата ===
+  document.getElementById('btn-result-again').onclick = () => {
+    document.getElementById('input-problem').value = '';
+    show(STEP.PROB, 'prev');
+  };
+  document.getElementById('btn-result-close').onclick = () => tg.close();
+
+  // === Звук при нажатии на любую кнопку ===
+  document.querySelectorAll('.btn').forEach(btn => {
+    btn.addEventListener('click', playClickSound);
+  });
+
+  // === Запуск с первого шага ===
+  show(STEP.NAME);
+
+  // === Автозаполнение имени из Telegram ===
+  try {
+    const init = tg.initDataUnsafe || {};
+    if (init.user && init.user.first_name) {
+      document.getElementById('input-name').value = init.user.first_name;
+    }
+  } catch (e) { /* ignore */ }
+});
 
   document.getElementById('btn-name-next').onclick = () => {
     const name = document.getElementById('input-name').value.trim();
@@ -638,6 +844,7 @@ document.addEventListener('touchstart', () => {
     });
   }
 }, { once: true });
+
 
 
 
