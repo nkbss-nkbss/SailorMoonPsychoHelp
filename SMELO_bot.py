@@ -206,7 +206,7 @@ def send_message_with_photo(chat_id, text, character_key=None, form_key="human",
         print(f"Ошибка отправки: {e}")
         bot.send_message(chat_id, text, parse_mode=parse_mode)
 
-def ask_deepseek(character_key, form_key, conversation_history, username):
+def ask_deepseek(character_key, form_key, conversation_history, username, is_first_message=True):
     url = "https://openrouter.ai/api/v1/chat/completions"
     character = CHARACTERS.get(character_key, CHARACTERS["usagi"])
     style = character["styles"].get(form_key, character["styles"]["human"])
@@ -216,13 +216,22 @@ def ask_deepseek(character_key, form_key, conversation_history, username):
         "Referer": "https://github.com",
         "X-Title": "SailorBot"
     }
-    system_prompt = (
-        f"{style} Не используй местоимения 'он', 'она', 'его', 'её'. "
-        f"Пиши глаголы в зависимости от имени (пол), иначе неопределенные глаголы."
-        f"Ответ должен быть добрым, поддерживающим и вдохновляющим. "
-        f"Сначала приветствие по имени ({username}), затем совет. "
-        f"Максимум 120 слов."
-    )
+    if is_first_message:
+        system_prompt = (
+            f"{style} Не используй местоимения 'он', 'она', 'его', 'её'. "
+            f"Пиши глаголы в зависимости от имени (пол), иначе неопределенные глаголы. "
+            f"Ответ должен быть добрым, поддерживающим и вдохновляющим. "
+            f"Обязательно начни с тёплого приветствия по имени ({username}) и отреагируй на ситуацию. "
+            f"Максимум 120 слов."
+        )
+    else:
+        system_prompt = (
+            f"{style} Ты продолжаешь диалог с {username}. "
+            f"Будь естественной, не повторяй приветствий. Учитывай всё, что было сказано ранее. "
+            f"Отвечай кратко, по-дружески, как будто вы уже говорите. "
+            f"Не начинай с 'Привет' или 'Здравствуй'. Просто продолжай беседу. "
+            f"Максимум 100 слов."
+        )
     messages = [{"role": "system", "content": system_prompt}] + conversation_history
     payload = {
         "model": "deepseek/deepseek-chat",
@@ -233,17 +242,15 @@ def ask_deepseek(character_key, form_key, conversation_history, username):
     try:
         r = requests.post(url, headers=headers, json=payload, timeout=20)
         if r.status_code == 200:
-            data = r.json()
-            return data["choices"][0]["message"]["content"]
+            return r.json()["choices"][0]["message"]["content"]
         else:
-            print("Ошибка API:", r.text)
+            print("API error:", r.text)
             return random.choice(BACKUP_RESPONSES)
     except Exception as e:
-        print("Ошибка запроса:", e)
+        print("Request error:", e)
         return random.choice(BACKUP_RESPONSES)
 
-def ask_deepseek_group(character_keys, conversation_history, username):
-    url = "https://openrouter.ai/api/v1/chat/completions"
+def ask_deepseek_group(character_keys, conversation_history, username, is_first_message=True):
     selected_characters = []
     for key in character_keys:
         if key in CHARACTERS:
@@ -255,7 +262,6 @@ def ask_deepseek_group(character_keys, conversation_history, username):
             })
     if not selected_characters:
         return random.choice(BACKUP_RESPONSES)
-
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
@@ -264,16 +270,22 @@ def ask_deepseek_group(character_keys, conversation_history, username):
     }
     characters_info = "\n".join([f"- {char['name']}: {char['style']}" for char in selected_characters])
     character_names = ", ".join([char["name"] for char in selected_characters])
-    system_prompt = f"""
-Ты — коллективный разум команды Сейлор Воинов. Сейчас вместе обсуждают проблему: {character_names}
-Характеристики персонажей:
+    if is_first_message:
+        system_prompt = f"""
+Ты — коллективный разум команды Сейлор Воинов: {character_names}.
+Характеристики:
 {characters_info}
-Создай ЕДИНЫЙ гармоничный ответ от всей команды:
-- Каждый вносит свой вклад согласно характеру
-- Сохраняй уникальные черты
-- Ответ должен быть поддерживающим и вдохновляющим
-- Пиши глаголы в зависимости от имени (пол), иначе неопределенные глаголы.
-- Максимум 250 слов
+Дай ЕДИНЫЙ, тёплый, поддерживающий ответ.
+Обязательно начни с обращения к {username} и отреагируй на ситуацию.
+Максимум 250 слов.
+"""
+    else:
+        system_prompt = f"""
+Вы — команда Сейлор Воинов, продолжающая диалог с {username}.
+Учитывайте всю историю. Не повторяйте приветствий.
+Отвечайте естественно, как будто разговор уже идёт.
+Каждый вносит свой вклад, но общий тон — дружеский и поддерживающий.
+Максимум 200 слов.
 """
     messages = [{"role": "system", "content": system_prompt}] + conversation_history
     payload = {
@@ -285,24 +297,24 @@ def ask_deepseek_group(character_keys, conversation_history, username):
     try:
         r = requests.post(url, headers=headers, json=payload, timeout=25)
         if r.status_code == 200:
-            data = r.json()
-            return data["choices"][0]["message"]["content"]
+            return r.json()["choices"][0]["message"]["content"]
         else:
-            print("Ошибка API группового запроса:", r.text)
-            return generate_fallback_group_response(character_keys, conversation_history[-1]["content"], username)
+            print("Group API error:", r.text)
+            return generate_fallback_group_response(character_keys, conversation_history, username, is_first_message)
     except Exception as e:
-        print("Ошибка группового запроса:", e)
-        return generate_fallback_group_response(character_keys, conversation_history[-1]["content"], username)
+        print("Group request error:", e)
+        return generate_fallback_group_response(character_keys, conversation_history, username, is_first_message)
 
-def generate_fallback_group_response(character_keys, last_message, username):
+def generate_fallback_group_response(character_keys, conversation_history, username, is_first_message):
+    last_msg = next((m["content"] for m in reversed(conversation_history) if m["role"] == "user"), "Расскажи что-нибудь доброе.")
     responses = []
     for key in character_keys[:3]:
         form = "sailor" if "sailor" in CHARACTERS[key]["forms"] else "human"
-        response = ask_deepseek(key, form, [{"role": "user", "content": last_message}], username)
+        response = ask_deepseek(key, form, conversation_history, username, is_first_message)
         char_name = CHARACTERS[key]["forms"][form]["title"]
         responses.append(f"**{char_name}:**\n{response}")
     combined = "\n---\n".join(responses)
-    return f"💫 **Командный совет от Сейлор Воинов!** ✨\n{combined}\n🌟 *Вместе мы сила!* 💖"
+    return f"💫 **Командный совет!** ✨\n{combined}\n🌟 *Вместе мы сила!* 💖"
 
 @app.route('/ask', methods=['POST'])
 def ask_endpoint():
@@ -317,13 +329,14 @@ def ask_endpoint():
     form = payload.get("form", "human")
     answer_type = payload.get("answer_type", "single")
     conversation_history = payload.get("conversation_history", [])
+    is_first = payload.get("is_first_message", True)
 
     if not conversation_history:
         return jsonify({"ok": False, "error": "empty history"}), 400
 
     if answer_type == "group" and "," in character:
         character_keys = character.split(",")[:4]
-        advice = ask_deepseek_group(character_keys, conversation_history, username)
+        advice = ask_deepseek_group(character_keys, conversation_history, username, is_first)
         char_names = []
         for k in character_keys:
             if k in CHARACTERS:
@@ -332,7 +345,7 @@ def ask_endpoint():
         team_names = ", ".join(char_names)
         advice += f"\n💖 *С любовью, твоя команда: {team_names}!* ✨"
     else:
-        advice = ask_deepseek(character, form, conversation_history, username)
+        advice = ask_deepseek(character, form, conversation_history, username, is_first)
         advice += f"\n💖 *С любовью, {CHARACTERS[character]['forms'][form]['title']}!*"
 
     if chat_id:
@@ -342,7 +355,7 @@ def ask_endpoint():
             else:
                 bot.send_message(chat_id, advice, parse_mode='Markdown')
         except Exception as e:
-            print(f"Ошибка отправки в Telegram: {e}")
+            print(f"Telegram send error: {e}")
 
     return jsonify({"ok": True, "advice": advice})
 
@@ -353,7 +366,8 @@ def start(message):
         "characters": [],
         "mode": None,
         "form": "human",
-        "conversation_history": []
+        "conversation_history": [],
+        "is_first_message": True
     }
     bot.send_message(message.chat.id, "🌙 Привет! Как тебя зовут?", parse_mode='Markdown')
     bot.register_next_step_handler(message, get_name)
@@ -494,6 +508,7 @@ def get_problem(message):
     mode = state.get("mode", "single")
     character_keys = state["characters"]
     form_key = state.get("form", "human")
+    is_first = state.get("is_first_message", True)
 
     history = state.get("conversation_history", [])
     history.append({"role": "user", "content": f"Пользователь {username} говорит: {message.text.strip()}"})
@@ -502,7 +517,7 @@ def get_problem(message):
     thinking = bot.send_message(message.chat.id, "🌕 Думаю... 💫")
 
     if mode == "group" and len(character_keys) > 1:
-        advice = ask_deepseek_group(character_keys, history, username)
+        advice = ask_deepseek_group(character_keys, history, username, is_first)
         char_names = []
         for k in character_keys:
             f = "sailor" if "sailor" in CHARACTERS[k]["forms"] else "human"
@@ -511,7 +526,7 @@ def get_problem(message):
         advice += f"\n💖 *С любовью, твоя команда: {team_names}!* ✨"
     else:
         char_key = character_keys[0]
-        advice = ask_deepseek(char_key, form_key, history, username)
+        advice = ask_deepseek(char_key, form_key, history, username, is_first)
         advice += f"\n💖 *С любовью, {CHARACTERS[char_key]['forms'][form_key]['title']}!*"
 
     try:
@@ -524,6 +539,8 @@ def get_problem(message):
     else:
         bot.send_message(message.chat.id, advice, parse_mode='Markdown')
 
+    state["is_first_message"] = False
+
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton("🔄 Новый вопрос", callback_data="restart"))
     bot.send_message(message.chat.id, "✨ Лунная магия с тобой! 🌙", reply_markup=markup)
@@ -531,6 +548,7 @@ def get_problem(message):
 @bot.callback_query_handler(func=lambda call: call.data == "restart")
 def restart(call):
     user_states[call.message.chat.id]["conversation_history"] = []
+    user_states[call.message.chat.id]["is_first_message"] = True
     start(call.message)
 
 @bot.message_handler(commands=['app'])
