@@ -523,55 +523,89 @@ document.addEventListener('DOMContentLoaded', () => {
       show(STEP.FORM, 'prev');
     }
   };
-  document.getElementById('btn-problem-send').onclick = async () => {
-    playMagicSound();
-    const problem = document.getElementById('input-problem').value.trim();
-    if (!problem) {
-      const textarea = document.getElementById('input-problem');
-      textarea.style.animation = 'shake 0.5s ease-in-out';
-      setTimeout(() => textarea.style.animation = '', 500);
-      alert('Опиши проблему, пожалуйста');
-      return;
-    }
-    state.problem = problem;
+document.getElementById('btn-problem-send').onclick = async () => {
+  playMagicSound();
+  const problem = document.getElementById('input-problem').value.trim();
+  if (!problem) {
+    const textarea = document.getElementById('input-problem');
+    textarea.style.animation = 'shake 0.5s ease-in-out';
+    setTimeout(() => textarea.style.animation = '', 500);
+    alert('Опиши проблему, пожалуйста');
+    return;
+  }
+  // Сохраняем проблему для отображения в чате
+  state.problem = problem;
 
-    const init = tg.initDataUnsafe || {};
-    const user = init.user || {};
-    const chat_id = user.id || null;
-    const username = state.name || user.first_name || "друг";
+  const init = tg.initDataUnsafe || {};
+  const user = init.user || {};
+  const chat_id = user.id || null;
+  const username = state.name || user.first_name || "друг";
 
-    const resultBox = document.getElementById('result-box');
-    const loader = document.getElementById('loading');
-    resultBox.innerText = "";
-    loader.classList.remove('hidden');
-    show(STEP.RES, 'zoom');
+  // --- Подготовка данных для чата ---
+  // 1. Получаем аватар и имя персонажа для шапки
+  let characterAvatar = "";
+  let characterName = "";
+  if (state.answerType === 'single') {
+    const charData = CHARACTERS[state.characters[0]];
+    const formData = charData.forms[state.form];
+    characterAvatar = formData.img;
+    characterName = formData.title;
+  } else {
+    // Для группового ответа используем аватар первого персонажа и общее название
+    characterAvatar = CHARACTERS[state.characters[0]].forms["sailor" in CHARACTERS[state.characters[0]].forms ? "sailor" : "human"].img;
+    characterName = "Команда Сейлор Воинов";
+  }
 
-    try {
-      // ⚠️ Замените на ваш настоящий URL!
-      const backend = 'https://sailormoonpsychohelp-7bkw.onrender.com';
-      const resp = await fetch(`${backend}/ask`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id,
-          username,
-          character: state.answerType === 'single' ? state.characters[0] : state.characters.join(','),
-          form: state.answerType === 'single' ? state.form : undefined,
-          answer_type: state.answerType,
-          problem: state.problem
-        })
-      });
-      const data = await resp.json();
-      loader.classList.add('hidden');
-      resultBox.classList.add('fade-in');
-      resultBox.innerText = data.ok ? (data.advice || "Пустой ответ") : "Ошибка: " + (data.error || JSON.stringify(data));
-      setTimeout(() => resultBox.classList.remove('fade-in'), 600);
-    } catch (err) {
-      console.error(err);
-      loader.classList.add('hidden');
-      resultBox.innerText = "Ошибка связи с сервером. Попробуй позже.";
-    }
-  };
+  // 2. Заполняем шапку чата
+  document.getElementById('result-avatar').src = characterAvatar;
+  document.getElementById('result-name').textContent = characterName;
+
+  // 3. Заполняем сообщение пользователя
+  document.getElementById('user-message-text').textContent = state.problem;
+
+  // 4. Скрываем стандартный блок результата
+  // document.getElementById('result-box').innerText = ""; // Больше не нужно
+  const loader = document.getElementById('loading');
+  loader.classList.remove('hidden');
+
+  // Показываем шаг результата с анимацией
+  show(STEP.RES, 'zoom');
+
+  try {
+    const backend = 'https://sailormoonpsychohelp-7bkw.onrender.com';
+    const resp = await fetch(`${backend}/ask`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id,
+        username,
+        character: state.answerType === 'single' ? state.characters[0] : state.characters.join(','),
+        form: state.answerType === 'single' ? state.form : undefined,
+        answer_type: state.answerType,
+        problem: state.problem
+      })
+    });
+    const data = await resp.json();
+    loader.classList.add('hidden');
+    
+    // 5. Заполняем сообщение персонажа
+    const resultText = data.ok ? (data.advice || "Пустой ответ") : "Ошибка: " + (data.error || JSON.stringify(data));
+    const resultElement = document.getElementById('character-message-text');
+    resultElement.innerText = resultText;
+    resultElement.classList.add('fade-in');
+    setTimeout(() => resultElement.classList.remove('fade-in'), 600);
+
+    // (Опционально) Разблокировать поле ввода для нового сообщения
+    // document.getElementById('new-message-input').disabled = false;
+    // document.getElementById('send-new-message').disabled = false;
+
+  } catch (err) {
+    console.error(err);
+    loader.classList.add('hidden');
+    document.getElementById('character-message-text').innerText = "Ошибка связи с сервером. Попробуй позже.";
+  }
+};
+  
   document.getElementById('btn-result-again').onclick = () => {
     document.getElementById('input-problem').value = '';
     show(STEP.PROB, 'prev');
@@ -604,6 +638,7 @@ document.addEventListener('touchstart', () => {
     });
   }
 }, { once: true });
+
 
 
 
