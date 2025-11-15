@@ -1,3 +1,4 @@
+//index.html
 <!doctype html>
 <html lang="ru">
 <head>
@@ -5,7 +6,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Лунная поддержка</title>
   <link rel="stylesheet" href="styles.css" />
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://telegram.org/js/telegram-web-app.js "></script>
 </head>
 <body>
 
@@ -108,48 +109,18 @@
 
       <!-- Step 5: Result -->
       <section id="step-result" class="card">
-        <div class="chat-container">
-          <!-- Chat Header -->
-          <div class="chat-header">
-            <div class="chat-avatar">
-              <img id="result-avatar" src="" alt="Аватар персонажа" />
-            </div>
-            <div class="chat-info">
-              <h3 id="result-name" class="chat-name">Сейлор Мун</h3>
-              <p id="result-status" class="chat-status">в сети</p>
-            </div>
-          </div>
-      
-          <!-- Chat Messages -->
-          <div class="chat-messages" id="chat-messages">
-            <!-- Сообщение пользователя -->
-            <div class="message-bubble user-bubble" id="user-message-bubble">
-              <div class="message-text" id="user-message-text"></div>
-            </div>
-            <!-- Сообщение персонажа (будет заполнено позже) -->
-            <div class="message-bubble character-bubble" id="character-message-bubble">
-              <div class="message-text" id="character-message-text">🌕 Обдумываю ответ... 💫</div>
-            </div>
-            <!-- Лоадер -->
-            <div id="loading" class="loading hidden">
-              <div class="moon-loader">🌙</div>
-              <div class="loading-text">Луна думает...</div>
-            </div>
-          </div>
-      
-          <!-- Chat Input -->
-          <div class="chat-input">
-            <input type="text" id="new-message-input" placeholder="Напишите сообщение..." disabled />
-            <button id="send-new-message" class="btn" disabled>Отправить</button>
-          </div>
+        <h2>Совет</h2>
+        <div id="result-box" class="result">🌕 Обдумываю ответ... 💫</div>
+        <div id="loading" class="loading hidden">
+          <div class="moon-loader">🌙</div>
+          <div class="loading-text">Луна думает...</div>
         </div>
-      
-        <!-- Кнопки управления результатом -->
         <div class="row">
           <button id="btn-result-again" class="btn outline">Задать ещё вопрос</button>
           <button id="btn-result-close" class="btn">Закрыть</button>
         </div>
       </section>
+    </main>
 
     <footer>
       <small>Лунная магия с тобой 🌙✨</small>
@@ -188,8 +159,3 @@
 
 </body>
 </html>
-
-
-
-
-
