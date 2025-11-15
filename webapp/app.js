@@ -1,4 +1,4 @@
-// app.js — с памятью персонажа и живым диалогом
+//app.js
 const tg = window.Telegram.WebApp;
 tg.expand();
 
@@ -16,107 +16,109 @@ let state = {
   answerType: "single",
   characters: ["usagi"],
   form: "human",
-  problem: "",
-  conversationHistory: [],
-  isFirstMessage: true
+  problem: ""
 };
 
+// === CHARACTER DATA WITH FORMS (без лишних пробелов в URL) ===
 const CHARACTERS = {
   "usagi": {
     label: "Усаги",
     forms: {
-      "human": { title: "Усаги Цукино 👧", img: "https://i.pinimg.com/736x/a4/47/c4/a447c423d530b9cac4612a9f71c96ddc.jpg" },
-      "sailor": { title: "Сейлор Мун 🌙", img: "https://i.pinimg.com/736x/55/ff/32/55ff32a1d1a2e86ff41d76068672e108.jpg" },
-      "super": { title: "Супер Сейлор Мун 💫", img: "https://i.pinimg.com/736x/56/7b/38/567b38a7e0d7729573f997ded2448d5e.jpg" },
-      "eternal": { title: "Вечная Сейлор Мун ✨", img: "https://i.pinimg.com/1200x/a1/e5/52/a1e552f9276025313b66b8f3a36a3c44.jpg" }
+      "human": { title: "Усаги Цукино 👧", img: "https://i.pinimg.com/736x/a4/47/c4/a447c423d530b9cac4612a9f71c96ddc.jpg " },
+      "sailor": { title: "Сейлор Мун 🌙", img: "https://i.pinimg.com/736x/55/ff/32/55ff32a1d1a2e86ff41d76068672e108.jpg " },
+      "super": { title: "Супер Сейлор Мун 💫", img: "https://i.pinimg.com/736x/56/7b/38/567b38a7e0d7729573f997ded2448d5e.jpg " },
+      "eternal": { title: "Вечная Сейлор Мун ✨", img: "https://i.pinimg.com/1200x/a1/e5/52/a1e552f9276025313b66b8f3a36a3c44.jpg " }
     }
   },
   "ami": {
     label: "Ами",
     forms: {
-      "human": { title: "Ами Мидзуно 📚", img: "https://i.pinimg.com/736x/0b/07/f9/0b07f95abbceecf7922c44ac333a48f2.jpg" },
-      "sailor": { title: "Сейлор Меркурий 💧", img: "https://i.pinimg.com/736x/b1/61/1a/b1611addcf1190d311218c22614e1e36.jpg" }
+      "human": { title: "Ами Мидзуно 📚", img: "https://i.pinimg.com/736x/0b/07/f9/0b07f95abbceecf7922c44ac333a48f2.jpg " },
+      "sailor": { title: "Сейлор Меркурий 💧", img: "https://i.pinimg.com/736x/b1/61/1a/b1611addcf1190d311218c22614e1e36.jpg " }
     }
   },
   "rei": {
     label: "Рей",
     forms: {
-      "human": { title: "Рей Хино 🔥", img: "https://i.pinimg.com/736x/d7/9c/61/d79c617912ae0e4d510660c32c971227.jpg" },
-      "sailor": { title: "Сейлор Марс 🔥", img: "https://i.pinimg.com/736x/7f/e6/e8/7fe6e8b47812f4778d229903c1776744.jpg" }
+      "human": { title: "Рей Хино 🔥", img: "https://i.pinimg.com/736x/d7/9c/61/d79c617912ae0e4d510660c32c971227.jpg " },
+      "sailor": { title: "Сейлор Марс 🔥", img: "https://i.pinimg.com/736x/7f/e6/e8/7fe6e8b47812f4778d229903c1776744.jpg " }
     }
   },
   "minako": {
     label: "Минако",
     forms: {
-      "human": { title: "Минако Айно 💛", img: "https://i.pinimg.com/736x/68/68/52/6868521a4cf61d75b40772b6f13c0504.jpg" },
-      "sailor": { title: "Сейлор Венера 💖", img: "https://i.pinimg.com/1200x/bb/e9/6e/bbe96e1b50292f72dab46e16dfd5f632.jpg" }
+      "human": { title: "Минако Айно 💛", img: "https://i.pinimg.com/736x/68/68/52/6868521a4cf61d75b40772b6f13c0504.jpg " },
+      "sailor": { title: "Сейлор Венера 💖", img: "https://i.pinimg.com/1200x/bb/e9/6e/bbe96e1b50292f72dab46e16dfd5f632.jpg " }
     }
   },
   "makoto": {
     label: "Макото",
     forms: {
-      "human": { title: "Макото Кино 🌿", img: "https://i.pinimg.com/736x/49/27/8d/49278da7f93a6028a0a3d05bbd43fd22.jpg" },
-      "sailor": { title: "Сейлор Юпитер ⚡", img: "https://i.pinimg.com/736x/84/f8/c0/84f8c01989fa310f2ca46bd8bcd58af3.jpg" }
+      "human": { title: "Макото Кино 🌿", img: "https://i.pinimg.com/736x/49/27/8d/49278da7f93a6028a0a3d05bbd43fd22.jpg " },
+      "sailor": { title: "Сейлор Юпитер ⚡", img: "https://i.pinimg.com/736x/84/f8/c0/84f8c01989fa310f2ca46bd8bcd58af3.jpg " }
     }
   },
   "hotaru": {
     label: "Хотару",
     forms: {
-      "human": { title: "Хотару Томоэ 🌙", img: "https://i.pinimg.com/736x/62/e8/61/62e861ea332c0bf8dafd00fd4e9571d9.jpg" },
-      "sailor": { title: "Сейлор Сатурн 🌑", img: "https://i.pinimg.com/736x/65/e3/95/65e3950cb55aaffbfd443ef8d5f3ae2a.jpg" }
+      "human": { title: "Хотару Томоэ 🌙", img: "https://i.pinimg.com/736x/62/e8/61/62e861ea332c0bf8dafd00fd4e9571d9.jpg " },
+      "sailor": { title: "Сейлор Сатурн 🌑", img: "https://i.pinimg.com/736x/65/e3/95/65e3950cb55aaffbfd443ef8d5f3ae2a.jpg " }
     }
   },
   "setsuna": {
     label: "Сецуна",
     forms: {
-      "human": { title: "Сецуна Мейо ⏳", img: "https://i.pinimg.com/736x/89/bf/f4/89bff47fee6011a503b18c274a0370a5.jpg" },
-      "sailor": { title: "Сейлор Плутон 🕰️", img: "https://i.pinimg.com/736x/d4/8b/89/d48b8992dfac715b928af9d974d4c37c.jpg" }
+      "human": { title: "Сецуна Мейо ⏳", img: "https://i.pinimg.com/736x/89/bf/f4/89bff47fee6011a503b18c274a0370a5.jpg " },
+      "sailor": { title: "Сейлор Плутон 🕰️", img: "https://i.pinimg.com/736x/d4/8b/89/d48b8992dfac715b928af9d974d4c37c.jpg " }
     }
   },
   "haruka": {
     label: "Харука",
     forms: {
-      "human": { title: "Харука Тэнно 🌟", img: "https://i.pinimg.com/736x/a8/c9/9e/a8c99e3558ea0caf592cb06c1339f720.jpg" },
-      "sailor": { title: "Сейлор Уран 🌪️", img: "https://i.pinimg.com/1200x/ec/bd/fd/ecbdfd6392394b2d66fa68729eeb5948.jpg" }
+      "human": { title: "Харука Тэнно 🌟", img: "https://i.pinimg.com/736x/a8/c9/9e/a8c99e3558ea0caf592cb06c1339f720.jpg " },
+      "sailor": { title: "Сейлор Уран 🌪️", img: "https://i.pinimg.com/1200x/ec/bd/fd/ecbdfd6392394b2d66fa68729eeb5948.jpg " }
     }
   },
   "michiru": {
     label: "Мичиру",
     forms: {
-      "human": { title: "Мичиру Кайо 🌊", img: "https://i.pinimg.com/736x/a4/fe/e9/a4fee98a8f01e8a377a70759edbfc5df.jpg" },
-      "sailor": { title: "Сейлор Нептун 🎻", img: "https://i.pinimg.com/736x/ef/a9/72/efa97290c250e97924777c4551120f60.jpg" }
+      "human": { title: "Мичиру Кайо 🌊", img: "https://i.pinimg.com/736x/a4/fe/e9/a4fee98a8f01e8a377a70759edbfc5df.jpg " },
+      "sailor": { title: "Сейлор Нептун 🎻", img: "https://i.pinimg.com/736x/ef/a9/72/efa97290c250e97924777c4551120f60.jpg " }
     }
   },
   "chibiusa": {
     label: "Чибиуса",
     forms: {
-      "human": { title: "Чибиуса ✨", img: "https://i.pinimg.com/736x/40/74/49/4074490084d46e4d173179fe03427d2b.jpg" },
-      "sailor": { title: "Сейлор Чиби-Мун 💕", img: "https://i.pinimg.com/736x/09/89/00/098900bcc276be04da9e30b7cf3a6007.jpg" }
+      "human": { title: "Чибиуса ✨", img: "https://i.pinimg.com/736x/40/74/49/4074490084d46e4d173179fe03427d2b.jpg " },
+      "sailor": { title: "Сейлор Чиби-Мун 💕", img: "https://i.pinimg.com/736x/09/89/00/098900bcc276be04da9e30b7cf3a6007.jpg " }
     }
   },
   "seiya": {
     label: "Сейя",
     forms: {
-      "human": { title: "Сейя Кое ♂️⭐", img: "https://i.pinimg.com/736x/fa/44/48/fa4448c6b3b4d06e33e905e34256199b.jpg" },
-      "sailor": { title: "Сейлор Стар Файтер ⭐", img: "https://i.pinimg.com/736x/7c/f6/11/7cf6111d7e826a5e8008310206683b1e.jpg" }
+      "human": { title: "Сейя Кое ♂️⭐", img: "https://i.pinimg.com/736x/fa/44/48/fa4448c6b3b4d06e33e905e34256199b.jpg " },
+      "sailor": { title: "Сейлор Стар Файтер ⭐", img: "https://i.pinimg.com/736x/7c/f6/11/7cf6111d7e826a5e8008310206683b1e.jpg " }
     }
   },
+
   "taiki": {
     label: "Тайки",
     forms: {
-      "human": { title: "Тайки Кое ♂️📚", img: "https://i.pinimg.com/736x/9d/cf/05/9dcf05f2328100ef411b710d30ffc465.jpg" },
-      "sailor": { title: "Сейлор Стар Хилер 📚", img: "https://i.pinimg.com/736x/32/1f/c6/321fc67961d968c73c972616e53721af.jpg" }
+      "human": { title: "Тайки Кое ♂️📚", img: "https://i.pinimg.com/736x/9d/cf/05/9dcf05f2328100ef411b710d30ffc465.jpg " },
+      "sailor": { title: "Сейлор Стар Хилер 📚", img: "https://i.pinimg.com/736x/32/1f/c6/321fc67961d968c73c972616e53721af.jpg " }
     }
   },
+
   "yaten": {
     label: "Ятен",
     forms: {
-      "human": { title: "Ятен ♂️🎭", img: "https://i.pinimg.com/736x/68/b2/00/68b2006277d4c56dde09e0eb1cce61e0.jpg" },
-      "sailor": { title: "Сейлор Стар Мейкер 🎭", img: "https://i.pinimg.com/736x/90/42/a3/9042a33ae40ccc635e909c2ba00449fb.jpg" }
+      "human": { title: "Ятен ♂️🎭", img: "https://i.pinimg.com/736x/68/b2/00/68b2006277d4c56dde09e0eb1cce61e0.jpg " },
+      "sailor": { title: "Сейлор Стар Мейкер 🎭", img: "https://i.pinimg.com/736x/90/42/a3/9042a33ae40ccc635e909c2ba00449fb.jpg " }
     }
   }
 };
 
+// === Character sounds ===
 const CHARACTER_SOUNDS = {
   "usagi": "./music/characters/usagi (1).mp3",
   "ami": "./music/characters/ami (1).mp3", 
@@ -132,34 +134,49 @@ const CHARACTER_SOUNDS = {
 };
 
 let characterSound = null;
+
+// === Audio elements ===
 const music = document.getElementById('bg-music');
 const clickSound = document.getElementById('click-sound');
 const magicSound = document.getElementById('magic-sound');
 const selectSound = document.getElementById('select-sound');
 const DEFAULT_MUSIC_VOLUME = 0.3;
 const QUIET_MUSIC_VOLUME = 0.1;
-let fadeInterval, isFading = false;
-const FADE_DURATION = 1000, FADE_STEPS = 20, FADE_INTERVAL = FADE_DURATION / FADE_STEPS;
 
+// === Music fade variables ===
+let fadeInterval;
+let isFading = false;
+const FADE_DURATION = 1000;
+const FADE_STEPS = 20;
+const FADE_INTERVAL = FADE_DURATION / FADE_STEPS;
+
+// === Character sound functions ===
 function playCharacterSound(characterKey) {
+  // Остановить предыдущий звук персонажа
   if (characterSound && !characterSound.paused) {
     characterSound.pause();
     characterSound.currentTime = 0;
   }
+
+  // Приглушить фоновую музыку
   if (!isFading) {
     music.volume = QUIET_MUSIC_VOLUME;
   }
+
   const soundFile = CHARACTER_SOUNDS[characterKey];
   if (!soundFile) {
     playSelectSound();
     return;
   }
+
   characterSound = new Audio(soundFile);
   characterSound.volume = 0.4;
   characterSound.play().catch(e => {
     console.log('Character sound error:', e);
     playSelectSound();
   });
+
+  // Восстановить громкость фоновой музыки, когда индивидуальный звук закончится
   characterSound.onended = () => {
     if (!isFading && isMusicPlaying) {
       music.volume = DEFAULT_MUSIC_VOLUME;
@@ -167,6 +184,7 @@ function playCharacterSound(characterKey) {
   };
 }
 
+// === Progress bar ===
 function updateProgressBar(step) {
   const stepMap = {
     'step-name': 1,
@@ -194,6 +212,7 @@ function updateStepDots(currentStep) {
   });
 }
 
+// === Sound functions ===
 function playClickSound() {
   if (clickSound) {
     clickSound.volume = 0.3;
@@ -216,6 +235,7 @@ function playSelectSound() {
   }
 }
 
+// === Fade functions ===
 function fadeIn(audio, vol = 0.3) {
   if (isFading) clearInterval(fadeInterval);
   isFading = true;
@@ -249,6 +269,7 @@ function fadeOut(audio) {
   }, FADE_INTERVAL);
 }
 
+// === Show step (С КЛЮЧЕВЫМ ИСПРАВЛЕНИЕМ) ===
 function show(step, direction = 'next') {
   playClickSound();
   const current = document.querySelector('.card.active');
@@ -267,9 +288,12 @@ function show(step, direction = 'next') {
     setTimeout(() => {
       next.classList.add('active');
       updateProgressBar(step);
+
+      // 🔥 КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: рендерим формы при входе на шаг
       if (step === STEP.FORM) {
         renderFormStep();
       }
+
       setTimeout(() => {
         current.classList.remove('slide-in-prev', 'slide-in-next', 'zoom-in');
         next.classList.remove('slide-in-prev', 'slide-in-next', 'zoom-in');
@@ -279,12 +303,14 @@ function show(step, direction = 'next') {
     document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
     next.classList.add('active');
     updateProgressBar(step);
+
     if (step === STEP.FORM) {
       renderFormStep();
     }
   }
 }
 
+// === Handle character click ===
 function handleCharacterClick(charKey) {
   playSelectSound();
   playCharacterSound(charKey);
@@ -302,9 +328,10 @@ function handleCharacterClick(charKey) {
     state.characters = [charKey];
     updateCharacterSelectionUI();
     if (Object.keys(CHARACTERS[charKey].forms).length > 1) {
-      renderFormStep();
+      show(STEP.FORM, 'next');
     } else {
       state.form = Object.keys(CHARACTERS[charKey].forms)[0];
+      show(STEP.PROB, 'next');
     }
   }
 }
@@ -331,6 +358,7 @@ function updateCharacterSelectionUI() {
   }
 }
 
+// === FORM STEP UI ===
 function renderFormStep() {
   const charKey = state.characters[0];
   const container = document.getElementById('form-options');
@@ -357,8 +385,11 @@ function renderFormStep() {
   }
 }
 
+// === Music ===
 const musicBtn = document.getElementById('music-toggle');
-let musicInitialized = false, isMusicPlaying = false;
+let musicInitialized = false;
+let isMusicPlaying = false;
+
 function initMusic() {
   if (musicInitialized) return;
   music.volume = 0;
@@ -384,7 +415,11 @@ function toggleMusic() {
     isMusicPlaying = true;
   }
 }
+window.addEventListener('beforeunload', () => {
+  if (!music.paused) { music.volume = 0; music.pause(); }
+});
 
+// === Parallax & Stars ===
 document.addEventListener('mousemove', e => {
   const x = (e.clientX / window.innerWidth - 0.5) * 25;
   const y = (e.clientY / window.innerHeight - 0.5) * 25;
@@ -393,7 +428,6 @@ document.addEventListener('mousemove', e => {
     layer.style.transform = `translate(${x*f}px, ${y*f}px)`;
   });
 });
-
 const starsContainer = document.querySelector('.stars');
 for (let i = 0; i < 150; i++) {
   const star = document.createElement('div');
@@ -405,12 +439,12 @@ for (let i = 0; i < 150; i++) {
   starsContainer.appendChild(star);
   star.style.animation = `twinkle ${2 + Math.random()*3}s infinite ease-in-out, fall ${5 + Math.random()*5}s linear ${Math.random()*5}s infinite`;
 }
-
 const moonLayer = document.getElementById('moon');
 if(moonLayer){
   moonLayer.style.animation = "pulse 4s infinite ease-in-out alternate";
 }
 
+// === DOMContentLoaded ===
 document.addEventListener('DOMContentLoaded', () => {
   initMusic();
 
@@ -436,13 +470,18 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   charContainer.querySelector('.char-card').classList.add('selected');
 
-  document.getElementById('btn-form-back').onclick = () => show(STEP.CHAR, 'prev');
+  document.getElementById('btn-form-back').onclick = () => {
+    show(STEP.CHAR, 'prev');
+  };
   document.getElementById('btn-form-next').onclick = () => {
+    // Остановить звук персонажа
     if (characterSound && !characterSound.paused) {
       characterSound.pause();
       characterSound.currentTime = 0;
     }
-    if (isMusicPlaying && !isFading) music.volume = DEFAULT_MUSIC_VOLUME;
+    if (isMusicPlaying && !isFading) {
+      music.volume = DEFAULT_MUSIC_VOLUME;
+    }
     show(STEP.PROB, 'next');
   };
 
@@ -450,9 +489,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const name = document.getElementById('input-name').value.trim();
     if (!name || name.length < 2) {
       const input = document.getElementById('input-name');
-      input.style.animation = 'shake 0.5s';
+      input.style.animation = 'shake 0.5s ease-in-out';
       setTimeout(() => input.style.animation = '', 500);
-      alert('Имя от 2 букв');
+      alert('Введите имя минимум из 2 символов');
       return;
     }
     state.name = name;
@@ -461,36 +500,39 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-type-back').onclick = () => show(STEP.NAME, 'prev');
   document.getElementById('btn-type-next').onclick = () => show(STEP.CHAR, 'next');
   document.getElementById('btn-char-back').onclick = () => show(STEP.TYPE, 'prev');
-
   document.getElementById('btn-char-next').onclick = () => {
-    if (state.answerType === 'single') {
-      if (!state.characters.length) return alert('Выбери персонажа');
-      const charKey = state.characters[0];
-      if (Object.keys(CHARACTERS[charKey].forms).length > 1) {
-        show(STEP.FORM, 'next');
-      } else {
-        state.form = Object.keys(CHARACTERS[charKey].forms)[0];
-        show(STEP.PROB, 'next');
-      }
-    } else {
-      if (!state.characters.length) return alert('Выбери хотя бы одного');
+    if (state.answerType === 'group') {
+      // Остановить текущий звук персонажа
       if (characterSound && !characterSound.paused) {
-        characterSound.pause(); characterSound.currentTime = 0;
+        characterSound.pause();
+        characterSound.currentTime = 0;
       }
-      if (isMusicPlaying && !isFading) music.volume = DEFAULT_MUSIC_VOLUME;
+      // Вернуть фоновую музыку
+      if (isMusicPlaying && !isFading) {
+        music.volume = DEFAULT_MUSIC_VOLUME;
+      }
       show(STEP.PROB, 'next');
+    } else {
+      alert('Выбери персонажа выше');
     }
   };
-
   document.getElementById('btn-problem-back').onclick = () => {
-    if (state.answerType === 'group') show(STEP.CHAR, 'prev');
-    else show(STEP.FORM, 'prev');
+    if (state.answerType === 'group') {
+      show(STEP.CHAR, 'prev');
+    } else {
+      show(STEP.FORM, 'prev');
+    }
   };
-
   document.getElementById('btn-problem-send').onclick = async () => {
     playMagicSound();
     const problem = document.getElementById('input-problem').value.trim();
-    if (!problem) return alert('Опиши проблему');
+    if (!problem) {
+      const textarea = document.getElementById('input-problem');
+      textarea.style.animation = 'shake 0.5s ease-in-out';
+      setTimeout(() => textarea.style.animation = '', 500);
+      alert('Опиши проблему, пожалуйста');
+      return;
+    }
     state.problem = problem;
 
     const init = tg.initDataUnsafe || {};
@@ -498,30 +540,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const chat_id = user.id || null;
     const username = state.name || user.first_name || "друг";
 
-    let conversation_history = [{ role: "user", content: `Пользователь ${username} делится ситуацией: ${problem}` }];
-    state.conversationHistory = [{ role: "user", text: problem }];
-    state.isFirstMessage = true;
-
-    let characterAvatar = "", characterName = "";
-    if (state.answerType === 'single') {
-      const charData = CHARACTERS[state.characters[0]];
-      const formData = charData.forms[state.form];
-      characterAvatar = formData.img;
-      characterName = formData.title;
-    } else {
-      characterAvatar = CHARACTERS[state.characters[0]].forms["sailor" in CHARACTERS[state.characters[0]].forms ? "sailor" : "human"].img;
-      characterName = "Команда Сейлор Воинов";
-    }
-    document.getElementById('result-avatar').src = characterAvatar;
-    document.getElementById('result-name').textContent = characterName;
-    document.getElementById('user-message-text').textContent = problem;
-
+    const resultBox = document.getElementById('result-box');
     const loader = document.getElementById('loading');
+    resultBox.innerText = "";
     loader.classList.remove('hidden');
     show(STEP.RES, 'zoom');
 
     try {
-      const backend = 'https://sailormoonpsychohelp-7bkw.onrender.com';
+      // ⚠️ Замените на ваш настоящий URL!
+      const backend = 'https://sailormoonpsychohelp-7bkw.onrender.com ';
       const resp = await fetch(`${backend}/ask`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -531,98 +558,29 @@ document.addEventListener('DOMContentLoaded', () => {
           character: state.answerType === 'single' ? state.characters[0] : state.characters.join(','),
           form: state.answerType === 'single' ? state.form : undefined,
           answer_type: state.answerType,
-          conversation_history,
-          is_first_message: true
+          problem: state.problem
         })
       });
       const data = await resp.json();
       loader.classList.add('hidden');
-
-      const resultText = data.ok ? (data.advice || "Пустой ответ") : "Ошибка: " + (data.error || "сервер молчит");
-      document.getElementById('character-message-text').innerText = resultText;
-      state.conversationHistory.push({ role: "assistant", text: resultText });
-      state.isFirstMessage = false;
-
-      document.getElementById('new-message-input').disabled = false;
-      document.getElementById('send-new-message').disabled = false;
+      resultBox.classList.add('fade-in');
+      resultBox.innerText = data.ok ? (data.advice || "Пустой ответ") : "Ошибка: " + (data.error || JSON.stringify(data));
+      setTimeout(() => resultBox.classList.remove('fade-in'), 600);
     } catch (err) {
       console.error(err);
       loader.classList.add('hidden');
-      document.getElementById('character-message-text').innerText = "Ошибка связи. Попробуй позже.";
+      resultBox.innerText = "Ошибка связи с сервером. Попробуй позже.";
     }
   };
-
-  document.getElementById('send-new-message').onclick = async () => {
-    const newMessage = document.getElementById('new-message-input').value.trim();
-    if (!newMessage) return;
-
-    const userBubble = document.createElement('div');
-    userBubble.className = 'message-bubble user-bubble';
-    userBubble.innerHTML = `<div class="message-text">${newMessage}</div>`;
-    document.querySelector('.chat-messages').appendChild(userBubble);
-    state.conversationHistory.push({ role: "user", text: newMessage });
-
-    document.getElementById('new-message-input').value = '';
-    document.getElementById('send-new-message').disabled = true;
-    document.querySelector('.chat-messages').scrollTop = document.querySelector('.chat-messages').scrollHeight;
-
-    const init = tg.initDataUnsafe || {};
-    const user = init.user || {};
-    const chat_id = user.id || null;
-    const username = state.name || user.first_name || "друг";
-
-    const conversation_history = state.conversationHistory.map(msg => ({
-      role: msg.role,
-      content: msg.role === "user"
-        ? `Пользователь ${username} говорит: ${msg.text}`
-        : msg.text
-    }));
-
-    try {
-      const backend = 'https://sailormoonpsychohelp-7bkw.onrender.com';
-      const resp = await fetch(`${backend}/ask`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id,
-          username,
-          character: state.answerType === 'single' ? state.characters[0] : state.characters.join(','),
-          form: state.answerType === 'single' ? state.form : undefined,
-          answer_type: state.answerType,
-          conversation_history,
-          is_first_message: false
-        })
-      });
-      const data = await resp.json();
-
-      const adviceText = data.ok ? (data.advice || "Молчу...") : "Не получилось ответить...";
-      const charBubble = document.createElement('div');
-      charBubble.className = 'message-bubble character-bubble';
-      charBubble.innerHTML = `<div class="message-text">${adviceText}</div>`;
-      document.querySelector('.chat-messages').appendChild(charBubble);
-      state.conversationHistory.push({ role: "assistant", text: adviceText });
-
-      document.querySelector('.chat-messages').scrollTop = document.querySelector('.chat-messages').scrollHeight;
-    } catch (err) {
-      console.error(err);
-      const charBubble = document.createElement('div');
-      charBubble.className = 'message-bubble character-bubble';
-      charBubble.innerHTML = `<div class="message-text">Ошибка. Попробуй ещё.</div>`;
-      document.querySelector('.chat-messages').appendChild(charBubble);
-    } finally {
-      document.getElementById('send-new-message').disabled = false;
-    }
-  };
-
   document.getElementById('btn-result-again').onclick = () => {
     document.getElementById('input-problem').value = '';
-    state.conversationHistory = [];
-    state.isFirstMessage = true;
     show(STEP.PROB, 'prev');
   };
   document.getElementById('btn-result-close').onclick = () => tg.close();
 
-  document.querySelectorAll('.btn').forEach(btn => btn.addEventListener('click', playClickSound));
+  document.querySelectorAll('.btn').forEach(btn => {
+    btn.addEventListener('click', playClickSound);
+  });
 
   show(STEP.NAME);
 
@@ -631,7 +589,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (init.user && init.user.first_name) {
       document.getElementById('input-name').value = init.user.first_name;
     }
-  } catch (e) {}
+  } catch (e) { /* ignore */ }
 });
 
 document.addEventListener('touchstart', () => {
