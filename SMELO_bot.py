@@ -218,7 +218,7 @@ def send_message_with_photo(chat_id, text, character_key=None, form_key="human",
 
 # === ЗАПРОС К DEEPSEEK (ОДИНОЧНЫЙ) ===
 def ask_deepseek(character_key, form_key, problem_text, username):
-    url = "https://api.deepseek.com/chat/completions"
+    url = "https://openrouter.ai/api/v1/chat/completions"
     character = CHARACTERS.get(character_key, CHARACTERS["usagi"])
     style = character["styles"].get(form_key, character["styles"]["human"])
 
