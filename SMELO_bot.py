@@ -1,4 +1,3 @@
-//SMELO_bot.py
 import os
 import random
 import requests
