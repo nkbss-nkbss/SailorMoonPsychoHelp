@@ -1,7 +1,9 @@
-//app.js
+// === INIT TELEGRAM ===
 const tg = window.Telegram.WebApp;
-tg.expand();
+tg.ready(); // Сообщаем, что приложение инициализировалось
+tg.expand(); // Разворачиваем на весь экран
 
+// === CONFIG & STATE ===
 const STEP = {
   NAME: 'step-name',
   TYPE: 'step-type',
@@ -13,13 +15,14 @@ const STEP = {
 
 let state = {
   name: "",
-  answerType: "single",
+  answerType: "single", // 'single' | 'group'
   characters: ["usagi"],
   form: "human",
   problem: ""
 };
 
-// === CHARACTER DATA WITH FORMS (без лишних пробелов в URL) ===
+// === DATA ===
+// Данные должны совпадать с ключами на сервере (Python)
 const CHARACTERS = {
   "usagi": {
     label: "Усаги",
@@ -93,6 +96,13 @@ const CHARACTERS = {
       "sailor": { title: "Сейлор Чиби-Мун 💕", img: "https://i.pinimg.com/736x/09/89/00/098900bcc276be04da9e30b7cf3a6007.jpg" }
     }
   },
+  "mamoru": {
+    label: "Мамору",
+    forms: {
+      "human": { title: "Мамору Чиба 🌹", img: "https://i.pinimg.com/736x/68/f4/07/68f4077d2f6944bad32604a96a62f310.jpg" },
+      "sailor": { title: "Такседо Маск 🥶", img: "https://i.pinimg.com/736x/62/c0/97/62c0978a24a049425d9895a159ca3104.jpg" }
+    }
+  },
   "seiya": {
     label: "Сейя",
     forms: {
@@ -100,7 +110,6 @@ const CHARACTERS = {
       "sailor": { title: "Сейлор Стар Файтер ⭐", img: "https://i.pinimg.com/736x/7c/f6/11/7cf6111d7e826a5e8008310206683b1e.jpg" }
     }
   },
-
   "taiki": {
     label: "Тайки",
     forms: {
@@ -108,7 +117,6 @@ const CHARACTERS = {
       "sailor": { title: "Сейлор Стар Хилер 📚", img: "https://i.pinimg.com/736x/32/1f/c6/321fc67961d968c73c972616e53721af.jpg" }
     }
   },
-
   "yaten": {
     label: "Ятен",
     forms: {
@@ -118,75 +126,112 @@ const CHARACTERS = {
   }
 };
 
-// === Character sounds ===
-const CHARACTER_SOUNDS = {
-  "usagi": "./music/characters/usagi (1).mp3",
-  "ami": "./music/characters/ami (1).mp3", 
-  "rei": "./music/characters/rei (1).mp3",
-  "minako": "./music/characters/minako (1).mp3",
-  "makoto": "./music/characters/makoto (1).mp3",
-  "hotaru": "./music/characters/hotaru (1).mp3",
-  "setsuna": "./music/characters/setsuna (1).mp3",
-  "haruka": "./music/characters/haruka (1).mp3",
-  "michiru": "./music/characters/michiru (1).mp3",
-  "chibiusa": "./music/characters/chibiusa (1).mp3",
-  "mamoru": "./music/characters/mamoru (1).mp3"
-};
-
-let characterSound = null;
-
-// === Audio elements ===
+// === AUDIO SYSTEM ===
 const music = document.getElementById('bg-music');
 const clickSound = document.getElementById('click-sound');
 const magicSound = document.getElementById('magic-sound');
 const selectSound = document.getElementById('select-sound');
-const DEFAULT_MUSIC_VOLUME = 0.3;
-const QUIET_MUSIC_VOLUME = 0.1;
 
-// === Music fade variables ===
-let fadeInterval;
+let isMusicPlaying = false;
 let isFading = false;
-const FADE_DURATION = 1000;
-const FADE_STEPS = 20;
-const FADE_INTERVAL = FADE_DURATION / FADE_STEPS;
+let fadeInterval;
+const DEFAULT_MUSIC_VOLUME = 0.3;
 
-// === Character sound functions ===
-function playCharacterSound(characterKey) {
-  // Остановить предыдущий звук персонажа
-  if (characterSound && !characterSound.paused) {
-    characterSound.pause();
-    characterSound.currentTime = 0;
+// Воспроизведение коротких звуков
+function playSound(audioEl, vol = 0.4) {
+  if (audioEl) {
+    audioEl.volume = vol;
+    audioEl.currentTime = 0;
+    audioEl.play().catch(e => console.log('Sound error:', e));
   }
+}
 
-  // Приглушить фоновую музыку
-  if (!isFading) {
-    music.volume = QUIET_MUSIC_VOLUME;
-  }
-
-  const soundFile = CHARACTER_SOUNDS[characterKey];
-  if (!soundFile) {
-    playSelectSound();
-    return;
-  }
-
-  characterSound = new Audio(soundFile);
-  characterSound.volume = 0.4;
-  characterSound.play().catch(e => {
-    console.log('Character sound error:', e);
-    playSelectSound();
-  });
-
-  // Восстановить громкость фоновой музыки, когда индивидуальный звук закончится
-  characterSound.onended = () => {
-    if (!isFading && isMusicPlaying) {
-      music.volume = DEFAULT_MUSIC_VOLUME;
+// Плавное появление музыки
+function fadeIn(audio, maxVol = 0.3) {
+  if (isFading) clearInterval(fadeInterval);
+  isFading = true;
+  audio.volume = 0;
+  audio.play().catch(e => console.log('Autoplay blocked:', e));
+  
+  let vol = 0;
+  fadeInterval = setInterval(() => {
+    vol += 0.02;
+    if (vol >= maxVol) {
+      vol = maxVol;
+      clearInterval(fadeInterval);
+      isFading = false;
     }
+    audio.volume = vol;
+  }, 100);
+}
+
+// Плавное затухание
+function fadeOut(audio) {
+  if (isFading) clearInterval(fadeInterval);
+  isFading = true;
+  
+  let vol = audio.volume;
+  fadeInterval = setInterval(() => {
+    vol -= 0.02;
+    if (vol <= 0) {
+      vol = 0;
+      clearInterval(fadeInterval);
+      audio.pause();
+      isFading = false;
+    }
+    audio.volume = vol;
+  }, 100);
+}
+
+function initMusic() {
+  const btn = document.getElementById('music-toggle');
+  
+  // Пытаемся запустить музыку при первом взаимодействии
+  const startAudio = () => {
+    if (!isMusicPlaying) {
+      fadeIn(music, DEFAULT_MUSIC_VOLUME);
+      isMusicPlaying = true;
+      btn.textContent = '🔊';
+    }
+    document.removeEventListener('click', startAudio);
+    document.removeEventListener('touchstart', startAudio);
+  };
+
+  document.addEventListener('click', startAudio);
+  document.addEventListener('touchstart', startAudio);
+
+  btn.onclick = (e) => {
+    e.stopPropagation(); // Чтобы не триггерить startAudio дважды
+    playSound(clickSound);
+    if (isMusicPlaying) {
+      fadeOut(music);
+      btn.textContent = '🔇';
+    } else {
+      fadeIn(music, DEFAULT_MUSIC_VOLUME);
+      btn.textContent = '🔊';
+    }
+    isMusicPlaying = !isMusicPlaying;
   };
 }
 
-// === Progress bar ===
-function updateProgressBar(step) {
-  const stepMap = {
+// === UTILS ===
+
+// Преобразование Markdown (жирный, курсив) в HTML
+function parseMarkdown(text) {
+  if (!text) return "";
+  let html = text;
+  // Жирный: **text** -> <strong>text</strong>
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  // Курсив: *text* -> <em>text</em>
+  html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+  // Переносы строк
+  html = html.replace(/\n/g, '<br>');
+  return html;
+}
+
+// Обновление прогресс-бара
+function updateProgressBar(stepName) {
+  const map = {
     'step-name': 1,
     'step-type': 2,
     'step-character': 3,
@@ -194,413 +239,339 @@ function updateProgressBar(step) {
     'step-problem': 4,
     'step-result': 5
   };
-  let currentStep = stepMap[step] || 1;
-  if (currentStep === 3.5) currentStep = 3;
-  const progressPercentage = ((currentStep - 1) / 4) * 100;
-  document.getElementById('current-step').textContent = Math.min(5, Math.ceil(currentStep));
-  document.querySelector('.progress-fill').style.width = `${progressPercentage}%`;
-  updateStepDots(Math.min(5, Math.ceil(currentStep)));
-}
+  
+  let stepNum = map[stepName] || 1;
+  // Шаг 3.5 (выбор формы) визуально показываем как 3
+  if (stepNum === 3.5) stepNum = 3; 
 
-function updateStepDots(currentStep) {
-  const dots = document.querySelectorAll('.step-dot');
-  dots.forEach((dot, index) => {
+  const percentage = ((stepNum - 1) / 4) * 100;
+  
+  document.querySelector('.progress-fill').style.width = `${percentage}%`;
+  document.getElementById('current-step').textContent = Math.ceil(stepNum);
+  
+  document.querySelectorAll('.step-dot').forEach((dot, index) => {
     const n = index + 1;
     dot.classList.remove('active', 'completed');
-    if (n === currentStep) dot.classList.add('active');
-    else if (n < currentStep) dot.classList.add('completed');
+    if (n === Math.ceil(stepNum)) dot.classList.add('active');
+    else if (n < Math.ceil(stepNum)) dot.classList.add('completed');
   });
 }
 
-// === Sound functions ===
-function playClickSound() {
-  if (clickSound) {
-    clickSound.volume = 0.3;
-    clickSound.currentTime = 0;
-    clickSound.play().catch(e => console.log('Click sound error:', e));
-  }
-}
-function playMagicSound() {
-  if (magicSound) {
-    magicSound.volume = 0.4;
-    magicSound.currentTime = 0;
-    magicSound.play().catch(e => console.log('Magic sound error:', e));
-  }
-}
-function playSelectSound() {
-  if (selectSound) {
-    selectSound.volume = 0.3;
-    selectSound.currentTime = 0;
-    selectSound.play().catch(e => console.log('Select sound error:', e));
-  }
-}
-
-// === Fade functions ===
-function fadeIn(audio, vol = 0.3) {
-  if (isFading) clearInterval(fadeInterval);
-  isFading = true;
-  audio.volume = 0;
-  audio.play().catch(e => console.log('Fade in error:', e));
-  let s = 0;
-  fadeInterval = setInterval(() => {
-    s++;
-    audio.volume = (s / FADE_STEPS) * vol;
-    if (s >= FADE_STEPS) {
-      clearInterval(fadeInterval);
-      audio.volume = vol;
-      isFading = false;
-    }
-  }, FADE_INTERVAL);
-}
-function fadeOut(audio) {
-  if (isFading) clearInterval(fadeInterval);
-  isFading = true;
-  const v = audio.volume;
-  let s = 0;
-  fadeInterval = setInterval(() => {
-    s++;
-    audio.volume = v * (1 - s / FADE_STEPS);
-    if (s >= FADE_STEPS) {
-      clearInterval(fadeInterval);
-      audio.pause();
-      audio.volume = 0.3;
-      isFading = false;
-    }
-  }, FADE_INTERVAL);
-}
-
-// === Show step (С КЛЮЧЕВЫМ ИСПРАВЛЕНИЕМ) ===
-function show(step, direction = 'next') {
-  playClickSound();
-  const current = document.querySelector('.card.active');
-  const next = document.getElementById(step);
-  if (current && next) {
-    current.classList.remove('active');
+// Навигация между карточками
+function show(stepId, direction = 'next') {
+  playSound(clickSound);
+  
+  const currentCard = document.querySelector('.card.active');
+  const nextCard = document.getElementById(stepId);
+  
+  if (currentCard && nextCard) {
+    currentCard.classList.remove('active');
+    
+    // Анимации
     if (direction === 'next') {
-      current.classList.add('slide-in-prev');
-      next.classList.add('slide-in-next');
+      currentCard.classList.add('slide-in-prev');
+      nextCard.classList.add('slide-in-next');
     } else if (direction === 'prev') {
-      current.classList.add('slide-in-next');
-      next.classList.add('slide-in-prev');
+      currentCard.classList.add('slide-in-next');
+      nextCard.classList.add('slide-in-prev');
     } else if (direction === 'zoom') {
-      next.classList.add('zoom-in');
+      nextCard.classList.add('zoom-in');
     }
+    
     setTimeout(() => {
-      next.classList.add('active');
-      updateProgressBar(step);
+      nextCard.classList.add('active');
+      updateProgressBar(stepId);
+      
+      // Если перешли к выбору формы, нужно отрисовать их
+      if (stepId === STEP.FORM) renderForms();
+      // Если перешли к выбору персонажа, обновляем список (особенно для галочек в группе)
+      if (stepId === STEP.CHAR) renderChars();
 
-      // 🔥 КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: рендерим формы при входе на шаг
-      if (step === STEP.FORM) {
-        renderFormStep();
-      }
-
+      // Очистка классов анимации
       setTimeout(() => {
-        current.classList.remove('slide-in-prev', 'slide-in-next', 'zoom-in');
-        next.classList.remove('slide-in-prev', 'slide-in-next', 'zoom-in');
+        currentCard.classList.remove('slide-in-prev', 'slide-in-next', 'zoom-in');
+        nextCard.classList.remove('slide-in-prev', 'slide-in-next', 'zoom-in');
       }, 400);
     }, 50);
   } else {
-    document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
-    next.classList.add('active');
-    updateProgressBar(step);
-
-    if (step === STEP.FORM) {
-      renderFormStep();
+    // Первый запуск
+    if (nextCard) {
+      document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+      nextCard.classList.add('active');
+      updateProgressBar(stepId);
     }
   }
 }
 
-// === Handle character click ===
-function handleCharacterClick(charKey) {
-  playSelectSound();
-  playCharacterSound(charKey);
-  if (state.answerType === 'group') {
-    const i = state.characters.indexOf(charKey);
-    if (i > -1) {
-      state.characters.splice(i, 1);
-      if (state.characters.length === 0) state.characters.push('usagi');
-    } else {
-      if (state.characters.length < 4) state.characters.push(charKey);
-      else { alert('Можно выбрать до 4 персонажей'); return; }
-    }
-    updateCharacterSelectionUI();
-  } else {
-    state.characters = [charKey];
-    updateCharacterSelectionUI();
-    if (Object.keys(CHARACTERS[charKey].forms).length > 1) {
-      show(STEP.FORM, 'next');
-    } else {
-      state.form = Object.keys(CHARACTERS[charKey].forms)[0];
-      show(STEP.PROB, 'next');
-    }
-  }
-}
+// === RENDER LOGIC ===
 
-function updateCharacterSelectionUI() {
-  const title = document.getElementById('character-title');
+// Отрисовка списка персонажей
+function renderChars() {
   const container = document.getElementById('characters');
+  container.innerHTML = '';
+  
+  const title = document.getElementById('character-title');
   if (state.answerType === 'group') {
-    title.innerHTML = `Выбери персонажей <span class="selected-count">${state.characters.length}</span>`;
-    document.querySelectorAll('.char-card').forEach(card => {
-      card.classList.add('multiple');
-      const k = card.dataset.key;
-      if (state.characters.includes(k)) card.classList.add('selected');
-      else card.classList.remove('selected');
-    });
+    title.innerHTML = `Выбери команду <span class="selected-count">${state.characters.length}/4</span>`;
   } else {
     title.textContent = 'Выбери персонажа';
-    document.querySelectorAll('.char-card').forEach(card => {
-      card.classList.remove('multiple');
-      const k = card.dataset.key;
-      if (state.characters[0] === k) card.classList.add('selected');
-      else card.classList.remove('selected');
-    });
+  }
+
+  for (const key in CHARACTERS) {
+    const char = CHARACTERS[key];
+    const div = document.createElement('div');
+    div.className = 'char-card';
+    div.dataset.key = key;
+
+    // Режим множественного выбора
+    if (state.answerType === 'group') {
+      div.classList.add('multiple');
+      if (state.characters.includes(key)) div.classList.add('selected');
+    } else {
+      // Одиночный режим
+      if (state.characters[0] === key) div.classList.add('selected');
+    }
+
+    // Берем первую форму для превью
+    const previewImg = Object.values(char.forms)[0].img;
+    div.innerHTML = `<img src="${previewImg}" alt="${char.label}" /><div class="label">${char.label}</div>`;
+    
+    div.onclick = () => handleCharacterClick(key);
+    container.appendChild(div);
   }
 }
 
-// === FORM STEP UI ===
-function renderFormStep() {
-  const charKey = state.characters[0];
+// Отрисовка форм персонажа (Step 3.5)
+function renderForms() {
   const container = document.getElementById('form-options');
   container.innerHTML = '';
+  
+  const charKey = state.characters[0];
   const char = CHARACTERS[charKey];
+  
+  if (!char) return;
+
   for (const formKey in char.forms) {
     const form = char.forms[formKey];
     const div = document.createElement('div');
     div.className = 'form-card';
-    div.dataset.form = formKey;
+    if (state.form === formKey) div.classList.add('selected');
+    
     div.innerHTML = `<img src="${form.img}" alt="${form.title}" /><div class="label">${form.title}</div>`;
     div.onclick = () => {
+      playSound(selectSound);
       state.form = formKey;
       document.querySelectorAll('.form-card').forEach(c => c.classList.remove('selected'));
       div.classList.add('selected');
-      playSelectSound();
     };
     container.appendChild(div);
   }
-  const first = container.querySelector('.form-card');
-  if (first) {
-    first.classList.add('selected');
-    state.form = first.dataset.form;
+  
+  // Выбираем первую форму по умолчанию, если ничего не выбрано
+  if (!state.form && container.firstChild) {
+    container.firstChild.click();
   }
 }
 
-// === Music ===
-const musicBtn = document.getElementById('music-toggle');
-let musicInitialized = false;
-let isMusicPlaying = false;
+// Обработка клика по персонажу
+function handleCharacterClick(key) {
+  playSound(selectSound);
 
-function initMusic() {
-  if (musicInitialized) return;
-  music.volume = 0;
-  musicBtn.addEventListener('click', () => { playClickSound(); toggleMusic(); });
-  document.addEventListener('click', () => {
-    if (!musicInitialized) {
-      fadeIn(music, 0.3);
-      musicBtn.textContent = '🔊';
-      musicInitialized = true;
-      isMusicPlaying = true;
+  if (state.answerType === 'single') {
+    state.characters = [key];
+    renderChars(); // Обновить визуал выделения
+    
+    const forms = Object.keys(CHARACTERS[key].forms);
+    // Если форм больше одной, идем выбирать форму
+    if (forms.length > 1) {
+      show(STEP.FORM, 'next');
+    } else {
+      // Иначе сразу к проблеме
+      state.form = forms[0];
+      show(STEP.PROB, 'next');
     }
-  }, { once: true });
-}
-function toggleMusic() {
-  if (isFading) return;
-  if (isMusicPlaying) {
-    fadeOut(music);
-    musicBtn.textContent = '🔇';
-    isMusicPlaying = false;
   } else {
-    fadeIn(music, 0.3);
-    musicBtn.textContent = '🔊';
-    isMusicPlaying = true;
+    // Групповой режим
+    const index = state.characters.indexOf(key);
+    if (index > -1) {
+      state.characters.splice(index, 1);
+    } else {
+      if (state.characters.length < 4) {
+        state.characters.push(key);
+      } else {
+        tg.showAlert('Максимум 4 персонажа в команде!');
+        return;
+      }
+    }
+    renderChars();
   }
 }
-window.addEventListener('beforeunload', () => {
-  if (!music.paused) { music.volume = 0; music.pause(); }
-});
 
-// === Parallax & Stars ===
-document.addEventListener('mousemove', e => {
-  const x = (e.clientX / window.innerWidth - 0.5) * 25;
-  const y = (e.clientY / window.innerHeight - 0.5) * 25;
-  document.querySelectorAll('.parallax-layer').forEach((layer, i) => {
-    const f = 1 + i*0.2;
-    layer.style.transform = `translate(${x*f}px, ${y*f}px)`;
-  });
-});
-const starsContainer = document.querySelector('.stars');
-for (let i = 0; i < 150; i++) {
-  const star = document.createElement('div');
-  star.classList.add('star');
-  star.style.top = Math.random() * 100 + '%';
-  star.style.left = Math.random() * 100 + '%';
-  star.style.width = star.style.height = Math.random() * 2 + 1 + 'px';
-  star.style.animationDelay = Math.random() * 5 + 's';
-  starsContainer.appendChild(star);
-  star.style.animation = `twinkle ${2 + Math.random()*3}s infinite ease-in-out, fall ${5 + Math.random()*5}s linear ${Math.random()*5}s infinite`;
-}
-const moonLayer = document.getElementById('moon');
-if(moonLayer){
-  moonLayer.style.animation = "pulse 4s infinite ease-in-out alternate";
-}
-
-// === DOMContentLoaded ===
+// === MAIN EVENT LISTENERS ===
 document.addEventListener('DOMContentLoaded', () => {
   initMusic();
-
-  document.querySelectorAll('.type-option').forEach(opt => {
-    opt.addEventListener('click', () => {
-      playSelectSound();
-      document.querySelectorAll('.type-option').forEach(o => o.classList.remove('selected'));
-      opt.classList.add('selected');
-      state.answerType = opt.dataset.type;
-    });
-  });
-  document.querySelector('.type-option[data-type="single"]').classList.add('selected');
-
-  const charContainer = document.getElementById('characters');
-  for (const key in CHARACTERS) {
-    const ch = CHARACTERS[key];
-    const div = document.createElement('div');
-    div.className = 'char-card';
-    div.dataset.key = key;
-    div.innerHTML = `<img src="${Object.values(ch.forms)[0].img}" alt="${ch.label}" /><div class="label">${ch.label}</div>`;
-    div.onclick = () => handleCharacterClick(key);
-    charContainer.appendChild(div);
+  
+  // Автозаполнение имени из Телеграм
+  const user = tg.initDataUnsafe?.user;
+  if (user?.first_name) {
+    document.getElementById('input-name').value = user.first_name;
   }
-  charContainer.querySelector('.char-card').classList.add('selected');
 
-  document.getElementById('btn-form-back').onclick = () => {
-    show(STEP.CHAR, 'prev');
-  };
-  document.getElementById('btn-form-next').onclick = () => {
-    // Остановить звук персонажа
-    if (characterSound && !characterSound.paused) {
-      characterSound.pause();
-      characterSound.currentTime = 0;
-    }
-    if (isMusicPlaying && !isFading) {
-      music.volume = DEFAULT_MUSIC_VOLUME;
-    }
-    show(STEP.PROB, 'next');
-  };
-
+  // 1. Кнопка имени
   document.getElementById('btn-name-next').onclick = () => {
-    const name = document.getElementById('input-name').value.trim();
-    if (!name || name.length < 2) {
+    const val = document.getElementById('input-name').value.trim();
+    if (val.length < 2) {
       const input = document.getElementById('input-name');
       input.style.animation = 'shake 0.5s ease-in-out';
       setTimeout(() => input.style.animation = '', 500);
-      alert('Введите имя минимум из 2 символов');
+      tg.showAlert('Пожалуйста, введи имя (минимум 2 буквы)');
       return;
     }
-    state.name = name;
+    state.name = val;
     show(STEP.TYPE, 'next');
   };
+
+  // 2. Выбор типа ответа
+  document.querySelectorAll('.type-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      playSound(selectSound);
+      document.querySelectorAll('.type-option').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+      state.answerType = opt.dataset.type;
+      
+      // Сброс выбора персонажей при смене режима
+      state.characters = state.answerType === 'group' ? [] : ['usagi'];
+    });
+  });
+
   document.getElementById('btn-type-back').onclick = () => show(STEP.NAME, 'prev');
-  document.getElementById('btn-type-next').onclick = () => show(STEP.CHAR, 'next');
+  document.getElementById('btn-type-next').onclick = () => {
+    renderChars();
+    show(STEP.CHAR, 'next');
+  };
+
+  // 3. Выбор персонажа (кнопки навигации)
   document.getElementById('btn-char-back').onclick = () => show(STEP.TYPE, 'prev');
   document.getElementById('btn-char-next').onclick = () => {
     if (state.answerType === 'group') {
-      // Остановить текущий звук персонажа
-      if (characterSound && !characterSound.paused) {
-        characterSound.pause();
-        characterSound.currentTime = 0;
-      }
-      // Вернуть фоновую музыку
-      if (isMusicPlaying && !isFading) {
-        music.volume = DEFAULT_MUSIC_VOLUME;
+      if (state.characters.length === 0) {
+        tg.showAlert('Выбери хотя бы одного воина!');
+        return;
       }
       show(STEP.PROB, 'next');
     } else {
-      alert('Выбери персонажа выше');
+      // В одиночном режиме клик по карточке сам переводит дальше,
+      // но если пользователь нажал кнопку "Дальше" без выбора:
+      if (state.characters.length === 1) handleCharacterClick(state.characters[0]);
     }
   };
+
+  // 3.5. Выбор формы
+  document.getElementById('btn-form-back').onclick = () => show(STEP.CHAR, 'prev');
+  document.getElementById('btn-form-next').onclick = () => show(STEP.PROB, 'next');
+
+  // 4. Описание проблемы
   document.getElementById('btn-problem-back').onclick = () => {
     if (state.answerType === 'group') {
       show(STEP.CHAR, 'prev');
     } else {
-      show(STEP.FORM, 'prev');
+      // Если у одиночного чара было несколько форм -> назад к формам, иначе -> к чарам
+      const forms = Object.keys(CHARACTERS[state.characters[0]].forms);
+      if (forms.length > 1) show(STEP.FORM, 'prev');
+      else show(STEP.CHAR, 'prev');
     }
   };
+
+  // === ОТПРАВКА ЗАПРОСА ===
   document.getElementById('btn-problem-send').onclick = async () => {
-    playMagicSound();
+    playSound(magicSound);
     const problem = document.getElementById('input-problem').value.trim();
+    
     if (!problem) {
-      const textarea = document.getElementById('input-problem');
-      textarea.style.animation = 'shake 0.5s ease-in-out';
-      setTimeout(() => textarea.style.animation = '', 500);
-      alert('Опиши проблему, пожалуйста');
+      tg.HapticFeedback.notificationOccurred('error');
+      tg.showAlert('Напиши, что тебя беспокоит, чтобы получить совет.');
       return;
     }
     state.problem = problem;
 
-    const init = tg.initDataUnsafe || {};
-    const user = init.user || {};
-    const chat_id = user.id || null;
-    const username = state.name || user.first_name || "друг";
-
     const resultBox = document.getElementById('result-box');
     const loader = document.getElementById('loading');
-    resultBox.innerText = "";
+    
+    // UI Loading state
+    resultBox.innerHTML = "";
     loader.classList.remove('hidden');
     show(STEP.RES, 'zoom');
 
     try {
-      // ⚠️ Замените на ваш настоящий URL!
-      const backend = 'https://sailormoonpsychohelp-7bkw.onrender.com';
+      // Определение URL (Локальный тест или Продакшн)
+      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      // ⚠️ ВАЖНО: Убедись, что ссылка на Render правильная
+      const backend = isLocal 
+        ? 'http://127.0.0.1:5000' 
+        : 'https://sailormoonpsychohelp-7bkw.onrender.com';
+
+      // Подготовка данных
+      const payload = {
+        chat_id: user?.id,
+        username: state.name,
+        problem: state.problem,
+        answer_type: state.answerType,
+        character: state.answerType === 'single' ? state.characters[0] : state.characters.join(','),
+        form: state.form
+      };
+
       const resp = await fetch(`${backend}/ask`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id,
-          username,
-          character: state.answerType === 'single' ? state.characters[0] : state.characters.join(','),
-          form: state.answerType === 'single' ? state.form : undefined,
-          answer_type: state.answerType,
-          problem: state.problem
-        })
+        body: JSON.stringify(payload)
       });
+
       const data = await resp.json();
       loader.classList.add('hidden');
       resultBox.classList.add('fade-in');
-      resultBox.innerText = data.ok ? (data.advice || "Пустой ответ") : "Ошибка: " + (data.error || JSON.stringify(data));
-      setTimeout(() => resultBox.classList.remove('fade-in'), 600);
-    } catch (err) {
-      console.error(err);
+
+      if (data.ok) {
+        tg.HapticFeedback.notificationOccurred('success');
+        // Парсим Markdown для красоты
+        resultBox.innerHTML = parseMarkdown(data.advice);
+      } else {
+        throw new Error(data.error || "Неизвестная ошибка");
+      }
+    } catch (e) {
+      console.error(e);
       loader.classList.add('hidden');
-      resultBox.innerText = "Ошибка связи с сервером. Попробуй позже.";
+      tg.HapticFeedback.notificationOccurred('error');
+      resultBox.innerHTML = "<strong>Ошибка связи с Луной 🌑</strong><br>Сервер спит или интернет пропал. Попробуй еще раз через минуту.";
     }
   };
+
+  // 5. Результат
   document.getElementById('btn-result-again').onclick = () => {
     document.getElementById('input-problem').value = '';
     show(STEP.PROB, 'prev');
   };
+  
   document.getElementById('btn-result-close').onclick = () => tg.close();
 
-  document.querySelectorAll('.btn').forEach(btn => {
-    btn.addEventListener('click', playClickSound);
+  // Параллакс эффект для фона
+  document.addEventListener('mousemove', e => {
+    const x = (e.clientX / window.innerWidth - 0.5) * 20;
+    const y = (e.clientY / window.innerHeight - 0.5) * 20;
+    const moon = document.getElementById('moon');
+    if(moon) moon.style.transform = `translate(${x}px, ${y}px)`;
   });
 
-  show(STEP.NAME);
-
-  try {
-    const init = tg.initDataUnsafe || {};
-    if (init.user && init.user.first_name) {
-      document.getElementById('input-name').value = init.user.first_name;
-    }
-  } catch (e) { /* ignore */ }
-});
-
-document.addEventListener('touchstart', () => {
-  if (!musicInitialized) {
-    music.play().then(() => {
-      musicBtn.textContent = '🔊';
-      musicInitialized = true;
-      isMusicPlaying = true;
-    }).catch(() => {
-      musicBtn.textContent = '🔇';
-      musicInitialized = true;
-    });
+  // Генерация звезд
+  const starsContainer = document.querySelector('.stars');
+  for (let i = 0; i < 100; i++) {
+    const star = document.createElement('div');
+    star.classList.add('star');
+    star.style.top = Math.random() * 100 + '%';
+    star.style.left = Math.random() * 100 + '%';
+    star.style.animationDelay = Math.random() * 5 + 's';
+    starsContainer.appendChild(star);
   }
-}, { once: true });
+
+  // Запуск первого экрана
+  show(STEP.NAME);
+});
