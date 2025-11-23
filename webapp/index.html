@@ -10,20 +10,21 @@
 <body>
 
   <div class="parallax">
-    <div class="parallax-layer" id="moon"></div>
+    <div id="moon"></div>
   </div>
   <div class="stars"></div>
 
   <div class="container">
+    
     <div class="progress-container">
       <div class="progress-header">
-        <span class="progress-text">Шаг <span id="current-step">1</span> из 5</span>
+        <span>Шаг <span id="current-step">1</span> из 5</span>
         <div class="progress-steps">
-          <div class="step-dot active" data-step="1"></div>
-          <div class="step-dot" data-step="2"></div>
-          <div class="step-dot" data-step="3"></div>
-          <div class="step-dot" data-step="4"></div>
-          <div class="step-dot" data-step="5"></div>
+          <div class="step-dot active"></div>
+          <div class="step-dot"></div>
+          <div class="step-dot"></div>
+          <div class="step-dot"></div>
+          <div class="step-dot"></div>
         </div>
       </div>
       <div class="progress-bar">
@@ -51,15 +52,15 @@
           <div class="type-option selected" data-type="single">
             <div class="type-icon">👤</div>
             <div class="type-content">
-              <h3>Совет от одного персонажа</h3>
-              <p>Глубокий ответ от выбранного воина</p>
+              <h3>Совет от одного</h3>
+              <p>Личный разговор с воином</p>
             </div>
           </div>
           <div class="type-option" data-type="group">
             <div class="type-icon">👥</div>
             <div class="type-content">
               <h3>Совет от команды</h3>
-              <p>Мнения нескольких персонажей</p>
+              <p>Чат с несколькими героями</p>
             </div>
           </div>
         </div>
@@ -79,7 +80,7 @@
       </section>
 
       <section id="step-form" class="card">
-        <h2>Выбери форму персонажа</h2>
+        <h2>Выбери форму</h2>
         <div id="form-options" class="cards-grid"></div>
         <div class="row">
           <button id="btn-form-back" class="btn outline">← Назад</button>
@@ -88,8 +89,8 @@
       </section>
 
       <section id="step-problem" class="card">
-        <h2>Расскажи, что случилось</h2>
-        <textarea id="input-problem" rows="6" placeholder="Опиши проблему..."></textarea>
+        <h2>Что тебя беспокоит?</h2>
+        <textarea id="input-problem" rows="5" placeholder="Расскажи мне..."></textarea>
         <div class="row">
           <button id="btn-problem-back" class="btn outline">← Назад</button>
           <button id="btn-problem-send" class="btn primary">Получить совет ✨</button>
@@ -97,15 +98,24 @@
       </section>
 
       <section id="step-result" class="card">
-        <h2>Совет</h2>
-        <div id="result-box" class="result">🌕 Обдумываю ответ... 💫</div>
+        <h2 id="chat-header">Диалог</h2>
+        
+        <div id="chat-container" class="chat-container">
+          </div>
+        
         <div id="loading" class="loading hidden">
           <div class="moon-loader">🌙</div>
-          <div class="loading-text">Луна думает...</div>
+          <div class="loading-text">Луна печатает...</div>
         </div>
-        <div class="row">
-          <button id="btn-result-again" class="btn outline">Задать ещё вопрос</button>
-          <button id="btn-result-close" class="btn">Закрыть</button>
+
+        <div class="chat-input-area hidden" id="chat-controls">
+          <input type="text" id="chat-input" placeholder="Ответить..." autocomplete="off">
+          <button id="btn-chat-send" class="btn-icon">➤</button>
+        </div>
+
+        <div class="row" style="margin-top: 15px;">
+          <button id="btn-result-again" class="btn outline">Начать заново</button>
+          <button id="btn-result-close" class="btn">Выход</button>
         </div>
       </section>
     </main>
@@ -118,9 +128,7 @@
       <button id="music-toggle" class="control-btn" title="Музыка">🔇</button>
     </div>
     
-    <audio id="bg-music" loop>
-      <source src="./music/moonlight.mp3" type="audio/mpeg">
-    </audio>
+    <audio id="bg-music" loop><source src="./music/moonlight.mp3" type="audio/mpeg"></audio>
     <audio id="click-sound" preload="auto"><source src="./music/click.mp3"></audio>
     <audio id="magic-sound" preload="auto"><source src="./music/magic.mp3"></audio>
     <audio id="select-sound" preload="auto"><source src="./music/select.mp3"></audio>
