@@ -497,22 +497,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const resultBox = document.getElementById('result-box');
     const loader = document.getElementById('loading');
     
-    // UI Loading state
+    // 1. Скрываем старый результат и саму рамку
+    resultBox.classList.add('hidden'); 
     resultBox.innerHTML = "";
+    
+    // 2. Показываем лоадер
     loader.classList.remove('hidden');
+    
+    // Переход к слайду результата
     show(STEP.RES, 'zoom');
 
     try {
       // Определение URL (Локальный тест или Продакшн)
       const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      // ⚠️ ВАЖНО: Убедись, что ссылка на Render правильная
       const backend = isLocal 
         ? 'http://127.0.0.1:5000' 
         : 'https://sailormoonpsychohelp-7bkw.onrender.com';
 
       // Подготовка данных
       const payload = {
-        chat_id: user?.id,
+        chat_id: tg.initDataUnsafe?.user?.id,
         username: state.name,
         problem: state.problem,
         answer_type: state.answerType,
@@ -527,19 +531,24 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       const data = await resp.json();
+      
+      // 3. Данные пришли: скрываем лоадер, показываем рамку
       loader.classList.add('hidden');
+      resultBox.classList.remove('hidden'); // <--- ВОЗВРАЩАЕМ РАМКУ
       resultBox.classList.add('fade-in');
 
       if (data.ok) {
         tg.HapticFeedback.notificationOccurred('success');
-        // Парсим Markdown для красоты
         resultBox.innerHTML = parseMarkdown(data.advice);
       } else {
         throw new Error(data.error || "Неизвестная ошибка");
       }
     } catch (e) {
       console.error(e);
+      // При ошибке тоже нужно вернуть рамку, чтобы показать текст ошибки
       loader.classList.add('hidden');
+      resultBox.classList.remove('hidden'); 
+      
       tg.HapticFeedback.notificationOccurred('error');
       resultBox.innerHTML = "<strong>Ошибка связи с Луной 🌑</strong><br>Сервер спит или интернет пропал. Попробуй еще раз через минуту.";
     }
@@ -575,3 +584,4 @@ document.addEventListener('DOMContentLoaded', () => {
   // Запуск первого экрана
   show(STEP.NAME);
 });
+
