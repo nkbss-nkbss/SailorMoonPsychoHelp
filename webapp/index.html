@@ -2,24 +2,19 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
   <title>Лунная поддержка</title>
   <link rel="stylesheet" href="styles.css" />
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
 
-  <!-- ПАРАЛЛАКС-ФОН -->
   <div class="parallax">
     <div class="parallax-layer" id="moon"></div>
   </div>
-
-  <!-- ЗВЁЗДЫ -->
   <div class="stars"></div>
 
-  <!-- ОСНОВНОЙ КОНТЕНТ -->
   <div class="container">
-    <!-- ПРОГРЕСС-БАР -->
     <div class="progress-container">
       <div class="progress-header">
         <span class="progress-text">Шаг <span id="current-step">1</span> из 5</span>
@@ -37,25 +32,23 @@
     </div>
 
     <header>
-      <h1>🌙 Лунная поддержка </h1>
+      <h1>🌙 Лунная поддержка</h1>
       <p class="subtitle">Воин в матроске всегда поможет!</p>
     </header>
 
     <main>
-      <!-- Step 1: Name -->
       <section id="step-name" class="card active">
         <h2>Как тебя зовут?</h2>
-        <input id="input-name" placeholder="Введи имя" maxlength="50" />
+        <input id="input-name" placeholder="Введи имя" maxlength="50" autocomplete="off" />
         <div class="row">
           <button id="btn-name-next" class="btn">Дальше →</button>
         </div>
       </section>
 
-      <!-- Step 2: Answer Type -->
       <section id="step-type" class="card">
         <h2>Выбери тип ответа</h2>
         <div class="answer-type-options">
-          <div class="type-option" data-type="single">
+          <div class="type-option selected" data-type="single">
             <div class="type-icon">👤</div>
             <div class="type-content">
               <h3>Совет от одного персонажа</h3>
@@ -66,7 +59,7 @@
             <div class="type-icon">👥</div>
             <div class="type-content">
               <h3>Совет от команды</h3>
-              <p>Мнения нескольких персонажей по твоей проблеме</p>
+              <p>Мнения нескольких персонажей</p>
             </div>
           </div>
         </div>
@@ -76,7 +69,6 @@
         </div>
       </section>
 
-      <!-- Step 3: Character -->
       <section id="step-character" class="card">
         <h2 id="character-title">Выбери персонажа</h2>
         <div id="characters" class="cards-grid"></div>
@@ -86,7 +78,6 @@
         </div>
       </section>
 
-      <!-- Step 3.5: Form -->
       <section id="step-form" class="card">
         <h2>Выбери форму персонажа</h2>
         <div id="form-options" class="cards-grid"></div>
@@ -96,7 +87,6 @@
         </div>
       </section>
 
-      <!-- Step 4: Problem -->
       <section id="step-problem" class="card">
         <h2>Расскажи, что случилось</h2>
         <textarea id="input-problem" rows="6" placeholder="Опиши проблему..."></textarea>
@@ -106,7 +96,6 @@
         </div>
       </section>
 
-      <!-- Step 5: Result -->
       <section id="step-result" class="card">
         <h2>Совет</h2>
         <div id="result-box" class="result">🌕 Обдумываю ответ... 💫</div>
@@ -125,36 +114,18 @@
       <small>Лунная магия с тобой 🌙✨</small>
     </footer>
 
-    <!-- КНОПКИ УПРАВЛЕНИЯ -->
     <div class="control-buttons">
       <button id="music-toggle" class="control-btn" title="Музыка">🔇</button>
     </div>
     
-    <!-- АУДИО ЭЛЕМЕНТЫ -->
     <audio id="bg-music" loop>
       <source src="./music/moonlight.mp3" type="audio/mpeg">
-      <source src="./music/moonlight.ogg" type="audio/ogg">
-      Ваш браузер не поддерживает аудио.
     </audio>
-    
-    <audio id="click-sound" preload="auto">
-      <source src="./music/click.mp3" type="audio/mpeg">
-      <source src="./music/click.ogg" type="audio/ogg">
-    </audio>
-    
-    <audio id="magic-sound" preload="auto">
-      <source src="./music/magic.mp3" type="audio/mpeg">
-      <source src="./music/magic.ogg" type="audio/ogg">
-    </audio>
-    
-    <audio id="select-sound" preload="auto">
-      <source src="./music/select.mp3" type="audio/mpeg">
-      <source src="./music/select.ogg" type="audio/ogg">
-    </audio>
+    <audio id="click-sound" preload="auto"><source src="./music/click.mp3"></audio>
+    <audio id="magic-sound" preload="auto"><source src="./music/magic.mp3"></audio>
+    <audio id="select-sound" preload="auto"><source src="./music/select.mp3"></audio>
   </div>
 
-  <!-- ОСНОВНОЙ СКРИПТ -->
   <script src="app.js"></script>
-
 </body>
 </html>
