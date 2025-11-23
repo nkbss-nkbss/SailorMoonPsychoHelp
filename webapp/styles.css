@@ -511,3 +511,13 @@ footer {
   background-position: 0 0, 20px 20px;
   opacity: 0.3;
 }
+
+/* Утилитный класс для скрытия элементов */
+.hidden {
+  display: none !important;
+}
+
+/* Убедись, что loader использует этот стиль или свой собственный */
+.loading.hidden {
+  display: none !important;
+}
