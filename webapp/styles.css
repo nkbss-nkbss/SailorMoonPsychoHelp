@@ -1,523 +1,202 @@
-/* === THEME VARIABLES === */
+/* === ПЕРЕМЕННЫЕ И БАЗА === */
 :root {
   --bg-gradient: radial-gradient(circle at 10% 10%, #fff6ff 0%, #fff0fb 30%, #f4e9ff 100%);
-  --card-bg: rgba(255, 255, 255, 0.92);
-  --accent: #ff9ad8;       /* Основной розовый */
-  --accent-2: #b78ae6;     /* Фиолетовый */
+  --card-bg: rgba(255, 255, 255, 0.9);
+  --accent: #ff9ad8;
+  --accent-2: #b78ae6;
   --accent-glow: rgba(255, 154, 216, 0.4);
   --text-main: #2b1140;
   --text-light: #6b4b7a;
-  --border-color: rgba(183, 138, 230, 0.2);
-  --success: #4cd964;
+  --border-color: rgba(183, 138, 230, 0.25);
 }
 
-/* === RESET & BASE === */
-* {
-  box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent; /* Убирает синий блик при тапе на Android */
-}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
 body {
-  margin: 0;
-  padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  margin: 0; padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
   background: var(--bg-gradient);
   color: var(--text-main);
-  /* Фикс высоты для мобильных браузеров (Safari iOS) */
-  min-height: 100vh;
-  min-height: -webkit-fill-available; 
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  min-height: 100vh; min-height: -webkit-fill-available;
+  display: flex; align-items: center; justify-content: center;
   overflow-x: hidden;
 }
 
-/* === LAYOUT CONTAINER === */
+/* === УТИЛИТЫ === */
+.hidden { display: none !important; }
+
+/* === КОНТЕЙНЕР === */
 .container {
-  width: 100%;
-  max-width: 600px; /* Оптимальная ширина для чтения */
-  margin: 16px;
-  /* Стеклянный эффект и тень */
+  width: 100%; max-width: 600px;
+  margin: 10px;
   background: var(--card-bg);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
   border-radius: 24px;
-  box-shadow: 0 20px 40px rgba(91, 64, 120, 0.15), 
-              0 0 0 1px rgba(255, 255, 255, 0.6) inset;
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  overflow: hidden;
-  transition: min-height 0.3s ease;
-  min-height: 85vh; /* Растягиваем почти на весь экран */
+  box-shadow: 0 20px 50px rgba(91, 64, 120, 0.15), 0 0 0 1px rgba(255,255,255,0.5) inset;
+  padding: 20px;
+  display: flex; flex-direction: column;
+  position: relative; overflow: hidden;
+  transition: min-height 0.3s;
+  min-height: 85vh;
 }
 
 /* === HEADER === */
-header {
-  text-align: center;
-  margin-bottom: 24px;
-  flex-shrink: 0;
-}
-
+header { text-align: center; margin-bottom: 20px; flex-shrink: 0; }
 h1 {
-  margin: 0;
-  font-size: 1.8rem;
-  font-weight: 800;
+  margin: 0; font-size: 1.8rem; font-weight: 800;
   background: linear-gradient(135deg, #ff6bcb, #a666f1);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
   filter: drop-shadow(0 2px 4px rgba(183,138,230,0.2));
 }
+.subtitle { color: var(--text-light); margin-top: 5px; font-size: 0.9rem; }
+h2 { font-size: 1.4rem; margin-bottom: 15px; text-align: center; color: var(--text-main); }
 
-.subtitle {
-  color: var(--text-light);
-  margin-top: 6px;
-  font-size: 0.95rem;
-  font-weight: 500;
-}
+/* === PROGRESS === */
+.progress-container { margin-bottom: 15px; padding: 0 5px; }
+.progress-header { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.8rem; font-weight: 600; color: var(--text-light); }
+.progress-bar { height: 6px; background: rgba(0,0,0,0.05); border-radius: 10px; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width 0.4s ease; }
+.step-dot { width: 8px; height: 8px; background: #e0e0e0; border-radius: 50%; display: inline-block; margin-left: 4px; transition: all 0.3s; }
+.step-dot.active { background: var(--accent-2); transform: scale(1.3); }
+.step-dot.completed { background: var(--accent); }
 
-h2 {
-  font-size: 1.4rem;
-  margin-bottom: 20px;
-  color: var(--text-main);
-  text-align: center;
-}
-
-/* === PROGRESS BAR === */
-.progress-container {
-  margin-bottom: 20px;
-  padding: 0 10px;
-}
-
-.progress-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text-light);
-}
-
-.progress-steps {
-  display: flex;
-  gap: 6px;
-}
-
-/* Точки прогресса */
-.step-dot {
-  width: 8px;
-  height: 8px;
-  background: #e0e0e0;
-  border-radius: 50%;
-  transition: all 0.3s ease;
-}
-
-.step-dot.active {
-  background: var(--accent-2);
-  transform: scale(1.3);
-  box-shadow: 0 0 8px var(--accent-glow);
-}
-
-.step-dot.completed {
-  background: var(--accent);
-}
-
-.progress-bar {
-  height: 6px;
-  background: rgba(0,0,0,0.05);
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--accent), var(--accent-2));
-  border-radius: 10px;
-  transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-  box-shadow: 0 0 10px var(--accent-glow);
-}
-
-/* === MAIN CONTENT AREA (CARDS) === */
-main {
-  flex-grow: 1;
-  position: relative; /* Для абсолютного позиционирования карточек */
-  display: flex;
-  flex-direction: column;
-}
-
+/* === MAIN & CARDS === */
+main { flex-grow: 1; position: relative; display: flex; flex-direction: column; }
 .card {
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  opacity: 0;
-  transform: translateX(20px);
-  pointer-events: none;
-  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  display: flex;
-  flex-direction: column;
-  height: 100%;
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  opacity: 0; transform: translateX(20px); pointer-events: none;
+  transition: all 0.4s ease;
+  display: flex; flex-direction: column;
+  overflow-y: auto; overflow-x: hidden;
 }
+.card.active { position: relative; opacity: 1; transform: translateX(0); pointer-events: all; z-index: 2; height: 100%; }
 
-.card.active {
-  position: relative;
-  opacity: 1;
-  transform: translateX(0);
-  pointer-events: all;
-  z-index: 2;
-}
-
-/* Анимации переходов */
+/* Анимации */
 .card.slide-in-next { animation: slideInNext 0.4s forwards; }
 .card.slide-in-prev { animation: slideInPrev 0.4s forwards; }
-.card.zoom-in { animation: zoomInCard 0.4s forwards; }
+.card.zoom-in { animation: zoomIn 0.4s forwards; }
 
-@keyframes slideInNext {
-  from { opacity: 0; transform: translateX(50px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-@keyframes slideInPrev {
-  from { opacity: 0; transform: translateX(-50px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-@keyframes zoomInCard {
-  from { opacity: 0; transform: scale(0.9); }
-  to { opacity: 1; transform: scale(1); }
-}
+@keyframes slideInNext { from {opacity:0; transform:translateX(50px);} to {opacity:1; transform:translateX(0);} }
+@keyframes slideInPrev { from {opacity:0; transform:translateX(-50px);} to {opacity:1; transform:translateX(0);} }
+@keyframes zoomIn { from {opacity:0; transform:scale(0.9);} to {opacity:1; transform:scale(1);} }
 
 /* === INPUTS === */
-/* Делаем инпуты большими и удобными для пальцев */
 input, textarea {
-  width: 100%;
-  padding: 18px;
-  border-radius: 16px;
-  border: 2px solid var(--border-color);
-  background: #fff;
-  font-size: 1.1rem;
-  font-family: inherit;
-  color: var(--text-main);
-  outline: none;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.02);
-  margin-bottom: 20px;
-  /* На мобильных клавиатурах кнопка Enter будет "Go" или "Done" */
-  enterkeyhint: done; 
+  width: 100%; padding: 16px; border-radius: 16px;
+  border: 2px solid var(--border-color); background: #fff;
+  font-size: 1.1rem; color: var(--text-main); outline: none;
+  transition: all 0.3s; margin-bottom: 15px; font-family: inherit;
 }
+input:focus, textarea:focus { border-color: var(--accent-2); box-shadow: 0 0 0 4px rgba(183,138,230,0.15); transform: translateY(-2px); }
+#input-name { text-align: center; font-weight: 600; color: var(--accent-2); }
 
-/* Имя по центру - выглядит торжественнее */
-#input-name {
-  text-align: center;
-  font-weight: 600;
-  color: var(--accent-2);
-}
-
-input:focus, textarea:focus {
-  border-color: var(--accent-2);
-  box-shadow: 0 0 0 4px rgba(183, 138, 230, 0.15);
-  transform: translateY(-2px);
-}
-
-input::placeholder, textarea::placeholder {
-  color: #ccc;
-  font-weight: 400;
-}
-
-/* === BUTTONS & ROW === */
-.row {
-  display: flex;
-  gap: 12px;
-  margin-top: auto; /* Прижимает кнопки к низу карточки если есть место */
-  padding-top: 20px;
-}
-
-/* На мобильных кнопки часто идут друг под другом или на всю ширину */
-@media (max-width: 400px) {
-  .row {
-    flex-direction: column-reverse; /* "Назад" снизу, "Дальше" сверху */
-  }
-}
-
+/* === BUTTONS === */
+.row { display: flex; gap: 10px; margin-top: auto; padding-top: 15px; width: 100%; }
 .btn {
-  flex: 1; /* Кнопки занимают доступное место */
-  padding: 16px;
-  border-radius: 14px;
-  border: none;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  /* Убираем стандартные стили кнопок iOS */
-  -webkit-appearance: none; 
-}
-
-/* Основная кнопка (Дальше / Отправить) */
-.btn:not(.outline) {
-  background: linear-gradient(135deg, #ff9ad8, #d58cf1);
-  color: #fff;
-  box-shadow: 0 8px 20px var(--accent-glow);
-  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
-}
-
-.btn:hover:not(.outline) {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 25px var(--accent-glow);
-}
-
-.btn:active:not(.outline) {
-  transform: scale(0.98);
-  box-shadow: 0 4px 10px var(--accent-glow);
-}
-
-/* Второстепенная кнопка (Назад) */
-.btn.outline {
-  background: transparent;
-  color: var(--text-light);
-  border: 2px solid transparent;
-}
-
-.btn.outline:hover {
-  background: rgba(183,138,230,0.05);
-  color: var(--accent-2);
-}
-
-.btn.primary {
-  /* Стиль для самой главной кнопки (Получить совет) */
-  background: linear-gradient(135deg, #a666f1, #8e44ad);
-  box-shadow: 0 8px 20px rgba(142, 68, 173, 0.4);
-}
-
-/* === SELECTION GRIDS (CHARACTERS & FORMS) === */
-.cards-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); /* Адаптивная сетка */
-  gap: 12px;
-  max-height: 50vh; /* Ограничиваем высоту для скролла */
-  overflow-y: auto;
-  padding: 4px; /* Чтобы тени не обрезались */
-  margin-bottom: 10px;
-}
-
-/* Скрываем скроллбар но оставляем прокрутку */
-.cards-grid::-webkit-scrollbar { width: 4px; }
-.cards-grid::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
-
-.char-card, .form-card {
-  background: #fff;
-  border-radius: 16px;
-  padding: 10px;
-  text-align: center;
-  cursor: pointer;
-  border: 2px solid transparent;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
-  transition: all 0.2s ease;
-  position: relative;
-}
-
-.char-card img, .form-card img {
-  width: 100%;
-  height: 120px;
-  object-fit: cover;
-  border-radius: 12px;
-  margin-bottom: 8px;
-  /* Плавное появление картинки */
-  animation: fadeInImg 0.5s ease;
-}
-
-@keyframes fadeInImg { from { opacity: 0; } to { opacity: 1; } }
-
-.label {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--text-main);
-  line-height: 1.2;
-}
-
-/* Состояние выбора */
-.char-card.selected, .form-card.selected {
-  border-color: var(--accent-2);
-  background: #fbf5ff;
-  transform: translateY(-4px);
-  box-shadow: 0 10px 20px rgba(183, 138, 230, 0.2);
-}
-
-.char-card.selected .label { color: var(--accent-2); }
-
-/* Галочка для множественного выбора */
-.char-card.multiple.selected::after {
-  content: '✓';
-  position: absolute;
-  top: 8px; right: 8px;
-  background: var(--accent-2);
-  color: white;
-  width: 24px; height: 24px;
-  border-radius: 50%;
+  flex: 1; padding: 14px; border-radius: 14px; border: none;
+  font-size: 1rem; font-weight: 600; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  font-size: 14px;
-  font-weight: bold;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: all 0.2s;
+}
+.btn:not(.outline) {
+  background: linear-gradient(135deg, #ff9ad8, #d58cf1); color: #fff;
+  box-shadow: 0 8px 20px var(--accent-glow);
+}
+.btn:hover:not(.outline) { transform: translateY(-2px); }
+.btn:active { transform: scale(0.98); }
+.btn.outline { background: transparent; color: var(--text-light); border: 1px solid transparent; }
+.btn.primary { background: linear-gradient(135deg, #a666f1, #8e44ad); box-shadow: 0 8px 20px rgba(142,68,173,0.3); }
+
+/* === CHAT UI (NEW) === */
+.chat-container {
+  flex-grow: 1; display: flex; flex-direction: column; gap: 10px;
+  overflow-y: auto; padding: 10px; background: rgba(255,255,255,0.4);
+  border-radius: 16px; margin-bottom: 10px; min-height: 200px;
+}
+.message {
+  max-width: 85%; padding: 10px 14px; border-radius: 14px;
+  font-size: 0.95rem; line-height: 1.4; position: relative;
+  word-wrap: break-word; animation: popIn 0.3s ease;
+}
+.message.bot {
+  align-self: flex-start; background: #fff; border-bottom-left-radius: 2px;
+  border: 1px solid var(--border-color); color: var(--text-main);
+}
+.message.user {
+  align-self: flex-end; background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: white; border-bottom-right-radius: 2px; box-shadow: 0 4px 10px var(--accent-glow);
+}
+.message strong { color: inherit; font-weight: 800; }
+.message.bot strong { color: var(--accent-2); }
+
+@keyframes popIn { from {transform: scale(0.8); opacity: 0;} to {transform: scale(1); opacity: 1;} }
+
+.chat-input-area { display: flex; gap: 8px; animation: fadeIn 0.4s; }
+.chat-input-area input { margin-bottom: 0; padding: 12px; border-radius: 24px; }
+.btn-icon {
+  width: 48px; height: 48px; border-radius: 50%; border: none;
+  background: var(--accent-2); color: white; font-size: 1.2rem;
+  cursor: pointer; flex-shrink: 0; transition: transform 0.2s;
+}
+.btn-icon:active { transform: scale(0.9); }
+
+/* === GRIDS & LISTS === */
+.cards-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px; overflow-y: auto; padding: 4px; max-height: 55vh;
+}
+.char-card, .form-card {
+  background: #fff; border-radius: 16px; padding: 8px; text-align: center;
+  border: 2px solid transparent; transition: all 0.2s; cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+}
+.char-card img, .form-card img {
+  width: 100%; height: 100px; object-fit: cover; border-radius: 12px;
+  margin-bottom: 6px;
+}
+.char-card.selected, .form-card.selected {
+  border-color: var(--accent-2); background: #fbf5ff; transform: translateY(-3px);
+  box-shadow: 0 8px 15px rgba(183,138,230,0.2);
+}
+.char-card.multiple.selected::after {
+  content: '✓'; position: absolute; top: 6px; right: 6px;
+  background: var(--accent-2); color: white; width: 22px; height: 22px;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px;
 }
 
-@keyframes popIn { from {transform: scale(0);} to {transform: scale(1);} }
-
-/* === ANSWER TYPE OPTIONS (Big Buttons) === */
-.answer-type-options {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin: 10px 0 20px;
-}
-
+/* === TYPE OPTIONS === */
+.answer-type-options { display: flex; flex-direction: column; gap: 12px; margin: 10px 0 20px; }
 .type-option {
-  display: flex;
-  align-items: center;
-  padding: 20px;
-  background: #fff;
-  border: 2px solid var(--border-color);
-  border-radius: 18px;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  display: flex; align-items: center; padding: 16px; background: #fff;
+  border: 2px solid var(--border-color); border-radius: 18px; cursor: pointer;
+  transition: all 0.2s;
 }
-
-.type-option:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 15px rgba(0,0,0,0.05);
-}
-
 .type-option.selected {
-  border-color: var(--accent-2);
-  background: linear-gradient(to right, #fbf5ff, #fff);
-  box-shadow: 0 8px 20px rgba(183,138,230,0.15);
+  border-color: var(--accent-2); background: linear-gradient(to right, #fbf5ff, #fff);
+  box-shadow: 0 8px 15px rgba(183,138,230,0.15);
 }
+.type-icon { font-size: 2.2rem; margin-right: 15px; filter: grayscale(1); transition: filter 0.2s; }
+.type-option.selected .type-icon { filter: grayscale(0); }
 
-.type-icon {
-  font-size: 2.5rem;
-  margin-right: 16px;
-  filter: grayscale(100%);
-  transition: filter 0.3s;
-}
+/* === LOADER === */
+.loading { display: flex; flex-direction: column; align-items: center; padding: 20px; gap: 10px; }
+.moon-loader { font-size: 3rem; animation: float 2s infinite ease-in-out; filter: drop-shadow(0 0 10px var(--accent-2)); }
+@keyframes float { 0%,100%{transform:translateY(0) rotate(0deg);} 50%{transform:translateY(-10px) rotate(5deg);} }
 
-.type-option.selected .type-icon { filter: grayscale(0%); }
-
-.type-content h3 { margin: 0 0 4px; font-size: 1.05rem; color: var(--text-main); }
-.type-content p { margin: 0; font-size: 0.85rem; color: var(--text-light); }
-
-/* === RESULT BOX === */
-.result {
-  white-space: pre-wrap;
-  padding: 20px;
-  border-radius: 16px;
-  background: #fff;
-  border: 1px solid var(--border-color);
-  min-height: 150px;
-  line-height: 1.6;
-  color: var(--text-main);
-  font-size: 1rem;
-  box-shadow: inset 0 2px 6px rgba(0,0,0,0.02);
-  overflow-y: auto;
-  max-height: 50vh;
-}
-
-.result strong { color: var(--accent-2); font-weight: 700; }
-.result em { color: #8e44ad; }
-
-/* === FOOTER === */
-footer {
-  text-align: center;
-  margin-top: 20px;
-  padding-bottom: 10px;
-  color: #bfa3d1;
-  font-size: 0.8rem;
-  width: 100%;
-}
-
-/* === UTILS & DECORATION === */
-.loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px;
-  gap: 16px;
-}
-
-.moon-loader {
-  font-size: 4rem;
-  animation: float 2s ease-in-out infinite;
-  filter: drop-shadow(0 0 15px var(--accent-2));
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-10px) rotate(5deg); }
-}
-
-.loading.hidden { display: none; }
-
-/* Control Buttons (Music) */
-.control-buttons {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 100;
-}
-
+/* === FOOTER & EXTRAS === */
+footer { text-align: center; margin-top: 10px; color: #bfa3d1; font-size: 0.8rem; width: 100%; }
+.control-buttons { position: fixed; bottom: 15px; right: 15px; z-index: 100; }
 .control-btn {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(5px);
-  color: var(--text-main);
-  font-size: 1.4rem;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-  cursor: pointer;
-  transition: transform 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.8);
+  border: none; font-size: 1.2rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1); cursor: pointer;
 }
-
-.control-btn:active { transform: scale(0.9); }
-
-/* Parallax Background Layers */
 .parallax { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
-
 #moon {
-  position: absolute;
-  top: 5%;
-  right: 5%;
-  width: 120px;
-  height: 120px;
+  position: absolute; top: 5%; right: 5%; width: 100px; height: 100px;
   background: radial-gradient(circle at 30% 30%, #fffeb0, #ffd700);
-  border-radius: 50%;
-  box-shadow: 0 0 40px rgba(255, 215, 0, 0.4);
-  opacity: 0.8;
+  border-radius: 50%; box-shadow: 0 0 30px rgba(255, 215, 0, 0.4); opacity: 0.8;
 }
-
 .stars {
-  position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
-  z-index: -1;
-  pointer-events: none;
-  background-image: 
-    radial-gradient(white 1px, transparent 1.2px),
-    radial-gradient(white 1.5px, transparent 1.7px);
-  background-size: 50px 50px, 100px 100px;
-  background-position: 0 0, 20px 20px;
-  opacity: 0.3;
-}
-
-/* Утилитный класс для скрытия элементов */
-.hidden {
-  display: none !important;
-}
-
-/* Убедись, что loader использует этот стиль или свой собственный */
-.loading.hidden {
-  display: none !important;
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.3;
+  background-image: radial-gradient(white 1px, transparent 1.2px); background-size: 40px 40px;
 }
