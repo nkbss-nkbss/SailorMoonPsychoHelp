@@ -225,9 +225,11 @@ function renderChars() {
   container.innerHTML = '';
   const title = document.getElementById('character-title');
   
-  if (state.answerType === 'group') title.innerHTML = `Выбери команду <span style="color:var(--accent-2)">${state.characters.length}/4</span>`;
-  else title.textContent = 'Выбери персонажа';
-
+  if (state.answerType === 'group') 
+    title.innerHTML = `Выбери команду <span style="color:var(--accent-2)">${state.characters.length}/4</span>`;
+  else 
+    title.textContent = 'Выбери персонажа';
+  
   for (const key in CHARACTERS) {
     const char = CHARACTERS[key];
     const div = document.createElement('div');
@@ -239,7 +241,13 @@ function renderChars() {
       if (state.characters[0] === key) div.classList.add('selected');
     }
     
-    div.innerHTML = `<img src="${Object.values(char.forms)[0].img}" /><div class="label">${char.label}</div>`;
+    // Добавляем описание (desc) под именем
+    div.innerHTML = `
+      <img src="${Object.values(char.forms)[0].img}" />
+      <div class="char-label">${char.label}</div>
+      <div class="char-desc">${char.desc}</div>
+    `;
+    
     div.onclick = () => handleCharClick(key);
     container.appendChild(div);
   }
@@ -427,4 +435,5 @@ document.addEventListener('DOMContentLoaded', () => {
   
   show(STEP.NAME);
 });
+
 
