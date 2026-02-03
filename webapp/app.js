@@ -24,22 +24,121 @@ let state = {
 
 // ДАННЫЕ (Должны совпадать с сервером)
 const CHARACTERS = {
-  "usagi": { label: "Усаги", forms: { "human": { title: "Усаги Цукино 👧", img: "https://i.pinimg.com/736x/a4/47/c4/a447c423d530b9cac4612a9f71c96ddc.jpg" }, "sailor": { title: "Сейлор Мун 🌙", img: "https://i.pinimg.com/736x/55/ff/32/55ff32a1d1a2e86ff41d76068672e108.jpg" }, "super": { title: "Супер Сейлор Мун 💫", img: "https://i.pinimg.com/736x/56/7b/38/567b38a7e0d7729573f997ded2448d5e.jpg" }, "eternal": { title: "Вечная Сейлор Мун ✨", img: "https://i.pinimg.com/1200x/a1/e5/52/a1e552f9276025313b66b8f3a36a3c44.jpg" } } },
-  "ami": { label: "Ами", forms: { "human": { title: "Ами Мидзуно 📚", img: "https://i.pinimg.com/736x/0b/07/f9/0b07f95abbceecf7922c44ac333a48f2.jpg" }, "sailor": { title: "Сейлор Меркурий 💧", img: "https://i.pinimg.com/736x/b1/61/1a/b1611addcf1190d311218c22614e1e36.jpg" } } },
-  "rei": { label: "Рей", forms: { "human": { title: "Рей Хино 🔥", img: "https://i.pinimg.com/736x/d7/9c/61/d79c617912ae0e4d510660c32c971227.jpg" }, "sailor": { title: "Сейлор Марс 🔥", img: "https://i.pinimg.com/736x/7f/e6/e8/7fe6e8b47812f4778d229903c1776744.jpg" } } },
-  "minako": { label: "Минако", forms: { "human": { title: "Минако Айно 💛", img: "https://i.pinimg.com/736x/68/68/52/6868521a4cf61d75b40772b6f13c0504.jpg" }, "sailor": { title: "Сейлор Венера 💖", img: "https://i.pinimg.com/1200x/bb/e9/6e/bbe96e1b50292f72dab46e16dfd5f632.jpg" } } },
-  "makoto": { label: "Макото", forms: { "human": { title: "Макото Кино 🌿", img: "https://i.pinimg.com/736x/49/27/8d/49278da7f93a6028a0a3d05bbd43fd22.jpg" }, "sailor": { title: "Сейлор Юпитер ⚡", img: "https://i.pinimg.com/736x/84/f8/c0/84f8c01989fa310f2ca46bd8bcd58af3.jpg" } } },
-  "hotaru": { label: "Хотару", forms: { "human": { title: "Хотару Томоэ 🌙", img: "https://i.pinimg.com/736x/62/e8/61/62e861ea332c0bf8dafd00fd4e9571d9.jpg" }, "sailor": { title: "Сейлор Сатурн 🌑", img: "https://i.pinimg.com/736x/65/e3/95/65e3950cb55aaffbfd443ef8d5f3ae2a.jpg" } } },
-  "setsuna": { label: "Сецуна", forms: { "human": { title: "Сецуна Мейо ⏳", img: "https://i.pinimg.com/736x/89/bf/f4/89bff47fee6011a503b18c274a0370a5.jpg" }, "sailor": { title: "Сейлор Плутон 🕰️", img: "https://i.pinimg.com/736x/d4/8b/89/d48b8992dfac715b928af9d974d4c37c.jpg" } } },
-  "haruka": { label: "Харука", forms: { "human": { title: "Харука Тэнно 🌟", img: "https://i.pinimg.com/736x/a8/c9/9e/a8c99e3558ea0caf592cb06c1339f720.jpg" }, "sailor": { title: "Сейлор Уран 🌪️", img: "https://i.pinimg.com/1200x/ec/bd/fd/ecbdfd6392394b2d66fa68729eeb5948.jpg" } } },
-  "michiru": { label: "Мичиру", forms: { "human": { title: "Мичиру Кайо 🌊", img: "https://i.pinimg.com/736x/a4/fe/e9/a4fee98a8f01e8a377a70759edbfc5df.jpg" }, "sailor": { title: "Сейлор Нептун 🎻", img: "https://i.pinimg.com/736x/ef/a9/72/efa97290c250e97924777c4551120f60.jpg" } } },
-  "chibiusa": { label: "Чибиуса", forms: { "human": { title: "Чибиуса ✨", img: "https://i.pinimg.com/736x/40/74/49/4074490084d46e4d173179fe03427d2b.jpg" }, "sailor": { title: "Сейлор Чиби-Мун 💕", img: "https://i.pinimg.com/736x/09/89/00/098900bcc276be04da9e30b7cf3a6007.jpg" } } },
-  "mamoru": { label: "Мамору", forms: { "human": { title: "Мамору Чиба 🌹", img: "https://i.pinimg.com/736x/68/f4/07/68f4077d2f6944bad32604a96a62f310.jpg" }, "sailor": { title: "Такседо Маск 🥶", img: "https://i.pinimg.com/736x/62/c0/97/62c0978a24a049425d9895a159ca3104.jpg" } } },
-  "seiya": { label: "Сейя", forms: { "human": { title: "Сейя Кое ♂️⭐", img: "https://i.pinimg.com/736x/fa/44/48/fa4448c6b3b4d06e33e905e34256199b.jpg" }, "sailor": { title: "Сейлор Стар Файтер ⭐", img: "https://i.pinimg.com/736x/7c/f6/11/7cf6111d7e826a5e8008310206683b1e.jpg" } } },
-  "taiki": { label: "Тайки", forms: { "human": { title: "Тайки Кое ♂️📚", img: "https://i.pinimg.com/736x/9d/cf/05/9dcf05f2328100ef411b710d30ffc465.jpg" }, "sailor": { title: "Сейлор Стар Хилер 📚", img: "https://i.pinimg.com/736x/32/1f/c6/321fc67961d968c73c972616e53721af.jpg" } } },
-  "yaten": { label: "Ятен", forms: { "human": { title: "Ятен ♂️🎭", img: "https://i.pinimg.com/736x/68/b2/00/68b2006277d4c56dde09e0eb1cce61e0.jpg" }, "sailor": { title: "Сейлор Стар Мейкер 🎭", img: "https://i.pinimg.com/736x/90/42/a3/9042a33ae40ccc635e909c2ba00449fb.jpg" } } }
+ "usagi": { 
+   label: "Усаги", 
+   desc: "Весёлая и добрая",
+   forms: { 
+     "human": { title: "Усаги Цукино 👧", img: "https://i.pinimg.com/736x/a4/47/c4/a447c423d530b9cac4612a9f71c96ddc.jpg" }, 
+     "sailor": { title: "Сейлор Мун 🌙", img: "https://i.pinimg.com/736x/55/ff/32/55ff32a1d1a2e86ff41d76068672e108.jpg" }, 
+     "super": { title: "Супер Сейлор Мун 💫", img: "https://i.pinimg.com/736x/56/7b/38/567b38a7e0d7729573f997ded2448d5e.jpg" }, 
+     "eternal": { title: "Вечная Сейлор Мун ✨", img: "https://i.pinimg.com/1200x/a1/e5/52/a1e552f9276025313b66b8f3a36a3c44.jpg" } 
+   } 
+ },
+ "ami": { 
+   label: "Ами", 
+   desc: "Умная и спокойная",
+   forms: { 
+     "human": { title: "Ами Мидзуно 📚", img: "https://i.pinimg.com/736x/0b/07/f9/0b07f95abbceecf7922c44ac333a48f2.jpg" }, 
+     "sailor": { title: "Сейлор Меркурий 💧", img: "https://i.pinimg.com/736x/b1/61/1a/b1611addcf1190d311218c22614e1e36.jpg" } 
+   } 
+ },
+ "rei": { 
+   label: "Рей", 
+   desc: "Строгая и горячая",
+   forms: { 
+     "human": { title: "Рей Хино 🔥", img: "https://i.pinimg.com/736x/d7/9c/61/d79c617912ae0e4d510660c32c971227.jpg" }, 
+     "sailor": { title: "Сейлор Марс 🔥", img: "https://i.pinimg.com/736x/7f/e6/e8/7fe6e8b47812f4778d229903c1776744.jpg" } 
+   } 
+ },
+ "minako": { 
+   label: "Минако", 
+   desc: "Энергичная и весёлая",
+   forms: { 
+     "human": { title: "Минако Айно 💛", img: "https://i.pinimg.com/736x/68/68/52/6868521a4cf61d75b40772b6f13c0504.jpg" }, 
+     "sailor": { title: "Сейлор Венера 💖", img: "https://i.pinimg.com/1200x/bb/e9/6e/bbe96e1b50292f72dab46e16dfd5f632.jpg" } 
+   } 
+ },
+ "makoto": { 
+   label: "Макото", 
+   desc: "Сильная и добрая",
+   forms: { 
+     "human": { title: "Макото Кино 🌿", img: "https://i.pinimg.com/736x/49/27/8d/49278da7f93a6028a0a3d05bbd43fd22.jpg" }, 
+     "sailor": { title: "Сейлор Юпитер ⚡", img: "https://i.pinimg.com/736x/84/f8/c0/84f8c01989fa310f2ca46bd8bcd58af3.jpg" } 
+   } 
+ },
+ "hotaru": { 
+   label: "Хотару", 
+   desc: "Тихая и загадочная",
+   forms: { 
+     "human": { title: "Хотару Томоэ 🌙", img: "https://i.pinimg.com/736x/62/e8/61/62e861ea332c0bf8dafd00fd4e9571d9.jpg" }, 
+     "sailor": { title: "Сейлор Сатурн 🌑", img: "https://i.pinimg.com/736x/65/e3/95/65e3950cb55aaffbfd443ef8d5f3ae2a.jpg" } 
+   } 
+ },
+ "setsuna": { 
+   label: "Сецуна", 
+   desc: "Мудрая и спокойная",
+   forms: { 
+     "human": { title: "Сецуна Мейо ⏳", img: "https://i.pinimg.com/736x/89/bf/f4/89bff47fee6011a503b18c274a0370a5.jpg" }, 
+     "sailor": { title: "Сейлор Плутон 🕰️", img: "https://i.pinimg.com/736x/d4/8b/89/d48b8992dfac715b928af9d974d4c37c.jpg" } 
+   } 
+ },
+ "haruka": { 
+   label: "Харука", 
+   desc: "Смелая и крутая",
+   forms: { 
+     "human": { title: "Харука Тэнно 🌟", img: "https://i.pinimg.com/736x/a8/c9/9e/a8c99e3558ea0caf592cb06c1339f720.jpg" }, 
+     "sailor": { title: "Сейлор Уран 🌪️", img: "https://i.pinimg.com/1200x/ec/bd/fd/ecbdfd6392394b2d66fa68729eeb5948.jpg" } 
+   } 
+ },
+ "michiru": { 
+   label: "Мичиру", 
+   desc: "Элегантная и талантливая",
+   forms: { 
+     "human": { title: "Мичиру Кайо 🌊", img: "https://i.pinimg.com/736x/a4/fe/e9/a4fee98a8f01e8a377a70759edbfc5df.jpg" }, 
+     "sailor": { title: "Сейлор Нептун 🎻", img: "https://i.pinimg.com/736x/ef/a9/72/efa97290c250e97924777c4551120f60.jpg" } 
+   } 
+ },
+ "chibiusa": { 
+   label: "Чибиуса", 
+   desc: "Маленькая и упрямая",
+   forms: { 
+     "human": { title: "Чибиуса ✨", img: "https://i.pinimg.com/736x/40/74/49/4074490084d46e4d173179fe03427d2b.jpg" }, 
+     "sailor": { title: "Сейлор Чиби-Мун 💕", img: "https://i.pinimg.com/736x/09/89/00/098900bcc276be04da9e30b7cf3a6007.jpg" } 
+   } 
+ },
+ "mamoru": { 
+   label: "Мамору", 
+   desc: "Галантный и сильный",
+   forms: { 
+     "human": { title: "Мамору Чиба 🌹", img: "https://i.pinimg.com/736x/68/f4/07/68f4077d2f6944bad32604a96a62f310.jpg" }, 
+     "sailor": { title: "Такседо Маск 🥶", img: "https://i.pinimg.com/736x/62/c0/97/62c0978a24a049425d9895a159ca3104.jpg" } 
+   } 
+ },
+ "seiya": { 
+   label: "Сейя", 
+   desc: "Харизматичный и смелый",
+   forms: { 
+     "human": { title: "Сейя Кое ♂️⭐", img: "https://i.pinimg.com/736x/fa/44/48/fa4448c6b3b4d06e33e905e34256199b.jpg" }, 
+     "sailor": { title: "Сейлор Стар Файтер ⭐", img: "https://i.pinimg.com/736x/7c/f6/11/7cf6111d7e826a5e8008310206683b1e.jpg" } 
+   } 
+ },
+ "taiki": { 
+   label: "Тайки", 
+   desc: "Умный и спокойный",
+   forms: { 
+     "human": { title: "Тайки Кое ♂️📚", img: "https://i.pinimg.com/736x/9d/cf/05/9dcf05f2328100ef411b710d30ffc465.jpg" }, 
+     "sailor": { title: "Сейлор Стар Хилер 📚", img: "https://i.pinimg.com/736x/32/1f/c6/321fc67961d968c73c972616e53721af.jpg" } 
+   } 
+ },
+ "yaten": { 
+   label: "Ятен", 
+   desc: "Саркастичный и креативный",
+   forms: { 
+     "human": { title: "Ятен ♂️🎭", img: "https://i.pinimg.com/736x/68/b2/00/68b2006277d4c56dde09e0eb1cce61e0.jpg" }, 
+     "sailor": { title: "Сейлор Стар Мейкер 🎭", img: "https://i.pinimg.com/736x/90/42/a3/9042a33ae40ccc635e909c2ba00449fb.jpg" } 
+   } 
+ }
 };
-
 // === ЗВУКИ ===
 const music = document.getElementById('bg-music');
 const clickSound = document.getElementById('click-sound');
@@ -328,3 +427,4 @@ document.addEventListener('DOMContentLoaded', () => {
   
   show(STEP.NAME);
 });
+
